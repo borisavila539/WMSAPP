@@ -1,4 +1,6 @@
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+//apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
 
 buildscript {
     ext {
@@ -19,3 +21,5 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }
+
+
