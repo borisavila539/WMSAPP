@@ -4,19 +4,22 @@ import { WMSReducer } from "./WMSReducer";
 //Definir la informacion a grabar
 export interface WMSState {
     usuario: string,
-    diario: string
+    diario: string,
+    nombreDiario: string
 }
 
 //Estado inicial
 export const WMSInitialState: WMSState = {
     usuario: '',
-    diario: ''
+    diario: '',
+    nombreDiario: ''
 }
 
 export interface WMSContextProps {
     WMSState: WMSState,
     changeUsuario: (usuario: string) => void;
-    changeDiario: (diario:string) => void;
+    changeDiario: (diario: string) => void;
+    changeNombreDiario: (nombreDiario: string) => void
 }
 
 //crear el contexto
@@ -32,6 +35,9 @@ export const WMSProvider = ({ children }: any) => {
     const changeDiario = (diario: string) => {
         dispatch({ type: 'changeDiario', payload: diario })
     }
+    const changeNombreDiario = (nombreDiario: string) => {
+        dispatch({ type: 'changeNombreDiario', payload: nombreDiario })
+    }
 
 
     return (
@@ -39,7 +45,8 @@ export const WMSProvider = ({ children }: any) => {
             value={{
                 WMSState: WMSState,
                 changeUsuario,
-                changeDiario
+                changeDiario,
+                changeNombreDiario
             }}
         >
             {children}

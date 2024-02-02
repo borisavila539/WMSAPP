@@ -3,6 +3,8 @@ import { WMSState } from "./WMSContext"
 type WMSAction =
 | { type: 'changeUsuario', payload: string }
 | { type: 'changeDiario', payload: string }
+| { type: 'changeNombreDiario', payload: string }
+
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
     switch (action.type) {
@@ -15,6 +17,11 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
             return {
                 ...state,
                 diario: action.payload
+            }
+        case "changeNombreDiario":
+            return {
+                ...state,
+                nombreDiario: action.payload
             }
         default:
             return state;

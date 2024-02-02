@@ -1,18 +1,22 @@
-import React, { FC, useContext, useEffect, useState } from 'react'
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native'
+import React, { FC, useContext, useEffect, useRef, useState } from 'react'
+import { FlatList, Keyboard, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
 import { WMSContext } from '../context/WMSContext'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
 import { GrupoLineasDiariointerface, LineasDiariointerface } from '../interfaces/LineasDiarioInterface';
 import { WmSApi } from '../api/WMSApi'
-import { grey, navy } from '../constants/Colors'
+import { grey, navy, orange } from '../constants/Colors'
+import Header from '../components/Header'
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasScreen">
 
 export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const { WMSState } = useContext(WMSContext)
     const [Lineas, setLineas] = useState<GrupoLineasDiariointerface[]>([])
+    const [Linea, setLinea] = useState<GrupoLineasDiariointerface>()
     const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [barCode, setbarcode] = useState<string>('');
+    const textInputRef = useRef<TextInput>(null);
 
     const getData = async () => {
         try {
@@ -34,10 +38,21 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
 
 
                 setLineas(groupedArray)
+                setLinea(groupedArray[0])
             })
         } catch (err) {
             console.log(err)
         }
+    }
+
+    const getCantidadTotal = (): number => {
+        let suma: number = 0;
+        Lineas.map(items => {
+            items.items.map(item => {
+                suma += item.qty
+            })
+        })
+        return suma;
     }
 
     const getCantidad = (item: LineasDiariointerface[]): number => {
@@ -47,19 +62,20 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         ))
         return suma
     }
-
-    const renderItem = (item: GrupoLineasDiariointerface, index: number) => {
-        const Giones = (cant: number): string => {
-            let texto: string = ''
-            while (cant > 0) {
-                texto += '_'
-                cant--
-            }
-            return texto
+    const Giones = (cant: number): string => {
+        let texto: string = ''
+        while (cant > 0) {
+            texto += '_'
+            cant--
         }
+        return texto
+    }
+
+    const renderItem = (item: GrupoLineasDiariointerface, index: number, color: string) => {
+
         return (
             <View style={style.containerCard}>
-                <View style={style.card}>
+                <View style={[style.card, { backgroundColor: color }]}>
                     <View style={{ width: '80%' }}>
                         <Text style={[style.textCard, { fontWeight: 'bold' }]}>{item.items[0].itemid} *{item.items[0].inventcolorid}</Text>
 
@@ -68,7 +84,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                             {
                                 item.items.map(subitem => (
                                     <>
-                                        <Text style={{color:navy}}>{Giones(4 - subitem.inventsizeid.length)}</Text>
+                                        <Text style={{ color: color }}>{Giones(4 - subitem.inventsizeid.length)}</Text>
                                         <Text style={style.textCard}>{subitem.inventsizeid}</Text>
                                     </>
 
@@ -80,7 +96,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                             {
                                 item.items.map(subitem => (
                                     <>
-                                        <Text style={{color:navy}}>{Giones(4 - subitem.qty.toString().length)}</Text>
+                                        <Text style={{ color: color }}>{Giones(4 - subitem.qty.toString().length)}</Text>
                                         <Text style={style.textCard}>{subitem.qty}</Text>
                                     </>
 
@@ -100,20 +116,53 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         )
     }
 
+    const handleEnterPress = () => {
+
+        setbarcode('')
+
+        setTimeout(() => {
+            textInputRef.current?.focus();
+        }, 0);
+       
+
+        setLinea(Lineas[2])
+        
+    }
+
     useEffect(() => {
+        textInputRef.current?.focus()
         getData();
+
     }, [])
+
+
+
     return (
-        <View style={{flex:1,width:'100%'}}>
-            <Text>
-                {WMSState.diario}
-            </Text>
+        <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
+            <Header texto1={WMSState.diario + ':' + WMSState.nombreDiario} texto2={'Lineas Ingresadas: ' + getCantidadTotal().toString()} />
+            <View style={style.textInput}>
+                <TextInput
+                    ref={textInputRef}
+                    onChangeText={(value) => setbarcode(value)}
+                    value={barCode}
+                    style={style.input}
+                    onSubmitEditing={handleEnterPress}
+                    placeholder="Escanear producto..."
+
+                />
+            </View>
+            <View style={{ width: '100%', marginBottom: 10 }}>
+                {
+                    Linea &&
+                    renderItem(Linea, 1000, orange)
+                }
+            </View>
             {
                 Lineas.length > 0 ?
                     <FlatList
                         data={Lineas}
                         keyExtractor={(item) => item.key}
-                        renderItem={({ item, index }) => renderItem(item, index)}
+                        renderItem={({ item, index }) => renderItem(item, index, navy)}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={() => getData()} colors={['#069A8E']} />
                         }
@@ -134,11 +183,11 @@ const style = StyleSheet.create({
     card: {
         maxWidth: 450,
         width: '90%',
-        borderWidth: 3,
+
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 5,
-        backgroundColor: navy,
+
         marginHorizontal: '1%',
         marginVertical: 2,
         flexDirection: 'row'
@@ -146,4 +195,19 @@ const style = StyleSheet.create({
     textCard: {
         color: grey
     },
+    textInput: {
+        maxWidth: 450,
+        width: '90%',
+        backgroundColor: grey,
+        borderRadius: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+        marginTop: 5,
+        borderWidth: 1
+    },
+    input: {
+        width: '90%',
+        textAlign: 'center'
+    }
 })

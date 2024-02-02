@@ -7,11 +7,12 @@ import { grey, navy } from '../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
+import Header from '../components/Header'
 
 type props = StackScreenProps<RootStackParams, "SeleccionarDiarioScreen">
 
 export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
-    const { WMSState, changeDiario } = useContext(WMSContext);
+    const { WMSState, changeDiario,changeNombreDiario } = useContext(WMSContext);
     const [cargando, setCargando] = useState<boolean>(false);
     const [Diarios, setDiarios] = useState<DiariosAbriertosinterface[]>([]);
     const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -33,6 +34,7 @@ export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
     const renderItem = (item: DiariosAbriertosinterface, index: number) => {
         const onPress = (item2: DiariosAbriertosinterface) => {
             changeDiario(item2.journalid)
+            changeNombreDiario(item2.journalnameid)
             navigation.navigate('IngresarLineasScreen')
         }
         return (
@@ -60,6 +62,7 @@ export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
     }, [])
     return (
         <View style={style.container}>
+            <Header texto1='' texto2='Seleccione Diario'/>
             <View style={style.textInput}>
                 <TextInput
                     placeholder='DIA-XXXXXX'
@@ -110,7 +113,6 @@ const style = StyleSheet.create({
     card: {
         maxWidth: 450,
         width: '90%',
-        borderWidth: 3,
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 5,
