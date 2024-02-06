@@ -5,8 +5,11 @@ import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
 import { GrupoLineasDiariointerface, LineasDiariointerface } from '../interfaces/LineasDiarioInterface';
 import { WmSApi } from '../api/WMSApi'
-import { grey, navy, orange } from '../constants/Colors'
+import { black, grey, navy, orange } from '../constants/Colors'
 import Header from '../components/Header'
+import MyAlert from '../components/MyAlert'
+import Icon from 'react-native-vector-icons/Ionicons'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasScreen">
 
@@ -17,32 +20,40 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [barCode, setbarcode] = useState<string>('');
     const textInputRef = useRef<TextInput>(null);
+    const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
+    const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
+    const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
+    const [cargando,setCargando] = useState<boolean>(false);
 
     const getData = async () => {
-        try {
-            await WmSApi.get<LineasDiariointerface[]>(`LineasDiario/${WMSState.diario}`).then(resp => {
-                const groupedData: { [key: string]: LineasDiariointerface[] } = {};
-
-                resp.data.forEach(element => {
-                    const key = `${element.itemid}-${element.inventcolorid}`
-                    if (!groupedData[key]) {
-                        groupedData[key] = [];
-                    }
-                    groupedData[key].push(element);
-                });
-                const groupedArray: GrupoLineasDiariointerface[] = Object.keys(groupedData).map(key => ({
-                    key,
-                    items: groupedData[key],
-                }));
-
-
-
-                setLineas(groupedArray)
-                setLinea(groupedArray[0])
-            })
-        } catch (err) {
-            console.log(err)
+        
+        if(!cargando)
+        {
+            setCargando(true)
+            try {
+                await WmSApi.get<LineasDiariointerface[]>(`LineasDiario/${WMSState.diario}`).then(resp => {
+                    const groupedData: { [key: string]: LineasDiariointerface[] } = {};
+    
+                    resp.data.forEach(element => {
+                        const key = `${element.itemid}-${element.inventcolorid}`
+                        if (!groupedData[key]) {
+                            groupedData[key] = [];
+                        }
+                        groupedData[key].push(element);
+                    });
+                    const groupedArray: GrupoLineasDiariointerface[] = Object.keys(groupedData).map(key => ({
+                        key,
+                        items: groupedData[key],
+                    }));
+    
+                    setLineas(groupedArray)
+                })
+            } catch (err) {
+                console.log(err)
+            }
+            setCargando(false)
         }
+        
     }
 
     const getCantidadTotal = (): number => {
@@ -116,17 +127,28 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         )
     }
 
-    const handleEnterPress = () => {
+    const handleEnterPress = async () => {
 
-        setbarcode('')
+        await WmSApi.get<string>(`InsertMovimiento/${WMSState.diario}/${barCode}`).then(x => {
+            console.log(x.data)
+            
 
+            if (x.data == 'OK') {
+
+                getData();
+            } else {
+                setbarcode('')
+                
+                setMensajeAlerta(x.data)
+                setTipoMensaje(false);
+                setShowMensajeAlerta(true);
+            }
+
+        })
         setTimeout(() => {
             textInputRef.current?.focus();
         }, 0);
-       
 
-        setLinea(Lineas[2])
-        
     }
 
     useEffect(() => {
@@ -134,6 +156,13 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         getData();
 
     }, [])
+
+    useEffect(() => {
+        if (barCode.length > 0) {
+            setLinea(Lineas.find(x => x.items.find(x => x.itembarcode == barCode)))
+            setbarcode('')
+        }
+    }, [Lineas])
 
 
 
@@ -150,11 +179,14 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                     placeholder="Escanear producto..."
 
                 />
+                <TouchableOpacity onPress={() => setbarcode('')}>
+                    <Icon name='close-outline' size={20} color={black} />
+                </TouchableOpacity>
             </View>
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
                     Linea &&
-                    renderItem(Linea, 1000, orange)
+                    renderItem(Linea, Lineas.length+1, orange)
                 }
             </View>
             {
@@ -172,6 +204,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                         <Text >No se encontraron lineas en el diario</Text>
                     </View>
             }
+            <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
         </View>
     )
 }

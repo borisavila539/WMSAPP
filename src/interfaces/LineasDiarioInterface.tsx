@@ -1,4 +1,5 @@
 export interface LineasDiariointerface{
+    itembarcode:string,
     itemid: string,
     inventcolorid: string,
     inventsizeid: string,
