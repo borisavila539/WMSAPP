@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderWidth: 1,
         backgroundColor: '#00000099',
+       
     },
     constainer: {
         width: '80%',
@@ -38,7 +39,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 10,
         paddingVertical: 15,
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
+        maxHeight: 300
     },
     text: {
         fontWeight: 'bold',

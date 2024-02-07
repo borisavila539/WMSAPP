@@ -1,5 +1,5 @@
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { FlatList, Keyboard, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
+import { FlatList, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 import { WMSContext } from '../context/WMSContext'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
@@ -24,17 +24,17 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
     const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-    const [cargando,setCargando] = useState<boolean>(false);
+    const [cargando, setCargando] = useState<boolean>(false);
+    const [add, setAdd] = useState<boolean>(true);
 
     const getData = async () => {
-        
-        if(!cargando)
-        {
+
+        if (!cargando) {
             setCargando(true)
             try {
                 await WmSApi.get<LineasDiariointerface[]>(`LineasDiario/${WMSState.diario}`).then(resp => {
                     const groupedData: { [key: string]: LineasDiariointerface[] } = {};
-    
+
                     resp.data.forEach(element => {
                         const key = `${element.itemid}-${element.inventcolorid}`
                         if (!groupedData[key]) {
@@ -46,7 +46,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                         key,
                         items: groupedData[key],
                     }));
-    
+
                     setLineas(groupedArray)
                 })
             } catch (err) {
@@ -54,7 +54,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
             }
             setCargando(false)
         }
-        
+
     }
 
     const getCantidadTotal = (): number => {
@@ -83,10 +83,10 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         return texto
     }
 
-    const renderItem = (item: GrupoLineasDiariointerface, index: number, color: string) => {
+    const renderItem = (item: GrupoLineasDiariointerface, color: string) => {
 
         return (
-            <View style={style.containerCard}>
+            <View style={style.containerCard} >
                 <View style={[style.card, { backgroundColor: color }]}>
                     <View style={{ width: '80%' }}>
                         <Text style={[style.textCard, { fontWeight: 'bold' }]}>{item.items[0].itemid} *{item.items[0].inventcolorid}</Text>
@@ -95,22 +95,22 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                             <Text style={style.textCard}>Talla:</Text>
                             {
                                 item.items.map(subitem => (
-                                    <>
+                                    <View key={subitem.inventsizeid + 'Talla'} style={{ flexDirection: 'row' }}>
                                         <Text style={{ color: color }}>{Giones(4 - subitem.inventsizeid.length)}</Text>
-                                        <Text style={style.textCard}>{subitem.inventsizeid}</Text>
-                                    </>
+                                        <Text style={style.textCard} >{subitem.inventsizeid}</Text>
+                                    </View>
 
                                 ))
                             }
                         </View>
                         <View style={{ width: '100%', flexDirection: 'row' }}>
-                            <Text style={style.textCard}>QTY:  </Text>
+                            <Text style={style.textCard}>QTY: </Text>
                             {
                                 item.items.map(subitem => (
-                                    <>
-                                        <Text style={{ color: color }}>{Giones(4 - subitem.qty.toString().length)}</Text>
-                                        <Text style={style.textCard}>{subitem.qty}</Text>
-                                    </>
+                                    <View key={subitem.inventsizeid + 'QTY'} style={{ flexDirection: 'row' }}>
+                                        <Text style={{ color: color }} >{Giones(4 - subitem.qty.toString().length)}</Text>
+                                        <Text style={style.textCard} >{subitem.qty}</Text>
+                                    </View>
 
                                 ))
                             }
@@ -128,35 +128,34 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         )
     }
 
-    const handleEnterPress = async () => {
-
-        await WmSApi.get<string>(`InsertMovimiento/${WMSState.diario}/${barCode}`).then(x => {
-            console.log(x.data)            
-
+    const AgregarEliminarArticulo = async (PROCESO: string) => {
+        console.log(PROCESO)
+        await WmSApi.get<string>(`InsertDeleteMovimiento/${WMSState.diario}/${barCode}/${PROCESO}`).then(x => {
             if (x.data == 'OK') {
                 getData();
-                
             } else {
                 setbarcode('')
                 setMensajeAlerta(x.data)
                 setTipoMensaje(false);
                 setShowMensajeAlerta(true);
-                try{
-                    SoundPlayer.playSoundFile('error','mp3')
-                }catch(err){
+                try {
+                    SoundPlayer.playSoundFile('error', 'mp3')
+                } catch (err) {
                     console.log('Sin sonido')
                     console.log(err)
                 }
             }
         })
         setTimeout(() => {
-            textInputRef.current?.focus();
+            textInputRef.current?.blur()
         }, 0);
-
     }
+
+
 
     useEffect(() => {
         textInputRef.current?.focus()
+        //textInputRef.current?.blur()
         getData();
 
     }, [])
@@ -165,14 +164,29 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         if (barCode.length > 0) {
             setLinea(Lineas.find(x => x.items.find(x => x.itembarcode == barCode)))
             setbarcode('')
-            try{
-                SoundPlayer.playSoundFile('success','mp3')
-            }catch(err){
+            try {
+                SoundPlayer.playSoundFile('success', 'mp3')
+            } catch (err) {
                 console.log('Sin sonido')
                 console.log(err)
             }
         }
     }, [Lineas])
+
+    useEffect(() => {
+        if (barCode.length == 13 && !cargando && add) {
+            AgregarEliminarArticulo('ADD')
+        } else if (barCode.length == 13 && !cargando && !add) {
+            AgregarEliminarArticulo('REMOVE')
+        }
+    }, [barCode])
+
+    useEffect(() => {
+        if (!textInputRef.current?.isFocused()) {
+            textInputRef.current?.blur()
+        }
+
+    }, [textInputRef.current?.isFocused()])
 
 
 
@@ -180,13 +194,17 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1={WMSState.diario + ':' + WMSState.nombreDiario} texto2={'Lineas Ingresadas: ' + getCantidadTotal().toString()} />
             <View style={style.textInput}>
+                <Switch value={add} onValueChange={() => setAdd(!add)}
+                    trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
+                    thumbColor={add ? '#77D970' : '#CD4439'} />
+
                 <TextInput
                     ref={textInputRef}
-                    onChangeText={(value) => setbarcode(value)}
+                    onChangeText={(value) => { setbarcode(value) }}
                     value={barCode}
                     style={style.input}
-                    onSubmitEditing={handleEnterPress}
-                    placeholder="Escanear producto..."
+                    //onSubmitEditing={handleEnterPress}
+                    placeholder={add ? 'Escanear Ingreso...' : 'Escanear Reduccion...'}
 
                 />
                 <TouchableOpacity onPress={() => setbarcode('')}>
@@ -196,15 +214,15 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
                     Linea != null &&
-                    renderItem(Linea, Lineas.length+1, orange)
+                    renderItem(Linea, orange)
                 }
             </View>
             {
                 Lineas.length > 0 ?
                     <FlatList
                         data={Lineas}
-                        keyExtractor={(item) => item.key}
-                        renderItem={({ item, index }) => renderItem(item, index, navy)}
+                        keyExtractor={(item, index) => item.items[0].itembarcode}
+                        renderItem={({ item }) => renderItem(item, navy)}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={() => getData()} colors={['#069A8E']} />
                         }
@@ -214,7 +232,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                         <Text >No se encontraron lineas en el diario</Text>
                     </View>
             }
-            <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
+            <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => { setShowMensajeAlerta(false); textInputRef.current?.focus(); }} />
         </View>
     )
 }
@@ -250,7 +268,7 @@ const style = StyleSheet.create({
         borderWidth: 1
     },
     input: {
-        width: '90%',
+        width: '75%',
         textAlign: 'center'
     }
 })
