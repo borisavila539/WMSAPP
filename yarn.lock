@@ -3513,6 +3513,13 @@ find-cache-dir@^2.0.0:
     make-dir "^2.0.0"
     pkg-dir "^3.0.0"
 
+find-exec@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/find-exec/-/find-exec-1.0.3.tgz"
+  integrity sha512-gnG38zW90mS8hm5smNcrBnakPEt+cGJoiMkJwCU0IYnEb0H2NQk0NIljhNW+48oniCriFek/PH6QXbwsJo/qug==
+  dependencies:
+    shell-quote "^1.8.1"
+
 find-up@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/find-up/-/find-up-3.0.0.tgz"
@@ -5748,6 +5755,13 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
+play-sound@^1.1.6:
+  version "1.1.6"
+  resolved "https://registry.npmjs.org/play-sound/-/play-sound-1.1.6.tgz"
+  integrity sha512-09eO4QiXNFXJffJaOW5P6x6F5RLihpLUkXttvUZeWml0fU6x6Zp7AjG9zaeMpgH2ZNvq4GR1ytB22ddYcqJIZA==
+  dependencies:
+    find-exec "1.0.3"
+
 prelude-ls@^1.2.1:
   version "1.2.1"
   resolved "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.2.1.tgz"
@@ -5973,6 +5987,11 @@ react-native-size-matters@^0.3.1:
   version "0.3.1"
   resolved "https://registry.npmjs.org/react-native-size-matters/-/react-native-size-matters-0.3.1.tgz"
   integrity sha512-mKOfBLIBFBcs9br1rlZDvxD5+mAl8Gfr5CounwJtxI6Z82rGrMO+Kgl9EIg3RMVf3G855a85YVqHJL2f5EDRlw==
+
+react-native-sound-player@^0.13.2:
+  version "0.13.2"
+  resolved "https://registry.npmjs.org/react-native-sound-player/-/react-native-sound-player-0.13.2.tgz"
+  integrity sha512-m457mjp496sARAED7epYzbhorfiLZ3j6HzJn7zEL9RU+ZJKcans/0gFNUEBvlh31fSDZRliQ2WwE4mJ6836bNg==
 
 react-native-vector-icons@^9.2.0, react-native-vector-icons@>7.0.0:
   version "9.2.0"
@@ -6418,7 +6437,7 @@ shebang-regex@^3.0.0:
   resolved "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
-shell-quote@^1.6.1, shell-quote@^1.7.3:
+shell-quote@^1.6.1, shell-quote@^1.7.3, shell-quote@^1.8.1:
   version "1.8.1"
   resolved "https://registry.npmjs.org/shell-quote/-/shell-quote-1.8.1.tgz"
   integrity sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==

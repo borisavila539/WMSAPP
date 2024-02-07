@@ -10,6 +10,7 @@ import Header from '../components/Header'
 import MyAlert from '../components/MyAlert'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
+import SoundPlayer from 'react-native-sound-player'
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasScreen">
 
@@ -130,20 +131,23 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const handleEnterPress = async () => {
 
         await WmSApi.get<string>(`InsertMovimiento/${WMSState.diario}/${barCode}`).then(x => {
-            console.log(x.data)
-            
+            console.log(x.data)            
 
             if (x.data == 'OK') {
-
                 getData();
+                
             } else {
                 setbarcode('')
-                
                 setMensajeAlerta(x.data)
                 setTipoMensaje(false);
                 setShowMensajeAlerta(true);
+                try{
+                    SoundPlayer.playSoundFile('error','mp3')
+                }catch(err){
+                    console.log('Sin sonido')
+                    console.log(err)
+                }
             }
-
         })
         setTimeout(() => {
             textInputRef.current?.focus();
@@ -161,6 +165,12 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         if (barCode.length > 0) {
             setLinea(Lineas.find(x => x.items.find(x => x.itembarcode == barCode)))
             setbarcode('')
+            try{
+                SoundPlayer.playSoundFile('success','mp3')
+            }catch(err){
+                console.log('Sin sonido')
+                console.log(err)
+            }
         }
     }, [Lineas])
 
@@ -185,7 +195,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
             </View>
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
-                    Linea &&
+                    Linea != null &&
                     renderItem(Linea, Lineas.length+1, orange)
                 }
             </View>
