@@ -1,5 +1,5 @@
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { FlatList, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 import { WMSContext } from '../context/WMSContext'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
@@ -129,26 +129,32 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     }
 
     const AgregarEliminarArticulo = async (PROCESO: string) => {
-        console.log(PROCESO)
-        await WmSApi.get<string>(`InsertDeleteMovimiento/${WMSState.diario}/${barCode}/${PROCESO}`).then(x => {
-            if (x.data == 'OK') {
-                getData();
-            } else {
-                setbarcode('')
-                setMensajeAlerta(x.data)
-                setTipoMensaje(false);
-                setShowMensajeAlerta(true);
-                try {
-                    SoundPlayer.playSoundFile('error', 'mp3')
-                } catch (err) {
-                    console.log('Sin sonido')
-                    console.log(err)
+        try{
+            await WmSApi.get<string>(`InsertDeleteMovimiento/${WMSState.diario}/${barCode}/${PROCESO}`).then(x => {
+                if (x.data == 'OK') {
+                    getData();
+                } else {
+                    setbarcode('')
+                    setMensajeAlerta(x.data.slice(0,120))
+                    setTipoMensaje(false);
+                    setShowMensajeAlerta(true);
+                    try {
+                        SoundPlayer.playSoundFile('error', 'mp3')
+                    } catch (err) {
+                        console.log('Sin sonido')
+                        console.log(err)
+                    }
                 }
-            }
-        })
-        setTimeout(() => {
-            textInputRef.current?.blur()
-        }, 0);
+            })
+            setTimeout(() => {
+                textInputRef.current?.blur()
+            }, 0);
+        }catch(err){
+            setbarcode('')
+            setMensajeAlerta('Error de envio')
+            setTipoMensaje(false);
+            setShowMensajeAlerta(true);
+        }        
     }
 
 
@@ -193,7 +199,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1={WMSState.diario + ':' + WMSState.nombreDiario} texto2={'Lineas Ingresadas: ' + getCantidadTotal().toString()} />
-            <View style={style.textInput}>
+            <View style={[style.textInput, { borderColor: add ? '#77D970' : '#CD4439' }]}>
                 <Switch value={add} onValueChange={() => setAdd(!add)}
                     trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
                     thumbColor={add ? '#77D970' : '#CD4439'} />
@@ -207,9 +213,14 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                     placeholder={add ? 'Escanear Ingreso...' : 'Escanear Reduccion...'}
 
                 />
-                <TouchableOpacity onPress={() => setbarcode('')}>
-                    <Icon name='close-outline' size={20} color={black} />
-                </TouchableOpacity>
+                {!cargando ?
+                    <TouchableOpacity onPress={() => setbarcode('')}>
+                        <Icon name='close-outline' size={20} color={black} />
+                    </TouchableOpacity>
+                    :
+                    <ActivityIndicator size={20} />
+                }
+
             </View>
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
@@ -265,7 +276,7 @@ const style = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 5,
         marginTop: 5,
-        borderWidth: 1
+        borderWidth: 2
     },
     input: {
         width: '75%',

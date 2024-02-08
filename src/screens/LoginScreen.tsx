@@ -33,6 +33,8 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
             console.log(datos)
             await WmSApi.post<LoginInterface>('Login', datos).then(x => {
                 if (x.data.logeado) {
+                    setuser('')
+                    setPass('')
                     changeUsuario(x.data.user)
                     navigation.navigate('SeleccionarDiarioScreen');
                 } else {
