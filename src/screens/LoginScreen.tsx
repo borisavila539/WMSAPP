@@ -44,7 +44,9 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
                 }
             })
         } catch (err) {
-            console.log(err)
+            setMensajeAlerta('Error de conexion')
+            setTipoMensaje(false);
+            setShowMensajeAlerta(true);
         }
 
         setEnviando(false)

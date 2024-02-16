@@ -3,12 +3,12 @@ import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Switch, Text, 
 import { WMSContext } from '../context/WMSContext'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
-import { GrupoLineasDiariointerface, LineasDiariointerface } from '../interfaces/LineasDiarioInterface';
+import { CajasLineasDiario, GrupoLineasDiariointerface, LineasDiariointerface } from '../interfaces/LineasDiarioInterface';
 import { WmSApi } from '../api/WMSApi'
-import { black, grey, navy, orange } from '../constants/Colors'
+import { black, blue, grey, navy, orange } from '../constants/Colors'
 import Header from '../components/Header'
 import MyAlert from '../components/MyAlert'
-import Icon from 'react-native-vector-icons/Ionicons'
+import Icon from 'react-native-vector-icons/FontAwesome5'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import SoundPlayer from 'react-native-sound-player'
 
@@ -17,6 +17,7 @@ type props = StackScreenProps<RootStackParams, "IngresarLineasScreen">
 export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const { WMSState } = useContext(WMSContext)
     const [Lineas, setLineas] = useState<GrupoLineasDiariointerface[]>([])
+    const [LineasCajas, setLineasCajas] = useState<CajasLineasDiario[]>([])
     const [Linea, setLinea] = useState<GrupoLineasDiariointerface>()
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [barCode, setbarcode] = useState<string>('');
@@ -26,6 +27,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
     const [cargando, setCargando] = useState<boolean>(false);
     const [add, setAdd] = useState<boolean>(true);
+    const [IMBoxCode, setIMBoxCode] = useState<string>('')
 
     const getData = async () => {
 
@@ -36,7 +38,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                     const groupedData: { [key: string]: LineasDiariointerface[] } = {};
 
                     resp.data.forEach(element => {
-                        const key = `${element.itemid}-${element.inventcolorid}`
+                        const key = `${element.itemid}-${element.inventcolorid}-${element.imboxcode}`
                         if (!groupedData[key]) {
                             groupedData[key] = [];
                         }
@@ -46,8 +48,24 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                         key,
                         items: groupedData[key],
                     }));
-
                     setLineas(groupedArray)
+                    //probando agrupacion por caja
+                    const groupedDataCajas: { [key: string]: GrupoLineasDiariointerface[] } = {};
+                    groupedArray.forEach(element => {
+                        const key = element.items[0].imboxcode
+                        if (!groupedDataCajas[key]) {
+                            groupedDataCajas[key] = []
+                        }
+
+                        groupedDataCajas[key].push(element)
+                    })
+                    const groupedArrayCajas: CajasLineasDiario[] = Object.keys(groupedDataCajas).map(key => ({
+                        key,
+                        show: true,
+                        items: groupedDataCajas[key],
+                    }));
+
+                    setLineasCajas(groupedArrayCajas)
                 })
             } catch (err) {
                 console.log(err)
@@ -83,14 +101,52 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
         return texto
     }
 
-    const renderItem = (item: GrupoLineasDiariointerface, color: string) => {
+    const renderItemCajas = (item: CajasLineasDiario, index: number) => {
+
+        return (
+            <View style={style.containerCard}>
+                <View style={[style.card, { flexDirection: "column", borderWidth: 1, borderColor: blue }]}>
+                    <View style={{ width: '100%', flexDirection: "row", justifyContent: 'space-between' }}>
+                        <TouchableOpacity onPress={() => {
+                            const nuevo = [...LineasCajas];
+                            nuevo[index].show = !item.show;
+                            setLineasCajas(nuevo)
+                        }}>
+                            <Icon name={item.show ? 'chevron-up' : 'chevron-down'} size={25} color={black} />
+                        </TouchableOpacity>
+
+                        <Text style={{ fontWeight: 'bold', color: navy }}>Caja: {item.key}</Text>
+                        <TouchableOpacity>
+                            <Icon name='print' size={30} color={black} />
+                        </TouchableOpacity>
+
+                    </View>
+                    {
+                        item.show &&
+                        item.items.map(element => (
+                            <View key={element.key + item.key}>
+                                {
+                                    renderItem(element, navy, false)
+                                }
+
+                            </View>
+                        ))
+                    }
+                </View>
+            </View>
+        )
+    }
+
+    const renderItem = (item: GrupoLineasDiariointerface, color: string, caja: boolean) => {
 
         return (
             <View style={style.containerCard} >
                 <View style={[style.card, { backgroundColor: color }]}>
                     <View style={{ width: '80%' }}>
                         <Text style={[style.textCard, { fontWeight: 'bold' }]}>{item.items[0].itemid} *{item.items[0].inventcolorid}</Text>
-
+                        {
+                            caja && <Text style={style.textCard}>Caja: {item.items[0].imboxcode}</Text>
+                        }
                         <View style={{ width: '100%', flexDirection: 'row' }}>
                             <Text style={style.textCard}>Talla:</Text>
                             {
@@ -129,35 +185,40 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     }
 
     const AgregarEliminarArticulo = async (PROCESO: string) => {
-        try{
-            await WmSApi.get<string>(`InsertDeleteMovimiento/${WMSState.diario}/${barCode}/${PROCESO}`).then(x => {
-                if (x.data == 'OK') {
-                    getData();
-                } else {
-                    setbarcode('')
-                    setMensajeAlerta(x.data.slice(0,120))
-                    setTipoMensaje(false);
-                    setShowMensajeAlerta(true);
-                    try {
-                        SoundPlayer.playSoundFile('error', 'mp3')
-                    } catch (err) {
-                        console.log('Sin sonido')
-                        console.log(err)
-                    }
-                }
-            })
-            setTimeout(() => {
-                textInputRef.current?.blur()
-            }, 0);
-        }catch(err){
-            setbarcode('')
-            setMensajeAlerta('Error de envio')
+        if (IMBoxCode == "") {
+            setMensajeAlerta("Debe seleccionar una caja")
             setTipoMensaje(false);
             setShowMensajeAlerta(true);
-        }        
+        } else {
+            try {
+                await WmSApi.get<string>(`InsertDeleteMovimiento/${WMSState.diario}/${IMBoxCode}/${barCode}/${PROCESO}`).then(x => {
+                    if (x.data == 'OK') {
+                        getData();
+                    } else {
+                        setbarcode('')
+                        setMensajeAlerta(x.data.slice(0, 120))
+                        setTipoMensaje(false);
+                        setShowMensajeAlerta(true);
+                        try {
+                            SoundPlayer.playSoundFile('error', 'mp3')
+                        } catch (err) {
+                            console.log('Sin sonido')
+                            console.log(err)
+                        }
+                    }
+                })
+                setTimeout(() => {
+                    textInputRef.current?.blur()
+                }, 0);
+            } catch (err) {
+                setbarcode('')
+                setMensajeAlerta('Error de envio')
+                setTipoMensaje(false);
+                setShowMensajeAlerta(true);
+            }
+        }
+
     }
-
-
 
     useEffect(() => {
         textInputRef.current?.focus()
@@ -180,11 +241,17 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     }, [Lineas])
 
     useEffect(() => {
-        if (barCode.length == 13 && !cargando && add) {
-            AgregarEliminarArticulo('ADD')
-        } else if (barCode.length == 13 && !cargando && !add) {
-            AgregarEliminarArticulo('REMOVE')
+        if (barCode.slice(0, 2) == "IM") {
+            setIMBoxCode(barCode)
+            setbarcode('')
+        } else {
+            if (barCode.length == 13 && !cargando && add) {
+                AgregarEliminarArticulo('ADD')
+            } else if (barCode.length == 13 && !cargando && !add) {
+                AgregarEliminarArticulo('REMOVE')
+            }
         }
+
     }, [barCode])
 
     useEffect(() => {
@@ -194,11 +261,9 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
 
     }, [textInputRef.current?.isFocused()])
 
-
-
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-            <Header texto1={WMSState.diario + ':' + WMSState.nombreDiario} texto2={'Lineas Ingresadas: ' + getCantidadTotal().toString()} />
+            <Header texto1={WMSState.diario + ':' + WMSState.nombreDiario} texto2={'Articulos Ingresadas: ' + getCantidadTotal().toString()} />
             <View style={[style.textInput, { borderColor: add ? '#77D970' : '#CD4439' }]}>
                 <Switch value={add} onValueChange={() => setAdd(!add)}
                     trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
@@ -215,25 +280,34 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                 />
                 {!cargando ?
                     <TouchableOpacity onPress={() => setbarcode('')}>
-                        <Icon name='close-outline' size={20} color={black} />
+                        <Icon name='times' size={15} color={black} />
                     </TouchableOpacity>
                     :
                     <ActivityIndicator size={20} />
                 }
 
             </View>
+
+            {
+                IMBoxCode != '' &&
+                <View style={{flexDirection:'row', alignItems: 'center'}}>
+                    <Icon name='box-open' size={30} color={add ? '#77D970' : '#CD4439'} />
+                    <Text style={{ fontWeight: 'bold', color: add ? '#77D970' : '#CD4439' }}> {IMBoxCode}</Text>
+                </View>
+            }
+
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
                     Linea != null &&
-                    renderItem(Linea, orange)
+                    renderItem(Linea, orange, true)
                 }
             </View>
             {
                 Lineas.length > 0 ?
                     <FlatList
-                        data={Lineas}
-                        keyExtractor={(item, index) => item.items[0].itembarcode}
-                        renderItem={({ item }) => renderItem(item, navy)}
+                        data={LineasCajas}
+                        keyExtractor={(item, index) => item.key}
+                        renderItem={({ item,index }) => renderItemCajas(item,index)}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={() => getData()} colors={['#069A8E']} />
                         }
@@ -254,8 +328,7 @@ const style = StyleSheet.create({
     },
     card: {
         maxWidth: 450,
-        width: '90%',
-
+        width: '95%',
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 5,
@@ -269,7 +342,7 @@ const style = StyleSheet.create({
     },
     textInput: {
         maxWidth: 450,
-        width: '90%',
+        width: '95%',
         backgroundColor: grey,
         borderRadius: 10,
         flexDirection: 'row',
