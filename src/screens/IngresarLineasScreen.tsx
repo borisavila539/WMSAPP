@@ -1,5 +1,5 @@
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, Modal, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
 import { WMSContext } from '../context/WMSContext'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
@@ -11,6 +11,8 @@ import MyAlert from '../components/MyAlert'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import SoundPlayer from 'react-native-sound-player'
+import { PrinterInterface } from '../interfaces/PrintersInterface'
+import Printers from '../components/Printers'
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasScreen">
 
@@ -28,6 +30,8 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
     const [cargando, setCargando] = useState<boolean>(false);
     const [add, setAdd] = useState<boolean>(true);
     const [IMBoxCode, setIMBoxCode] = useState<string>('')
+    const [IMBoxCodeSelected, setIMBoxCodeSelected] = useState<string>('');
+    const [ShowImpresoras, setShowImpresoras] = useState<boolean>(false);
 
     const getData = async () => {
 
@@ -75,6 +79,8 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
 
     }
 
+
+
     const getCantidadTotal = (): number => {
         let suma: number = 0;
         Lineas.map(items => {
@@ -116,7 +122,10 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                         </TouchableOpacity>
 
                         <Text style={{ fontWeight: 'bold', color: navy }}>Caja: {item.key}</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => {
+                            setIMBoxCodeSelected(item.key)
+                            setShowImpresoras(true)
+                        }}>
                             <Icon name='print' size={30} color={black} />
                         </TouchableOpacity>
 
@@ -229,7 +238,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
 
     useEffect(() => {
         if (barCode.length > 0) {
-            setLinea(Lineas.find(x => x.items.find(x => x.itembarcode == barCode)))
+            setLinea(Lineas.find(x => x.items.find(x => x.itembarcode == barCode && x.imboxcode == IMBoxCode)))
             setbarcode('')
             try {
                 SoundPlayer.playSoundFile('success', 'mp3')
@@ -290,7 +299,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
 
             {
                 IMBoxCode != '' &&
-                <View style={{flexDirection:'row', alignItems: 'center'}}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Icon name='box-open' size={30} color={add ? '#77D970' : '#CD4439'} />
                     <Text style={{ fontWeight: 'bold', color: add ? '#77D970' : '#CD4439' }}> {IMBoxCode}</Text>
                 </View>
@@ -299,7 +308,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
                     Linea != null &&
-                    renderItem(Linea, orange, true)
+                    renderItem(Linea, orange, false)
                 }
             </View>
             {
@@ -307,7 +316,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                     <FlatList
                         data={LineasCajas}
                         keyExtractor={(item, index) => item.key}
-                        renderItem={({ item,index }) => renderItemCajas(item,index)}
+                        renderItem={({ item, index }) => renderItemCajas(item, index)}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={() => getData()} colors={['#069A8E']} />
                         }
@@ -318,6 +327,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                     </View>
             }
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => { setShowMensajeAlerta(false); textInputRef.current?.focus(); }} />
+            <Printers ShowImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} IMBoxCode={IMBoxCodeSelected}/>
         </View>
     )
 }
@@ -354,5 +364,6 @@ const style = StyleSheet.create({
     input: {
         width: '75%',
         textAlign: 'center'
-    }
+    },
+
 })
