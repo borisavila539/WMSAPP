@@ -5,8 +5,10 @@ import { PrinterInterface, PrintersInterface } from '../interfaces/PrintersInter
 import { WmSApi } from '../api/WMSApi';
 import { WMSContext } from '../context/WMSContext';
 import Icon from 'react-native-vector-icons/FontAwesome5'
+import { PinterEtiquetaRolloInterface } from '../interfaces/PrinterEtiquetaRollo';
+import { EtiquetaRolloInterface } from '../interfaces/EtiquetaRolloInterface';
 
-function Printers({ ShowImpresoras, IMBoxCode, onPress }: PrintersInterface) {
+function PrintEtiquetaRollo ({showImpresoras,data,onPress}:PinterEtiquetaRolloInterface){
     const [Impresoras, setImpresoras] = useState<PrinterInterface[]>([]);
     const { WMSState } = useContext(WMSContext)
 
@@ -23,8 +25,12 @@ function Printers({ ShowImpresoras, IMBoxCode, onPress }: PrintersInterface) {
     }
 
     const onSelectPrint = async (item: PrinterInterface) => {
+        data.print = item.iM_IPPRINTER;
+        let datos:EtiquetaRolloInterface[]=[]
+        datos.push(data)
+        console.log(datos)
         try {
-            await WmSApi.get<string>(`ImprimirEtiquetaMovimiento/${WMSState.diario}/${IMBoxCode}/${item.iM_IPPRINTER}`)
+            await WmSApi.post<string>('ImprimirEtiquetaRollo',datos);
         } catch (err) {
             console.log(err)
         }
@@ -46,7 +52,7 @@ function Printers({ ShowImpresoras, IMBoxCode, onPress }: PrintersInterface) {
         getImpresoras();
     }, [])
     return (
-        <Modal visible={ShowImpresoras} transparent={true}>
+        <Modal visible={showImpresoras} transparent={true}>
             <View style={style.modal}>
                 <View style={style.constainerModal}>
                     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between',marginBottom: 3 }}>
@@ -102,4 +108,4 @@ const style = StyleSheet.create({
     },
 })
 
-export default Printers
+export default PrintEtiquetaRollo

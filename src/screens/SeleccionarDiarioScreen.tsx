@@ -3,7 +3,7 @@ import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInpu
 import { WMSContext } from '../context/WMSContext'
 import { WmSApi } from '../api/WMSApi'
 import { DiariosAbriertosinterface } from '../interfaces/DiariosAbiertosInterface'
-import { grey, navy } from '../constants/Colors'
+import { blue, grey, navy } from '../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
@@ -11,8 +11,8 @@ import Header from '../components/Header'
 
 type props = StackScreenProps<RootStackParams, "SeleccionarDiarioScreen">
 
-export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
-    const { WMSState, changeDiario,changeNombreDiario } = useContext(WMSContext);
+export const SeleccionarDiarioScreen: FC<props> = ({ navigation }) => {
+    const { WMSState, changeDiario, changeNombreDiario } = useContext(WMSContext);
     const [cargando, setCargando] = useState<boolean>(false);
     const [Diarios, setDiarios] = useState<DiariosAbriertosinterface[]>([]);
     const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -42,7 +42,7 @@ export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
                 <TouchableOpacity style={style.card} onPress={() => onPress(item)}>
                     <View style={{ width: '100%', flexDirection: 'row' }}>
                         <View style={{ width: '80%' }}>
-                            <Text style={[style.textCard, { fontWeight: 'bold' }]}>{item.journalid}:{item.journalnameid}</Text>
+                            <Text style={[style.textCard, { fontWeight: 'bold' }]}>{item.journalid}: {item.journalnameid}</Text>
                             <Text style={style.textCard}> {item.description}</Text>
                         </View>
                         <View style={{ width: '20%', alignItems: 'center' }}>
@@ -50,7 +50,7 @@ export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
                         </View>
                     </View>
                     <View style={{ width: '100%', alignItems: 'flex-end' }}>
-                        <Text style={style.textCard}> Cantidad: {item.numoflines}</Text>
+                        <Text style={style.textCard}> QTY: {item.numoflines}</Text>
                     </View>
                 </TouchableOpacity >
             </View >
@@ -62,7 +62,7 @@ export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
     }, [])
     return (
         <View style={style.container}>
-            <Header texto1='' texto2='Seleccione Diario'/>
+            <Header texto1='' texto2='Seleccione Diario' texto3=''/>
             <View style={style.textInput}>
                 <TextInput
                     placeholder='DIA-XXXXXX'
@@ -90,6 +90,7 @@ export const SeleccionarDiarioScreen : FC<props> = ({ navigation })=> {
                             refreshControl={
                                 <RefreshControl refreshing={refreshing} onRefresh={() => getData()} colors={['#069A8E']} />
                             }
+                            showsVerticalScrollIndicator={false}
                         />
                         :
                         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -115,10 +116,11 @@ const style = StyleSheet.create({
         width: '90%',
         paddingHorizontal: 10,
         paddingVertical: 5,
-        borderRadius: 5,
-        backgroundColor: navy,
+        borderRadius: 10,
+        backgroundColor: blue,
         marginHorizontal: '1%',
-        marginVertical: 2
+        marginVertical: 2,
+
     },
     textCard: {
         color: grey

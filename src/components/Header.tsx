@@ -9,10 +9,11 @@ import { RootStackParams } from '../navigation/navigation'
 
 interface HeaderInterface {
     texto1: string,
-    texto2: string
+    texto2: string,
+    texto3: string
 }
 
-const Header: FC<HeaderInterface> = ({ texto1, texto2 }) => {
+const Header: FC<HeaderInterface> = ({ texto1, texto2,texto3 }) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParams>>();
 
     const navigateBack = () => {
@@ -29,6 +30,8 @@ const Header: FC<HeaderInterface> = ({ texto1, texto2 }) => {
             <View style={{ alignContent: 'center' }}>
                 <Text style={style.text}>{texto1}</Text>
                 <Text style={style.text}>{texto2}</Text>
+                <Text style={style.text}>{texto3}</Text>
+
             </View>
             <View style={{ width: '20%', maxWidth: 50, padding: 5 }}>
 
@@ -40,8 +43,8 @@ const Header: FC<HeaderInterface> = ({ texto1, texto2 }) => {
 const style = StyleSheet.create({
     header: {
         width: '100%',
-        height: '8%',
-        maxHeight: 55,
+        height: '15%',
+        maxHeight: 60,
         //alignItems: 'center',
         alignContent: 'space-between',
         justifyContent: 'space-between',

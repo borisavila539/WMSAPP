@@ -1,6 +1,5 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useState } from 'react'
-
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { RootStackParams } from '../navigation/navigation'
 import { black, blue, grey, navy, orange } from '../constants/Colors'
@@ -36,7 +35,7 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
                     setuser('')
                     setPass('')
                     changeUsuario(x.data.user)
-                    navigation.navigate('SeleccionarDiarioScreen');
+                    navigation.navigate('MenuScreen');
                 } else {
                     setMensajeAlerta('Usuario o contraseña incorrecta...')
                     setTipoMensaje(false);
