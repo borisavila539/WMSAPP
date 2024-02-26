@@ -16,7 +16,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
     const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-    const {changeCamion,changeChofer} = useContext(WMSContext)
+    const {changeCamion,changeChofer,WMSState} = useContext(WMSContext)
 
     const onPress = () => {
         if (camion != '' && Chofer != '') {
@@ -32,7 +32,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-            <Header texto1='' texto2='' texto3=''/>
+            <Header texto1={WMSState.TRANSFERIDFROM+ '-'+ WMSState.TRANSFERIDTO} texto2='' texto3=''/>
             <Image
                 source={require('../assets/Packing.png')}
                 style={{ width: 100, height: 100, resizeMode: 'contain' }}

@@ -148,7 +148,7 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-      <Header texto1='Picking' texto2={'Revisado: ' + dataPicking.length + '/' + data.length} texto3='' />
+      <Header texto2='Picking' texto3={'Revisado: ' + dataPicking.length + '/' + data.length} texto1={WMSState.TRANSFERIDFROM+ '-'+ WMSState.TRANSFERIDTO} />
       <View style={[style.textInput, { borderColor: '#77D970' }]}>
         <TextInput
           ref={textInputRef}

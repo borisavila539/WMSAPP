@@ -122,7 +122,7 @@ export const TelaReceiveScreen : FC<props> = ({ navigation })=> {
   
     return (
       <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-        <Header texto1='Recibir' texto2={'Revisado: ' + dataPicking.length+'/'+data.length} texto3=''/>
+        <Header texto2='Recibir' texto3={'Revisado: ' + dataPicking.length+'/'+data.length} texto1={WMSState.TRANSFERIDFROM+ '-'+ WMSState.TRANSFERIDTO}/>
         <View style={[style.textInput, { borderColor: '#77D970' }]}>
           <TextInput
             ref={textInputRef}

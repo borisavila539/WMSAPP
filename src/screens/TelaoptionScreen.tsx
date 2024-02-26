@@ -1,15 +1,17 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useContext, useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import Header from '../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
 import { ScreensInterface } from '../interfaces/ScreeensInterface'
 import { navy } from '../constants/Colors'
+import { WMSContext } from '../context/WMSContext'
 
 type props = StackScreenProps<RootStackParams, "TelaOptionScreen">
 
 export const TelaoptionScreen : FC<props> = ({ navigation }) => {
   const [data, setData] = useState<ScreensInterface[]>([])
+  const {WMSState} =useContext(WMSContext)
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
@@ -42,7 +44,7 @@ export const TelaoptionScreen : FC<props> = ({ navigation }) => {
   },[])
   return (
     <View style={{flex:1, width:'100%'}}>
-        <Header texto1=''  texto2='Tela' texto3=''/>
+        <Header texto1={WMSState.TRANSFERIDFROM+ '-'+ WMSState.TRANSFERIDTO}  texto2='Tela' texto3=''/>
         <FlatList
                 data={data}
                 keyExtractor={(item) => item.Screen.toString()}
