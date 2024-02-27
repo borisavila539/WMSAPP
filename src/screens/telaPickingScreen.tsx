@@ -63,7 +63,7 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
   const VerificarRollo = async () => {
     if (data.find(x => x.inventserialid == InventSerialID)?.inventserialid != '') {
       try {
-        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PICKING/-/-`).then(x => {
+        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PICKING/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}`).then(x => {
           if (x.data.length > 0) {
             if (x.data[0].picking) {
               setinventSerialID('')
