@@ -43,11 +43,11 @@ export const SeleccionarTrasladosScreen: FC<props> = ({ navigation }) => {
     const renderItem = (item: TrasladosInterface) => {
 
         return (
-            <View style={{ width: '100%', alignItems: 'center' }}>
+            <View style={{ width: '100%', alignItems: 'center', marginBottom: 5 }}>
 
                 <TouchableOpacity onPress={() => onPress(item)} style={{ width: '95%', borderRadius: 15, padding: 10, backgroundColor: blue, flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: '85%', alignItems: 'center' }}>
-                        <Text style={{ color: grey }}>{item.transferidfrom}-{item.transferidfrom}</Text>
+                        <Text style={{ color: grey }}>{item.transferidfrom}-{item.transferidto}</Text>
                         <Text style={{ color: grey }}>{item.description}</Text>
                     </View>
                     <View style={{ width: '15%' }}>

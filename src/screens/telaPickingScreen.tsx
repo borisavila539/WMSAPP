@@ -63,7 +63,7 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
   const VerificarRollo = async () => {
     if (data.find(x => x.inventserialid == InventSerialID)?.inventserialid != '') {
       try {
-        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PICKING/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}`).then(x => {
+        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PICKING/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
           if (x.data.length > 0) {
             if (x.data[0].picking) {
               setinventSerialID('')
@@ -117,16 +117,16 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
     }
     return (
       <View style={{ width: '100%', alignItems: 'center' }}>
-        <View style={{ width: '90%', backgroundColor: !item.picking ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
+        <View style={{ width: '95%', backgroundColor: !item.picking ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
             <Text style={[style.textRender, { fontWeight: 'bold' }]}>{item.inventserialid}</Text>
             <TouchableOpacity onPress={onPressPrint}>
               <Icon name={'print'} size={25} color={grey} />
             </TouchableOpacity>
           </View>
-          <Text style={style.textRender}>{item.apvendroll}</Text>
-          <Text style={style.textRender}>{item.bfpitemname}</Text>
-          <Text style={style.textRender}>{item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
+          <Text style={style.textRender}>PR: {item.apvendroll}</Text>
+          <Text style={style.textRender}>Tela: {item.bfpitemname}</Text>
+          <Text style={style.textRender}>Color: {item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
           <Text style={style.textRender}>{item.itemid}</Text>
           <Text style={style.textRender}>{item.inventbatchid}</Text>
         </View>

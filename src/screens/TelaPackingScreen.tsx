@@ -65,7 +65,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
   const VerificarRollo = async () => {
     if (data.find(x => x.inventserialid == InventSerialID && x.bfpitemname == Filtro)?.inventserialid != '') {
       try {
-        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PACKING/${WMSState.Camion}/${WMSState.Chofer}/${data.find(x => x.inventserialid == InventSerialID)?.transferid}`).then(x => {
+        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PACKING/${WMSState.Camion}/${WMSState.Chofer}/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
           if (x.data.length > 0) {
             if (x.data[0].picking) {
               setinventSerialID('')
@@ -105,10 +105,10 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
 
     return (
       <View style={{ width: '100%', alignItems: 'center' }}>
-        <View style={{ width: '90%', backgroundColor: !item.packing ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
+        <View style={{ width: '95%', backgroundColor: !item.packing ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
           <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventserialid}</Text>
-          <Text style={style.textRender}>{item.bfpitemname}</Text>
-          <Text style={style.textRender}>{item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
+          <Text style={style.textRender}>Tela: {item.bfpitemname}</Text>
+          <Text style={style.textRender}>Color: {item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
           <Text style={style.textRender}>{item.itemid}</Text>
           <Text style={style.textRender}>{item.inventbatchid}</Text>
         </View>
