@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import { RootStackParams } from '../navigation/navigation'
 import { WMSContext } from '../context/WMSContext';
 import Header from '../components/Header';
@@ -9,6 +9,7 @@ import { WmSApi } from '../api/WMSApi';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
 import { blue, grey, navy, orange } from '../constants/Colors';
 import { ProgressBar } from '@react-native-community/progress-bar-android';
+import MyAlert from '../components/MyAlert';
 
 type props = StackScreenProps<RootStackParams, "EstadoTrasladoScreen">
 export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
@@ -18,8 +19,11 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
   const [enviado, setEnviado] = useState<number>(0)
   const [recibido, setRecibido] = useState<number>(0)
   const [Total, setTotal] = useState<number>(0)
-
-
+  const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
+  const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
+  const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
+  const [traslado, setTraslado] = useState<string>('');
+  const [Tipotraslado, setTipoTraslado] = useState<boolean>(false);
 
   const getData = async () => {
     setCargando(true)
@@ -48,7 +52,29 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
     setCargando(false)
   }
 
-  const enviarAX = (TRANSFERID: string, estado: string) => {
+  const enviarAX = async (TRANSFERID: string, estado: string) => {
+    setTraslado(TRANSFERID)
+    if (estado == "ENVIAR") {
+      setTipoTraslado(true)
+    } else {
+      setTipoTraslado(false)
+    }
+    try {
+      await WmSApi.get<string>(`EnviarRecibirtraslado/${TRANSFERID}/${estado}`).then(resp => {
+        if (resp.data == "OK") {
+          getData()
+        } else {
+          setMensajeAlerta(`Error al ${estado} traslado`)
+          setTipoMensaje(false);
+          setShowMensajeAlerta(true);
+        }
+      })
+    } catch (err) {
+      setMensajeAlerta(`Error de conexion`)
+      setTipoMensaje(false);
+      setShowMensajeAlerta(true);
+    }
+    setTraslado('')
     console.log(estado + ': ' + TRANSFERID)
   }
 
@@ -82,7 +108,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
     }
     return (
       <View style={{ width: '100%', alignItems: 'center' }}>
-        <View style={{ backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 1 ,borderColor: getColorEstado()}}>
+        <View style={{ backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 1, borderColor: getColorEstado() }}>
           <Text style={{ color: navy, textAlign: 'center', fontWeight: 'bold' }}>{item.transferid}</Text>
           <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ color: navy, width: '30%' }}>Enviado: {item.enviado}/{item.qty}</Text>
@@ -94,9 +120,23 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
               color={getColor(item.enviado / item.qty, 'Enviando')}
             />
             <TouchableOpacity
-              onPress={() => getColor(item.enviado / item.qty, 'Enviando') == '#6BCB77' ? enviarAX(item.transferid, 'Enviar') : null}
+              onPress={() => getColor(item.enviado / item.qty, 'Enviando') == '#6BCB77' ? enviarAX(item.transferid, 'ENVIAR') : null}
               style={{ padding: 3, backgroundColor: getColor(item.enviado / item.qty, 'Enviando'), borderRadius: 5, width: '20%', alignItems: 'center' }}>
-              <Text style={{ color: grey, fontWeight: 'bold' }}>Enviar</Text>
+              {
+                traslado != item.transferid ?
+                  <Text style={{ color: grey, fontWeight: 'bold' }}>Enviar</Text>
+                  :
+                  <>
+                    {
+                      Tipotraslado ?
+                        <ActivityIndicator size={20} color={grey} />
+                        :
+                        <Text style={{ color: grey, fontWeight: 'bold' }}>Enviar</Text>
+                    }
+
+                  </>
+
+              }
             </TouchableOpacity>
           </View>
           <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
@@ -109,9 +149,23 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
               color={getColor(item.recibido / item.qty, 'Recibido')}
             />
             <TouchableOpacity
-              onPress={() => getColor(item.recibido / item.qty, 'Recibido') == '#6BCB77' ? enviarAX(item.transferid, 'Reibir') : null}
+              onPress={() => getColor(item.recibido / item.qty, 'Recibido') == '#6BCB77' ? enviarAX(item.transferid, 'RECIBIR') : null}
               style={{ padding: 3, backgroundColor: getColor(item.recibido / item.qty, 'Recibido'), borderRadius: 5, width: '20%', alignItems: 'center' }} >
-              <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
+              {
+                traslado != item.transferid ?
+                  <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
+                  :
+                  <>
+                    {
+                      !Tipotraslado ?
+                        <ActivityIndicator size={20} color={grey} />
+                        :
+                        <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
+                    }
+
+                  </>
+
+              }
             </TouchableOpacity>
           </View>
         </View>
@@ -158,6 +212,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
           <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
         }
       />
+      <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
     </View>
   )
 }
