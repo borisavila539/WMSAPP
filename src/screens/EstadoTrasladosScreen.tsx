@@ -62,7 +62,12 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
     try {
       await WmSApi.get<string>(`EnviarRecibirtraslado/${TRANSFERID}/${estado}`).then(resp => {
         if (resp.data == "OK") {
-          getData()
+
+          if (estado == "ENVIAR" && WMSState.INVENTLOCATIONIDTO != "1") {
+            enviarAX(TRANSFERID, "RECIBIR")
+          } else {
+            getData()
+          }
         } else {
           setMensajeAlerta(`Error al ${estado} traslado`)
           setTipoMensaje(false);
@@ -139,35 +144,38 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
               }
             </TouchableOpacity>
           </View>
-          <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-            <Text style={{ color: navy, width: '30%' }}>Recibido: {item.recibido}/{item.qty}</Text>
-            <ProgressBar
-              styleAttr='Horizontal'
-              indeterminate={false}
-              progress={item.recibido / item.qty}
-              style={{ width: '40%' }}
-              color={getColor(item.recibido / item.qty, 'Recibido')}
-            />
-            <TouchableOpacity
-              onPress={() => getColor(item.recibido / item.qty, 'Recibido') == '#6BCB77' ? enviarAX(item.transferid, 'RECIBIR') : null}
-              style={{ padding: 3, backgroundColor: getColor(item.recibido / item.qty, 'Recibido'), borderRadius: 5, width: '20%', alignItems: 'center' }} >
-              {
-                traslado != item.transferid ?
-                  <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
-                  :
-                  <>
-                    {
-                      !Tipotraslado ?
-                        <ActivityIndicator size={20} color={grey} />
-                        :
-                        <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
-                    }
+          {
+            WMSState.INVENTLOCATIONIDTO == "1" &&
+            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+              <Text style={{ color: navy, width: '30%' }}>Recibido: {item.recibido}/{item.qty}</Text>
+              <ProgressBar
+                styleAttr='Horizontal'
+                indeterminate={false}
+                progress={item.recibido / item.qty}
+                style={{ width: '40%' }}
+                color={getColor(item.recibido / item.qty, 'Recibido')}
+              />
+              <TouchableOpacity
+                onPress={() => getColor(item.recibido / item.qty, 'Recibido') == '#6BCB77' ? enviarAX(item.transferid, 'RECIBIR') : null}
+                style={{ padding: 3, backgroundColor: getColor(item.recibido / item.qty, 'Recibido'), borderRadius: 5, width: '20%', alignItems: 'center' }} >
+                {
+                  traslado != item.transferid ?
+                    <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
+                    :
+                    <>
+                      {
+                        !Tipotraslado ?
+                          <ActivityIndicator size={20} color={grey} />
+                          :
+                          <Text style={{ color: grey, fontWeight: 'bold' }}>Recibir</Text>
+                      }
 
-                  </>
+                    </>
 
-              }
-            </TouchableOpacity>
-          </View>
+                }
+              </TouchableOpacity>
+            </View>
+          }
         </View>
       </View>
     )
@@ -180,7 +188,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
     <View style={{ flex: 1, width: '100%' }}>
       <Header texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} texto2='Estado traslados' texto3='' />
       {Total > 0 &&
-        <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 5 }}>
           <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>Enviado:</Text>
           <ProgressBar
             styleAttr='Horizontal'
@@ -191,8 +199,8 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
           <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>{enviado}/{Total}</Text>
         </View>
       }
-      {Total > 0 &&
-        <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+      {Total > 0 && WMSState.INVENTLOCATIONIDTO == "1" &&
+        <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 5 }}>
           <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>Recibido:</Text>
           <ProgressBar
             styleAttr='Horizontal'
