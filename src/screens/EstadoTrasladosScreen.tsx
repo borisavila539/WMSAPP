@@ -113,10 +113,10 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
     }
     return (
       <View style={{ width: '100%', alignItems: 'center' }}>
-        <View style={{ backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 1, borderColor: getColorEstado() }}>
+        <View style={{ backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 2, borderColor: getColorEstado() }}>
           <Text style={{ color: navy, textAlign: 'center', fontWeight: 'bold' }}>{item.transferid}</Text>
           <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ color: navy, width: '30%' }}>Enviado: {item.enviado}/{item.qty}</Text>
+            <Text style={{ color: navy, width: '30%',fontWeight: 'bold' }}>Enviado: {item.enviado}/{item.qty}</Text>
             <ProgressBar
               styleAttr='Horizontal'
               indeterminate={false}
@@ -147,7 +147,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
           {
             WMSState.INVENTLOCATIONIDTO == "1" &&
             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-              <Text style={{ color: navy, width: '30%' }}>Recibido: {item.recibido}/{item.qty}</Text>
+              <Text style={{ color: navy, width: '30%',fontWeight: 'bold' }}>Recibido: {item.recibido}/{item.qty}</Text>
               <ProgressBar
                 styleAttr='Horizontal'
                 indeterminate={false}
@@ -189,19 +189,19 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
       <Header texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} texto2='Estado traslados' texto3='' />
       {Total > 0 &&
         <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 5 }}>
-          <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>Enviado:</Text>
+          <Text style={{ color: navy, width: '25%', textAlign: 'center', fontWeight: 'bold' }}>Enviado:</Text>
           <ProgressBar
             styleAttr='Horizontal'
             indeterminate={false}
             progress={enviado / Total}
             style={{ width: '50%' }}
           />
-          <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>{enviado}/{Total}</Text>
+          <Text style={{ color: navy, width: '25%', textAlign: 'center',fontWeight: 'bold' }}>{enviado}/{Total}</Text>
         </View>
       }
       {Total > 0 && WMSState.INVENTLOCATIONIDTO == "1" &&
         <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 5 }}>
-          <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>Recibido:</Text>
+          <Text style={{ color: navy, width: '25%', textAlign: 'center',fontWeight: 'bold' }}>Recibido:</Text>
           <ProgressBar
             styleAttr='Horizontal'
             indeterminate={false}
@@ -209,7 +209,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
             style={{ width: '50%' }}
 
           />
-          <Text style={{ color: navy, width: '25%', textAlign: 'center' }}>{recibido}/{Total}</Text>
+          <Text style={{ color: navy, width: '25%', textAlign: 'center',fontWeight: 'bold' }}>{recibido}/{Total}</Text>
         </View>
       }
       <FlatList
