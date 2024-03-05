@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { RootStackParams } from '../navigation/navigation'
 import Header from '../components/Header'
 import { DespachoTelaDetalleInterface } from '../interfaces/DespachoTelaDetalle'
@@ -153,6 +153,9 @@ export const TelaReceiveScreen : FC<props> = ({ navigation })=> {
                 data={dataNoPicking}
                 keyExtractor={(item) => item.inventserialid.toString()}
                 renderItem={({ item, index }) => renderItem(item)}
+                refreshControl={
+                  <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                }
               />
             }
           </View>
@@ -165,6 +168,9 @@ export const TelaReceiveScreen : FC<props> = ({ navigation })=> {
                 data={dataPicking}
                 keyExtractor={(item) => item.inventserialid.toString()}
                 renderItem={({ item, index }) => renderItem(item)}
+                refreshControl={
+                  <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                }
               />
             }
           </View>

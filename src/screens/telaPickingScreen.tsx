@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { RootStackParams } from '../navigation/navigation'
 import Header from '../components/Header'
 import { DespachoTelaDetalleInterface } from '../interfaces/DespachoTelaDetalle'
@@ -11,9 +11,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 import { DespachoPickingpackingInterface } from '../interfaces/DespachoTelaPickingPacking'
 import SoundPlayer from 'react-native-sound-player'
 import PrintEtiquetaRollo from '../components/PrintEtiquetaRollo';
-import { PrinterInterface } from '../interfaces/PrintersInterface';
 import { EtiquetaRolloInterface } from '../interfaces/EtiquetaRolloInterface';
-import { color } from 'react-native-elements/dist/helpers';
 import { WMSContext } from '../context/WMSContext'
 
 type props = StackScreenProps<RootStackParams, "TelaPickingScreen">
@@ -179,6 +177,9 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
               data={dataNoPicking}
               keyExtractor={(item) => item.inventserialid.toString()}
               renderItem={({ item, index }) => renderItem(item)}
+              refreshControl={
+                <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+              }
             />
           }
         </View>
@@ -191,6 +192,9 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
               data={dataPicking}
               keyExtractor={(item) => item.inventserialid.toString()}
               renderItem={({ item, index }) => renderItem(item)}
+              refreshControl={
+                <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+              }
             />
           }
         </View>

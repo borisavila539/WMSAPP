@@ -63,7 +63,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
       await WmSApi.get<string>(`EnviarRecibirtraslado/${TRANSFERID}/${estado}`).then(resp => {
         if (resp.data == "OK") {
 
-          if (estado == "ENVIAR" && WMSState.INVENTLOCATIONIDTO != "1") {
+          if (estado == "ENVIAR" && WMSState.INVENTLOCATIONIDTO != "1" && WMSState.INVENTLOCATIONIDTO != "21") {
             enviarAX(TRANSFERID, "RECIBIR")
           } else {
             getData()
@@ -145,7 +145,7 @@ export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {
             </TouchableOpacity>
           </View>
           {
-            WMSState.INVENTLOCATIONIDTO == "1" &&
+            (WMSState.INVENTLOCATIONIDTO == "1" || WMSState.INVENTLOCATIONIDTO == "21") &&
             <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
               <Text style={{ color: navy, width: '30%',fontWeight: 'bold' }}>Recibido: {item.recibido}/{item.qty}</Text>
               <ProgressBar

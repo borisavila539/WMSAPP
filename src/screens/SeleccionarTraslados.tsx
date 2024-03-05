@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useContext, useState } from 'react'
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
 import Header from '../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
@@ -47,8 +47,8 @@ export const SeleccionarTrasladosScreen: FC<props> = ({ navigation }) => {
 
                 <TouchableOpacity onPress={() => onPress(item)} style={{ width: '95%', borderRadius: 15, padding: 10, backgroundColor: blue, flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: '85%', alignItems: 'center' }}>
-                        <Text style={{ color: grey }}>{item.transferidfrom}-{item.transferidto}</Text>
-                        <Text style={{ color: grey }}>{item.description}</Text>
+                        <Text style={{ color: grey,fontWeight: 'bold' }}>{item.transferidfrom}-{item.transferidto}</Text>
+                        <Text style={{ color: grey,fontWeight: 'bold'  }}>{item.description}</Text>
                     </View>
                     <View style={{ width: '15%' }}>
                         <Icon name='truck-moving' size={25} color={grey} />
@@ -85,6 +85,9 @@ export const SeleccionarTrasladosScreen: FC<props> = ({ navigation }) => {
                         data={data}
                         keyExtractor={(item) => item.transferidfrom + "-" + item.transferidto}
                         renderItem={({ item, index }) => renderItem(item)}
+                        refreshControl={
+                            <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                          }
                     />
                 }
             </View>
