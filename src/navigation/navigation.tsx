@@ -11,6 +11,7 @@ import { CamionChoferScreen } from '../screens/CamionChoferScreen';
 import { TelaReceiveScreen } from '../screens/TelaReceiveScreen';
 import {  SeleccionarTrasladosScreen } from '../screens/SeleccionarTraslados';
 import { EstadoTrasladosScreen } from '../screens/EstadoTrasladosScreen';
+import { EstadotelaScreen } from '../screens/EstadotelaScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -24,6 +25,7 @@ export type RootStackParams = {
     TelaReceiveScreen:undefined,
     Seleccionartraslados:undefined
     EstadoTrasladoScreen:undefined
+    EstadotelaScreen: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -46,6 +48,7 @@ export const Navigation = () => {
             <Stack.Screen name='TelaReceiveScreen' options={{ title: 'TelaReceiveScreen' }} component={TelaReceiveScreen} />
             <Stack.Screen name='Seleccionartraslados' options={{title:'Seleccionartraslados'}} component={SeleccionarTrasladosScreen}/>
             <Stack.Screen name='EstadoTrasladoScreen' options={{title:'EstadoTrasladoScreen'}} component={EstadoTrasladosScreen}/>
+            <Stack.Screen name='EstadotelaScreen' options={{title:'EstadotelaScreen'}} component={EstadotelaScreen}/>
         </Stack.Navigator>
     )
 }

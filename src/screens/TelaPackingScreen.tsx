@@ -38,9 +38,9 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
 
         resp.data.map(element => {
           if (Filtro.length > 0) {
-            if (element.packing && element.bfpitemname == Filtro) {
+            if (element.packing && (element.inventserialid.includes(Filtro) || element.apvendroll.includes(Filtro))) {
               picking.push(element)
-            } else if (element.bfpitemname == Filtro) {
+            } else if (element.inventserialid.includes(Filtro) || element.apvendroll.includes(Filtro)) {
               nopicking.push(element)
             }
           } else {
@@ -63,56 +63,100 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
   }
 
   const VerificarRollo = async () => {
-    if (data.find(x => x.inventserialid == InventSerialID && x.bfpitemname == Filtro)?.inventserialid != '') {
-      try {
-        await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PACKING/${WMSState.Camion}/${WMSState.Chofer}/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
-          if (x.data.length > 0) {
-            if (x.data[0].picking) {
-              setinventSerialID('')
+    try {
+      let tmp: DespachoTelaDetalleInterface = data.find(x => x.inventserialid == InventSerialID)
 
-              getData()
-              PlaySound(true)
+      if (tmp.inventserialid != '' && tmp.packing == false) {
+        try {
+          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PACKING/${WMSState.Camion}/${WMSState.Chofer}/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
+            if (x.data.length > 0) {
+              if (x.data[0].picking) {
+                setinventSerialID('')
+
+                getData()
+                PlaySound('success')
+              }
             }
-          }
-          else {
-            setinventSerialID('')
-            PlaySound(false)
-          }
-        })
+            else {
+              setinventSerialID('')
+              PlaySound('error')
+            }
+          })
 
-      } catch (err) {
-        console.log(err)
+        } catch (err) {
+          console.log(err)
+        }
+      } else if (tmp.packing == true) {
+        PlaySound('repeat')
+        setinventSerialID('')
+
       }
-    } else {
-      PlaySound(false)
-
+    } catch (err) {
+      PlaySound('error')
+      setinventSerialID('')
     }
 
 
 
   }
 
-  const PlaySound = (estado: boolean) => {
+  const PlaySound = (estado: string) => {
     try {
-      SoundPlayer.playSoundFile(estado ? 'success' : 'error', 'mp3')
+      SoundPlayer.playSoundFile(estado, 'mp3')
     } catch (err) {
       console.log('Sin sonido')
       console.log(err)
     }
   }
 
-  const renderItem = (item: DespachoTelaDetalleInterface) => {
+  const renderItem = (item: DespachoTelaDetalleInterface, index: number) => {
 
     return (
-      <View style={{ width: '100%', alignItems: 'center' }}>
-        <View style={{ width: '95%', backgroundColor: !item.packing ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
-          <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventserialid}</Text>
-          <Text style={style.textRender}>Tela: {item.bfpitemname}</Text>
-          <Text style={style.textRender}>Color: {item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
-          <Text style={style.textRender}>{item.itemid}</Text>
-          <Text style={style.textRender}>{item.inventbatchid}</Text>
+      <>
+        {
+          data.length > 0 &&
+
+            data[0].itemid.includes('45 00 1') ?
+            <>
+              {
+                item.packing == false && index == 0 ?
+                  <Text style={[style.textRender, { color: navy, fontWeight: 'bold', textAlign: 'center' }]}>{item.itemid.slice(0, 8)} - QTY:{dataNoPicking.filter(x => x.itemid.includes(item.itemid.slice(0, 8))).length}</Text>
+                  :
+                  <>
+                    {
+                      item.itemid.slice(0, 8) != dataNoPicking[index - 1]?.itemid.slice(0, 8) && item.packing == false &&
+                      <Text style={[style.textRender, { color: navy, fontWeight: 'bold', textAlign: 'center' }]}>{item.itemid.slice(0, 8)} - QTY:{dataNoPicking.filter(x => x.itemid.slice(0, 8) == item.itemid.slice(0, 8)).length}</Text>
+                    }
+                  </>
+              }
+            </>
+            :
+            <>
+              <>
+                {
+                  item.packing == false && index == 0 ?
+                    <Text style={[style.textRender, { color: navy, fontWeight: 'bold', textAlign: 'center' }]}>{item.bfpitemname}- QTY:{dataNoPicking.filter(x => x.bfpitemname.includes(item.bfpitemname)).length}</Text>
+                    :
+                    <>
+                      {
+                        item.bfpitemname != dataNoPicking[index - 1]?.bfpitemname && item.picking == false &&
+                        <Text style={[style.textRender, { color: navy, fontWeight: 'bold', textAlign: 'center' }]}>{item.bfpitemname}- QTY:{dataNoPicking.filter(x => x.bfpitemname == item.bfpitemname).length}</Text>
+                      }
+                    </>
+                }
+              </>
+            </>
+        }
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ width: '95%', backgroundColor: !item.packing ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
+            <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventserialid}</Text>
+            <Text style={style.textRender}>Tela: {item.bfpitemname}</Text>
+            <Text style={style.textRender}>Color: {item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
+            <Text style={style.textRender}>{item.itemid}</Text>
+            <Text style={style.textRender}>{item.inventbatchid}</Text>
+          </View>
         </View>
-      </View>
+      </>
     )
   }
 
@@ -139,7 +183,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
   }, [Filtro])
   return (
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-      <Header texto2={'Camion: ' + WMSState.Camion + ' Chofer: ' + WMSState.Chofer} texto3={'Revisado: ' + dataPicking.length + '/' + data.length} texto1={WMSState.TRANSFERIDFROM+ '-'+ WMSState.TRANSFERIDTO} />
+      <Header texto2={'Camion: ' + WMSState.Camion + ' Chofer: ' + WMSState.Chofer} texto3={'Revisado: ' + dataPicking.length + '/' + data.length} texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} />
       <View style={[style.textInput, { borderColor: '#77D970' }]}>
         <TextInput
           ref={textInputRef}
@@ -179,7 +223,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
             <FlatList
               data={dataNoPicking}
               keyExtractor={(item) => item.inventserialid.toString()}
-              renderItem={({ item, index }) => renderItem(item)}
+              renderItem={({ item, index }) => renderItem(item, index)}
               refreshControl={
                 <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
               }
@@ -194,7 +238,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
             <FlatList
               data={dataPicking}
               keyExtractor={(item) => item.inventserialid.toString()}
-              renderItem={({ item, index }) => renderItem(item)}
+              renderItem={({ item, index }) => renderItem(item, index)}
               refreshControl={
                 <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
               }

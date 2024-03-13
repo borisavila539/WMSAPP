@@ -18,8 +18,8 @@ export const TelaoptionScreen : FC<props> = ({ navigation }) => {
             { Name: 'Picking', Screen: 'TelaPickingScreen', image: require('../assets/Picking.png') },
             { Name: 'Packing', Screen: 'CamionChoferScreen', image: require('../assets/Packing.png') },
             { Name: 'Recibir', Screen: 'TelaReceiveScreen', image: require('../assets/Recibir.png') },
-            { Name: 'Estado traslados', Screen: 'EstadoTrasladoScreen', image: require('../assets/EstadoTraslado.png') },
-
+            { Name: 'Estado Traslados', Screen: 'EstadoTrasladoScreen', image: require('../assets/EstadoTraslado.png') },
+            { Name: 'Estado Tela', Screen: 'EstadotelaScreen', image: require('../assets/EstadoTraslado.png') },
         ]
         setData(tmp)
     }
