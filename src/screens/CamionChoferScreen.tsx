@@ -46,8 +46,16 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
         }
     }
 
-    const imprimirRemision = async (id: number) => {
-        const htmlContent = '<html><body><h1>Hello, World!</h1><p>This is a paragraph.</p></body></html>';
+    const imprimirRemision = async (id: number,recid:string,empleado:string) => {
+        let htmlContent = '';
+
+        try{
+            await WmSApi.get<string>(`NotaDespacho/${id}/${recid}/${empleado}`).then(resp =>{
+                htmlContent = resp.data
+            })
+        }catch(err){
+            console.log(err)
+        }
 
         const results = await RNHTMLtoPDF.convert({
             html: htmlContent,
@@ -91,7 +99,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
                     </TouchableOpacity>
                     {
                         item.estado &&
-                        <TouchableOpacity style={{ width: '19%' }} onPress={() => imprimirRemision(item.id)}>
+                        <TouchableOpacity style={{ width: '19%' }} onPress={() => imprimirRemision(item.id,item.recIDTraslados,item.chofer)}>
                             <Icon name='print' size={30} color={blue} />
                         </TouchableOpacity>
                     }

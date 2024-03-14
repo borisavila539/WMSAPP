@@ -58,3 +58,7 @@ Significado de los colores en los botones:
 -	Verde: se completó el escaneo de los rollos y está listo para “Enviar” o “Recibir”
 -	Azul: Ya fue enviado o recibido el traslado
 
+
+Crear diseño de etiquetas
+https://labelary.com/viewer.html
+

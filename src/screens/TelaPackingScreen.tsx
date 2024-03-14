@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 import { DespachoPickingpackingInterface } from '../interfaces/DespachoTelaPickingPacking'
 import SoundPlayer from 'react-native-sound-player'
 import { WMSContext } from '../context/WMSContext'
+import { CerrarDespachoInterface } from '../interfaces/CerrarDespachoInterface'
 
 type props = StackScreenProps<RootStackParams, "TelaPackingScreen">
 
@@ -161,6 +162,18 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
     )
   }
 
+  const cerrarCamion = async () => {
+    try {
+      await WmSApi.get<CerrarDespachoInterface[]>(`CerrarDespacho/${WMSState.DespachoID}`).then(resp=>{
+        if(resp.data[0].estado){          
+          navigation.goBack()
+        }
+      })
+    } catch (err) {
+
+    }
+  }
+
   useEffect(() => {
     //textInputRef.current?.focus()
 
@@ -185,6 +198,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
   return (
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
       <Header texto2={'Camion: ' + WMSState.Camion + ' Chofer: ' + WMSState.Chofer} texto3={'Revisado: ' + dataPicking.length + '/' + data.length} texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} />
+
       <View style={[style.textInput, { borderColor: '#77D970' }]}>
         <TextInput
           ref={textInputRef}
@@ -205,14 +219,20 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
         }
 
       </View>
-      <View style={style.textInput}>
-        <TextInput
-          ref={textInputRef2}
-          onChangeText={(value) => { setFiltro(value) }}
-          value={Filtro}
-          style={style.input}
-          placeholder='Filtro'
-        />
+
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={[style.textInput, { width: '85%' }]}>
+          <TextInput
+            ref={textInputRef2}
+            onChangeText={(value) => { setFiltro(value) }}
+            value={Filtro}
+            style={style.input}
+            placeholder='Filtro'
+          />
+        </View>
+        <TouchableOpacity onPress={cerrarCamion} style={{ width: '13%', backgroundColor: '#77D970', borderRadius: 10 }}>
+          <Text style={{ textAlign: 'center' }}><Icon name='check' size={30} color={grey} /></Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', flex: 1, width: '100%' }}>
