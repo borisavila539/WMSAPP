@@ -1,12 +1,19 @@
-import React, { FC, useContext, useState } from 'react'
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { FC, useContext, useEffect, useState } from 'react'
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Header from '../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
-import { TextInput } from 'react-native-gesture-handler'
-import { black, grey, orange } from '../constants/Colors'
+import { RefreshControl, TextInput } from 'react-native-gesture-handler'
+import { black, blue, grey, orange } from '../constants/Colors'
 import MyAlert from '../components/MyAlert'
 import { WMSContext } from '../context/WMSContext'
+import { WmSApi } from '../api/WMSApi'
+import { DespachoCamionInterface } from '../interfaces/DespachoCamionInterface'
+import Icon from 'react-native-vector-icons/FontAwesome5'
+//import RNPrint from 'react-native-print';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import Share from 'react-native-share';
+
 type props = StackScreenProps<RootStackParams, "CamionChoferScreen">
 
 
@@ -16,12 +23,21 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
     const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-    const {changeCamion,changeChofer,WMSState} = useContext(WMSContext)
+    const { changeCamion, changeChofer, WMSState, changeDespachoID } = useContext(WMSContext)
+    const [data, setData] = useState<DespachoCamionInterface[]>([])
 
-    const onPress = () => {
+    const onPress = async () => {
+
         if (camion != '' && Chofer != '') {
             changeCamion(camion)
             changeChofer(Chofer)
+            try {
+                await WmSApi.get<DespachoCamionInterface[]>(`CrearDespacho/${WMSState.recID}/${Chofer}/${camion}`).then(x => {
+                    changeDespachoID(x.data[0].id)
+                })
+            } catch (err) {
+                console.log(err)
+            }
             navigation.navigate('TelaPackingScreen')
         } else {
             setMensajeAlerta('Campo ' + (camion == '' ? 'Camion' : 'Chofer') + ' es obligatorio')
@@ -30,9 +46,69 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
         }
     }
 
+    const imprimirRemision = async (id: number) => {
+        const htmlContent = '<html><body><h1>Hello, World!</h1><p>This is a paragraph.</p></body></html>';
+
+        const results = await RNHTMLtoPDF.convert({
+            html: htmlContent,
+            fileName: 'test',
+            base64: true,
+        });
+
+        const options = {
+            url: `data:application/pdf;base64,${results.base64}`,
+            type: 'application/pdf',
+            fileName: 'test.pdf',
+        };
+
+        await Share.open(options);
+    }
+
+    const getData = async () => {
+        await WmSApi.get<DespachoCamionInterface[]>(`ObternerDespacho/${WMSState.recID}`).then(resp => {
+            console.log(resp.data)
+            setData(resp.data)
+        })
+    }
+
+    const renderItem = (item: DespachoCamionInterface) => {
+        const onPressList = () => {
+            if (!item.estado) {
+                changeCamion(item.camion)
+                changeChofer(item.chofer)
+                changeDespachoID(item.id)
+                navigation.navigate('TelaPackingScreen')
+            }
+
+        }
+
+        return (
+            <View style={{ width: '100%', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 2, borderColor: (item.estado ? blue : '#6BCB77') }} >
+                    <TouchableOpacity style={{ width: '80%' }} onPress={onPressList}>
+                        <Text>Despacho: {item.id.toString().padStart(8, '0')}</Text>
+                        <Text>Motorista: {item.chofer} / {item.camion}</Text>
+                    </TouchableOpacity>
+                    {
+                        item.estado &&
+                        <TouchableOpacity style={{ width: '19%' }} onPress={() => imprimirRemision(item.id)}>
+                            <Icon name='print' size={30} color={blue} />
+                        </TouchableOpacity>
+                    }
+
+
+                </View>
+            </View>
+        )
+    }
+
+    useEffect(() => {
+        getData()
+    }, [])
+
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-            <Header texto1={WMSState.TRANSFERIDFROM+ '-'+ WMSState.TRANSFERIDTO} texto2='' texto3=''/>
+            <Header texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} texto2='' texto3='' />
             <Image
                 source={require('../assets/Packing.png')}
                 style={{ width: 100, height: 100, resizeMode: 'contain' }}
@@ -61,9 +137,20 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
                 />
             </View>
             <TouchableOpacity style={{ backgroundColor: orange, width: '90%', borderRadius: 10, paddingVertical: 8, alignItems: 'center' }} onPress={onPress}>
-                <Text style={{ color: grey }}>Siguiente</Text>
+                <Text style={{ color: grey }}>Crear Despacho</Text>
             </TouchableOpacity>
+
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
+            <View style={{ width: '100%', marginTop: 5, flex: 1 }}>
+                <FlatList
+                    data={data}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item, index }) => renderItem(item)}
+                    refreshControl={
+                        <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                    }
+                />
+            </View>
         </View>
     )
 }

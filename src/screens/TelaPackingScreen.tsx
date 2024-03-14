@@ -27,6 +27,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
   const { WMSState } = useContext(WMSContext)
 
   const getData = async () => {
+    console.log(WMSState.recID)
     setCargando(true)
     try {
       await WmSApi.get<DespachoTelaDetalleInterface[]>(`DespachotelasDetalle/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}/PACKING`).then(resp => {
@@ -68,7 +69,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
 
       if (tmp.inventserialid != '' && tmp.packing == false) {
         try {
-          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PACKING/${WMSState.Camion}/${WMSState.Chofer}/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
+          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PACKING/${WMSState.Camion}/${WMSState.Chofer}/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}/${WMSState.DespachoID}`).then(x => {
             if (x.data.length > 0) {
               if (x.data[0].picking) {
                 setinventSerialID('')

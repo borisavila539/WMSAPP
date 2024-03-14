@@ -73,7 +73,7 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
 
       if (tmp.inventserialid != '' && tmp.picking == false) {
         try {
-          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PICKING/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
+          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/PICKING/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}/0`).then(x => {
             if (x.data.length > 0) {
               if (x.data[0].picking) {
                 setinventSerialID('')

@@ -17,7 +17,7 @@ export const SeleccionarTrasladosScreen: FC<props> = ({ navigation }) => {
     const [Almacen, setAlmacen] = useState<string>('')
     const [data, setData] = useState<TrasladosInterface[]>([])
     const [cagando, setCargando] = useState<boolean>(false)
-    const { changeINVENTLOCATIONIDTO, changeTRANSFERIDFROM, changeTRANSFERIDTO } = useContext(WMSContext)
+    const { changeINVENTLOCATIONIDTO, changeTRANSFERIDFROM, changeTRANSFERIDTO,changeRecId } = useContext(WMSContext)
 
 
     const getData = async () => {
@@ -37,6 +37,7 @@ export const SeleccionarTrasladosScreen: FC<props> = ({ navigation }) => {
         changeINVENTLOCATIONIDTO(item.inventlocationidto)
         changeTRANSFERIDFROM(item.transferidfrom)
         changeTRANSFERIDTO(item.transferidto)
+        changeRecId(item.recID)
         navigation.navigate('TelaOptionScreen')
     }
 

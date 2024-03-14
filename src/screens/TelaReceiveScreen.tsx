@@ -60,7 +60,7 @@ export const TelaReceiveScreen: FC<props> = ({ navigation }) => {
 
       if (tmp.inventserialid != '' && tmp.receive == false) {
         try {
-          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/RECEIVE/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}`).then(x => {
+          await WmSApi.get<DespachoPickingpackingInterface[]>(`DespachoTelaPickingPacking/${InventSerialID}/RECEIVE/-/-/${data.find(x => x.inventserialid == InventSerialID)?.transferid}/${WMSState.usuario}/0`).then(x => {
             if (x.data.length > 0) {
               if (x.data[0].receive) {
                 setinventSerialID('')

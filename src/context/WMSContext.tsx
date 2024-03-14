@@ -10,7 +10,9 @@ export interface WMSState {
     Chofer: string,
     TRANSFERIDFROM: string,
     TRANSFERIDTO: string,
-    INVENTLOCATIONIDTO: string
+    INVENTLOCATIONIDTO: string,
+    recID: string,
+    DespachoID: number
 }
 
 //Estado inicial
@@ -22,7 +24,9 @@ export const WMSInitialState: WMSState = {
     Chofer: '',
     TRANSFERIDFROM: '',
     TRANSFERIDTO: '',
-    INVENTLOCATIONIDTO: ''
+    INVENTLOCATIONIDTO: '',
+    recID: '',
+    DespachoID: 0
 }
 
 export interface WMSContextProps {
@@ -32,9 +36,11 @@ export interface WMSContextProps {
     changeNombreDiario: (nombreDiario: string) => void
     changeCamion: (Camion: string) => void
     changeChofer: (Chofer: string) => void
-    changeTRANSFERIDFROM:(TRANSFERIDFROM: string)=> void
-    changeTRANSFERIDTO:(TRANSFERIDTO:string) =>void
-    changeINVENTLOCATIONIDTO :(INVENTLOCATIONIDTO:string)=> void
+    changeTRANSFERIDFROM: (TRANSFERIDFROM: string) => void
+    changeTRANSFERIDTO: (TRANSFERIDTO: string) => void
+    changeINVENTLOCATIONIDTO: (INVENTLOCATIONIDTO: string) => void
+    changeRecId: (RecId: string) => void
+    changeDespachoID: (DespachoID: number) => void
 }
 
 //crear el contexto
@@ -59,14 +65,20 @@ export const WMSProvider = ({ children }: any) => {
     const changeChofer = (Chofer: string) => {
         dispatch({ type: 'changeChofer', payload: Chofer })
     }
-    const changeTRANSFERIDFROM=(TRANSFERIDFROM: string)=> {
+    const changeTRANSFERIDFROM = (TRANSFERIDFROM: string) => {
         dispatch({ type: 'changeTRANSFERIDFROM', payload: TRANSFERIDFROM })
     }
-    const changeTRANSFERIDTO=(TRANSFERIDTO:string) =>{
+    const changeTRANSFERIDTO = (TRANSFERIDTO: string) => {
         dispatch({ type: 'changeTRANSFERIDTO', payload: TRANSFERIDTO })
     }
-    const changeINVENTLOCATIONIDTO =(INVENTLOCATIONIDTO:string)=> {
+    const changeINVENTLOCATIONIDTO = (INVENTLOCATIONIDTO: string) => {
         dispatch({ type: 'changeINVENTLOCATIONIDTO', payload: INVENTLOCATIONIDTO })
+    }
+    const changeRecId = (RecId: string) => {
+        dispatch({ type: 'changeRecId', payload: RecId })
+    }
+    const changeDespachoID = (DespachoID: number) => {
+        dispatch({ type: 'changeDespachoID', payload: DespachoID })
     }
 
 
@@ -81,7 +93,9 @@ export const WMSProvider = ({ children }: any) => {
                 changeChofer,
                 changeINVENTLOCATIONIDTO,
                 changeTRANSFERIDFROM,
-                changeTRANSFERIDTO
+                changeTRANSFERIDTO,
+                changeRecId,
+                changeDespachoID
             }}
         >
             {children}

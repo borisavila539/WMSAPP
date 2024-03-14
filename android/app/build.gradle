@@ -101,7 +101,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-    }
+            }
 
     splits {
         abi {
@@ -166,6 +166,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-}
+    }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

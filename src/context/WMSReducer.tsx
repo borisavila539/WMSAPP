@@ -9,6 +9,8 @@ type WMSAction =
     | { type: 'changeINVENTLOCATIONIDTO', payload: string }
     | { type: 'changeTRANSFERIDFROM', payload: string }
     | { type: 'changeTRANSFERIDTO', payload: string }
+    | { type: 'changeRecId', payload: string }
+    | { type: 'changeDespachoID', payload: number }
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -43,15 +45,25 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
                 ...state,
                 TRANSFERIDFROM: action.payload
             }
-            case "changeTRANSFERIDTO":
+        case "changeTRANSFERIDTO":
             return {
                 ...state,
                 TRANSFERIDTO: action.payload
             }
-            case "changeINVENTLOCATIONIDTO":
+        case "changeINVENTLOCATIONIDTO":
             return {
                 ...state,
                 INVENTLOCATIONIDTO: action.payload
+            }
+        case "changeRecId":
+            return {
+                ...state,
+                recID: action.payload
+            }
+        case "changeDespachoID":
+            return {
+                ...state,
+                DespachoID: action.payload
             }
 
         default:
