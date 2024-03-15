@@ -1,5 +1,5 @@
 import React, { FC, useContext, useEffect, useState } from 'react'
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Header from '../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
 import { RootStackParams } from '../navigation/navigation'
@@ -25,7 +25,8 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
     const { changeCamion, changeChofer, WMSState, changeDespachoID } = useContext(WMSContext)
     const [data, setData] = useState<DespachoCamionInterface[]>([])
-
+    const [cargando, setCargando] = useState<boolean>(false);
+    const [DespachoID, setDespachoID] = useState<number>(0);
     const onPress = async () => {
 
         if (camion != '' && Chofer != '') {
@@ -46,30 +47,39 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
         }
     }
 
-    const imprimirRemision = async (id: number,recid:string,empleado:string) => {
+    const imprimirRemision = async (item: DespachoCamionInterface) => {
+        setDespachoID(item.id)
+        setCargando(true)
+
         let htmlContent = '';
 
-        try{
-            await WmSApi.get<string>(`NotaDespacho/${id}/${recid}/${empleado}`).then(resp =>{
+        try {
+            await WmSApi.get<string>(`NotaDespacho/${item.id}/${item.recIDTraslados}/${item.chofer}/${item.camion}`).then(resp => {
                 htmlContent = resp.data
             })
-        }catch(err){
+        } catch (err) {
             console.log(err)
         }
+        try {
+            const results = await RNHTMLtoPDF.convert({
+                html: htmlContent,
+                fileName: 'test',
+                base64: true,
+            });
 
-        const results = await RNHTMLtoPDF.convert({
-            html: htmlContent,
-            fileName: 'test',
-            base64: true,
-        });
+            const options = {
+                url: `data:application/pdf;base64,${results.base64}`,
+                type: 'application/pdf',
+                fileName: 'test.pdf',
+            };
 
-        const options = {
-            url: `data:application/pdf;base64,${results.base64}`,
-            type: 'application/pdf',
-            fileName: 'test.pdf',
-        };
+            await Share.open(options);
+        } catch (err) {
 
-        await Share.open(options);
+        }
+
+        setCargando(false)
+
     }
 
     const getData = async () => {
@@ -98,10 +108,13 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
                         <Text>Motorista: {item.chofer} / {item.camion}</Text>
                     </TouchableOpacity>
                     {
-                        item.estado &&
-                        <TouchableOpacity style={{ width: '19%' }} onPress={() => imprimirRemision(item.id,item.recIDTraslados,item.chofer)}>
-                            <Icon name='print' size={30} color={blue} />
-                        </TouchableOpacity>
+                        cargando && DespachoID == item.id ?
+                            item.estado &&
+                            <ActivityIndicator size={20} />
+                            :
+                            <TouchableOpacity style={{ width: '19%' }} onPress={() => imprimirRemision(item)}>
+                                <Icon name='print' size={30} color={blue} />
+                            </TouchableOpacity>
                     }
 
 
