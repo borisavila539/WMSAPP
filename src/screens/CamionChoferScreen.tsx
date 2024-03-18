@@ -91,11 +91,14 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
 
     const renderItem = (item: DespachoCamionInterface) => {
         const onPressList = () => {
-            if (!item.estado) {
-                changeCamion(item.camion)
+            changeCamion(item.camion)
                 changeChofer(item.chofer)
                 changeDespachoID(item.id)
+            if (!item.estado) {                
                 navigation.navigate('TelaPackingScreen')
+            }else{
+                navigation.navigate('RollosDespachoScreen')
+
             }
 
         }

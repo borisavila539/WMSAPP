@@ -134,7 +134,7 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
         {
           data.length > 0 &&
 
-            data[0].itemid.includes('45 00 1') ?
+            data[0].itemid.includes('45 0') ?
             <>
               {
               item.picking == false && index == 0 ?

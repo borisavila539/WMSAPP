@@ -118,7 +118,7 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
         {
           data.length > 0 &&
 
-            data[0].itemid.includes('45 00 1') ?
+            data[0].itemid.includes('45 0') ?
             <>
               {
                 item.packing == false && index == 0 ?

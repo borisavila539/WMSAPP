@@ -12,6 +12,7 @@ import { TelaReceiveScreen } from '../screens/TelaReceiveScreen';
 import {  SeleccionarTrasladosScreen } from '../screens/SeleccionarTraslados';
 import { EstadoTrasladosScreen } from '../screens/EstadoTrasladosScreen';
 import { EstadotelaScreen } from '../screens/EstadotelaScreen';
+import { RollosDespachoScreen } from '../screens/RollosDespachoScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -25,7 +26,8 @@ export type RootStackParams = {
     TelaReceiveScreen:undefined,
     Seleccionartraslados:undefined
     EstadoTrasladoScreen:undefined
-    EstadotelaScreen: undefined
+    EstadotelaScreen: undefined,
+    RollosDespachoScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -49,6 +51,7 @@ export const Navigation = () => {
             <Stack.Screen name='Seleccionartraslados' options={{title:'Seleccionartraslados'}} component={SeleccionarTrasladosScreen}/>
             <Stack.Screen name='EstadoTrasladoScreen' options={{title:'EstadoTrasladoScreen'}} component={EstadoTrasladosScreen}/>
             <Stack.Screen name='EstadotelaScreen' options={{title:'EstadotelaScreen'}} component={EstadotelaScreen}/>
+            <Stack.Screen name='RollosDespachoScreen' options={{title:'RollosDespachoScreen'}} component={RollosDespachoScreen}/>
         </Stack.Navigator>
     )
 }
