@@ -1,15 +1,15 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { RootStackParams } from '../navigation/navigation'
-import { WMSContext } from '../context/WMSContext';
-import Header from '../components/Header';
-import { EstadoTrasladoInterface } from '../interfaces/EstadotrasladosInterface';
-import { WmSApi } from '../api/WMSApi';
+import { RootStackParams } from '../../../navigation/navigation'
+import { WMSContext } from '../../../context/WMSContext';
+import Header from '../../../components/Header';
+import { EstadoTrasladoInterface } from '../../../interfaces/EstadotrasladosInterface';
+import { WmSApi } from '../../../api/WMSApi';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler';
-import { blue, grey, navy, orange } from '../constants/Colors';
+import { blue, grey, navy, orange } from '../../../constants/Colors';
 import { ProgressBar } from '@react-native-community/progress-bar-android';
-import MyAlert from '../components/MyAlert';
+import MyAlert from '../../../components/MyAlert';
 
 type props = StackScreenProps<RootStackParams, "EstadoTrasladoScreen">
 export const EstadoTrasladosScreen: FC<props> = ({ navigation }) => {

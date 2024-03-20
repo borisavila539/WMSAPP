@@ -1,16 +1,16 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { RootStackParams } from '../navigation/navigation'
-import Header from '../components/Header'
-import { DespachoTelaDetalleInterface } from '../interfaces/DespachoTelaDetalle'
-import { WmSApi } from '../api/WMSApi'
-import { black, blue, grey, navy, orange } from '../constants/Colors'
+import { RootStackParams } from '../../../navigation/navigation'
+import Header from '../../../components/Header'
+import { DespachoTelaDetalleInterface } from '../../../interfaces/DespachoTelaDetalle'
+import { WmSApi } from '../../../api/WMSApi'
+import { black, blue, grey, navy, orange } from '../../../constants/Colors'
 
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { DespachoPickingpackingInterface } from '../interfaces/DespachoTelaPickingPacking'
+import { DespachoPickingpackingInterface } from '../../../interfaces/DespachoTelaPickingPacking'
 import SoundPlayer from 'react-native-sound-player'
-import { WMSContext } from '../context/WMSContext'
+import { WMSContext } from '../../../context/WMSContext'
 
 type props = StackScreenProps<RootStackParams, "TelaReceiveScreen">
 

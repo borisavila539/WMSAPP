@@ -1,17 +1,17 @@
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, Modal, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native'
-import { WMSContext } from '../context/WMSContext'
+import { WMSContext } from '../../context/WMSContext'
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../navigation/navigation'
-import { CajasLineasDiario, GrupoLineasDiariointerface, LineasDiariointerface } from '../interfaces/LineasDiarioInterface';
-import { WmSApi } from '../api/WMSApi'
-import { black, blue, grey, navy, orange } from '../constants/Colors'
-import Header from '../components/Header'
-import MyAlert from '../components/MyAlert'
+import { RootStackParams } from '../../navigation/navigation'
+import { CajasLineasDiario, GrupoLineasDiariointerface, LineasDiariointerface } from '../../interfaces/LineasDiarioInterface';
+import { WmSApi } from '../../api/WMSApi'
+import { black, blue, grey, navy, orange } from '../../constants/Colors'
+import Header from '../../components/Header'
+import MyAlert from '../../components/MyAlert'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import SoundPlayer from 'react-native-sound-player'
-import Printers from '../components/Printers'
+import Printers from '../../components/Printers'
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasScreen">
 
@@ -327,7 +327,7 @@ export const IngresarLineasScreen: FC<props> = ({ navigation }) => {
                     </View>
             }
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => { setShowMensajeAlerta(false); textInputRef.current?.focus(); }} />
-            <Printers ShowImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} IMBoxCode={IMBoxCodeSelected} />
+            <Printers ShowImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} IMBoxCode={IMBoxCodeSelected} Tipo={false}/>
         </View>
     )
 }

@@ -2,14 +2,14 @@ import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
 import {  View } from 'react-native'
 import { Text } from 'react-native-elements'
-import { RootStackParams } from '../navigation/navigation'
-import Header from '../components/Header'
-import { WMSContext } from '../context/WMSContext'
-import { EstadoTelaInterface } from '../interfaces/EstadoTelaInterface';
+import { RootStackParams } from '../../../navigation/navigation'
+import Header from '../../../components/Header'
+import { WMSContext } from '../../../context/WMSContext'
+import { EstadoTelaInterface } from '../../../interfaces/EstadoTelaInterface';
 import { ProgressBar } from '@react-native-community/progress-bar-android';
 import { FlatList, RefreshControl } from 'react-native-gesture-handler'
-import { grey } from '../constants/Colors'
-import { WmSApi } from '../api/WMSApi'
+import { grey } from '../../../constants/Colors'
+import { WmSApi } from '../../../api/WMSApi'
 
 type props = StackScreenProps<RootStackParams, "EstadotelaScreen">
 export const EstadotelaScreen: FC<props> = ({ navigation }) => {

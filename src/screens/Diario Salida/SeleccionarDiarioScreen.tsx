@@ -1,13 +1,13 @@
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { WMSContext } from '../context/WMSContext'
-import { WmSApi } from '../api/WMSApi'
-import { DiariosAbriertosinterface } from '../interfaces/DiariosAbiertosInterface'
-import { blue, grey, navy } from '../constants/Colors'
+import { WMSContext } from '../../context/WMSContext'
+import { WmSApi } from '../../api/WMSApi'
+import { DiariosAbriertosinterface } from '../../interfaces/DiariosAbiertosInterface'
+import { blue, grey, navy } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../navigation/navigation'
-import Header from '../components/Header'
+import { RootStackParams } from '../../navigation/navigation'
+import Header from '../../components/Header'
 
 type props = StackScreenProps<RootStackParams, "SeleccionarDiarioScreen">
 

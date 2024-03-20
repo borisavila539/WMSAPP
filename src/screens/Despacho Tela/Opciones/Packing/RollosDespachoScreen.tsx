@@ -1,14 +1,14 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { FlatList, Text, View } from 'react-native'
-import { RootStackParams } from '../navigation/navigation'
-import Header from '../components/Header'
+import { RootStackParams } from '../../../../navigation/navigation'
+import Header from '../../../../components/Header'
 
-import { WMSContext } from '../context/WMSContext'
-import { WmSApi } from '../api/WMSApi'
-import { RollosDespachoInterface } from '../interfaces/RollosDespachoInterface'
+import { WMSContext } from '../../../../context/WMSContext'
+import { WmSApi } from '../../../../api/WMSApi'
+import { RollosDespachoInterface } from '../../../../interfaces/RollosDespachoInterface'
 import { RefreshControl } from 'react-native-gesture-handler';
-import { blue, grey } from '../constants/Colors'
+import { blue, grey } from '../../../../constants/Colors'
 
 
 type props = StackScreenProps<RootStackParams, "RollosDespachoScreen">

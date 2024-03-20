@@ -2,17 +2,18 @@ import { createStackNavigator } from '@react-navigation/stack'
 import React from 'react'
 import { LoginScreen } from '../screens/LoginScreen';
 import { MenuScreen } from '../screens/MenuScreen';
-import { SeleccionarDiarioScreen } from '../screens/SeleccionarDiarioScreen';
-import { IngresarLineasScreen } from '../screens/IngresarLineasScreen';
-import { TelaoptionScreen } from '../screens/TelaoptionScreen';
-import { TelaPickingScreen } from '../screens/telaPickingScreen';
-import { TelaPackingScreen } from '../screens/TelaPackingScreen';
-import { CamionChoferScreen } from '../screens/CamionChoferScreen';
-import { TelaReceiveScreen } from '../screens/TelaReceiveScreen';
-import {  SeleccionarTrasladosScreen } from '../screens/SeleccionarTraslados';
-import { EstadoTrasladosScreen } from '../screens/EstadoTrasladosScreen';
-import { EstadotelaScreen } from '../screens/EstadotelaScreen';
-import { RollosDespachoScreen } from '../screens/RollosDespachoScreen';
+import { SeleccionarDiarioScreen } from '../screens/Diario Salida/SeleccionarDiarioScreen';
+import { IngresarLineasScreen } from '../screens/Diario Salida/IngresarLineasScreen';
+import { TelaoptionScreen } from '../screens/Despacho Tela/TelaoptionScreen';
+import { TelaPickingScreen } from '../screens/Despacho Tela/Opciones/telaPickingScreen';
+import { TelaPackingScreen } from '../screens/Despacho Tela/Opciones/Packing/TelaPackingScreen';
+import { CamionChoferScreen } from '../screens/Despacho Tela/Opciones/Packing/CamionChoferScreen';
+import { TelaReceiveScreen } from '../screens/Despacho Tela/Opciones/TelaReceiveScreen';
+import {  SeleccionarTrasladosScreen } from '../screens/Despacho Tela/SeleccionarTraslados';
+import { EstadoTrasladosScreen } from '../screens/Despacho Tela/Opciones/EstadoTrasladosScreen';
+import { EstadotelaScreen } from '../screens/Despacho Tela/Opciones/EstadotelaScreen';
+import { RollosDespachoScreen } from '../screens/Despacho Tela/Opciones/Packing/RollosDespachoScreen';
+import { ReduccionCajasScreen } from '../screens/Reduccion Cajas/ReduccionCajasScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -27,7 +28,8 @@ export type RootStackParams = {
     Seleccionartraslados:undefined
     EstadoTrasladoScreen:undefined
     EstadotelaScreen: undefined,
-    RollosDespachoScreen:undefined
+    RollosDespachoScreen:undefined,
+    ReduccionCajasScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -52,6 +54,7 @@ export const Navigation = () => {
             <Stack.Screen name='EstadoTrasladoScreen' options={{title:'EstadoTrasladoScreen'}} component={EstadoTrasladosScreen}/>
             <Stack.Screen name='EstadotelaScreen' options={{title:'EstadotelaScreen'}} component={EstadotelaScreen}/>
             <Stack.Screen name='RollosDespachoScreen' options={{title:'RollosDespachoScreen'}} component={RollosDespachoScreen}/>
+            <Stack.Screen name='ReduccionCajasScreen' options={{title:'ReduccionCajasScreen'}} component={ReduccionCajasScreen}/>
         </Stack.Navigator>
     )
 }

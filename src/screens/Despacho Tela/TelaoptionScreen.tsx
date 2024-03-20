@@ -1,11 +1,11 @@
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
-import Header from '../components/Header'
+import Header from '../../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../navigation/navigation'
-import { ScreensInterface } from '../interfaces/ScreeensInterface'
-import { navy } from '../constants/Colors'
-import { WMSContext } from '../context/WMSContext'
+import { RootStackParams } from '../../navigation/navigation'
+import { ScreensInterface } from '../../interfaces/ScreeensInterface'
+import { navy } from '../../constants/Colors'
+import { WMSContext } from '../../context/WMSContext'
 
 type props = StackScreenProps<RootStackParams, "TelaOptionScreen">
 
@@ -15,11 +15,11 @@ export const TelaoptionScreen : FC<props> = ({ navigation }) => {
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'Picking', Screen: 'TelaPickingScreen', image: require('../assets/Picking.png') },
-            { Name: 'Packing', Screen: 'CamionChoferScreen', image: require('../assets/Packing.png') },
-            { Name: 'Recibir', Screen: 'TelaReceiveScreen', image: require('../assets/Recibir.png') },
-            { Name: 'Estado Traslados', Screen: 'EstadoTrasladoScreen', image: require('../assets/EstadoTraslado.png') },
-            { Name: 'Estado Tela', Screen: 'EstadotelaScreen', image: require('../assets/EstadoTraslado.png') },
+            { Name: 'Picking', Screen: 'TelaPickingScreen', image: require('../../assets/Picking.png') },
+            { Name: 'Packing', Screen: 'CamionChoferScreen', image: require('../../assets/Packing.png') },
+            { Name: 'Recibir', Screen: 'TelaReceiveScreen', image: require('../../assets/Recibir.png') },
+            { Name: 'Estado Traslados', Screen: 'EstadoTrasladoScreen', image: require('../../assets/EstadoTraslado.png') },
+            { Name: 'Estado Tela', Screen: 'EstadotelaScreen', image: require('../../assets/EstadoTraslado.png') },
         ]
         setData(tmp)
     }

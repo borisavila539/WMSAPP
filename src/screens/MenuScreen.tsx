@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import { ScreensInterface } from '../interfaces/ScreeensInterface'
-import { SeleccionarDiarioScreen } from './SeleccionarDiarioScreen'
+import { SeleccionarDiarioScreen } from './Diario Salida/SeleccionarDiarioScreen'
 import { RootStackParams } from '../navigation/navigation'
 import { StackScreenProps } from '@react-navigation/stack'
 import { grey, navy } from '../constants/Colors'
@@ -14,7 +14,8 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
             { Name: 'Diarios de Salida', Screen: 'SeleccionarDiarioScreen', image: require('../assets/RegistroRegalias.png') },
-            { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/PreparacionTela.png') }
+            { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/PreparacionTela.png') },
+            { Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/ReduccionCajas.png') }
 
         ]
         setData(tmp)

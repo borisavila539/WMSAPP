@@ -1,14 +1,14 @@
 import React, { FC, useCallback, useContext, useState } from 'react'
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
-import Header from '../components/Header'
+import Header from '../../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../navigation/navigation'
-import { black, blue, grey } from '../constants/Colors'
-import { TrasladosInterface } from '../interfaces/Trasladosinterface'
-import { WmSApi } from '../api/WMSApi'
+import { RootStackParams } from '../../navigation/navigation'
+import { black, blue, grey } from '../../constants/Colors'
+import { TrasladosInterface } from '../../interfaces/Trasladosinterface'
+import { WmSApi } from '../../api/WMSApi'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { WMSContext } from '../context/WMSContext'
+import { WMSContext } from '../../context/WMSContext'
 
 
 type props = StackScreenProps<RootStackParams, 'Seleccionartraslados'>

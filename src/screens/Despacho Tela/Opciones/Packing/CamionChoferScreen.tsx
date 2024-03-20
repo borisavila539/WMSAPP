@@ -1,14 +1,14 @@
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import Header from '../components/Header'
+import Header from '../../../../components/Header'
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../navigation/navigation'
+import { RootStackParams } from '../../../../navigation/navigation'
 import { RefreshControl, TextInput } from 'react-native-gesture-handler'
-import { black, blue, grey, orange } from '../constants/Colors'
-import MyAlert from '../components/MyAlert'
-import { WMSContext } from '../context/WMSContext'
-import { WmSApi } from '../api/WMSApi'
-import { DespachoCamionInterface } from '../interfaces/DespachoCamionInterface'
+import { black, blue, grey, orange } from '../../../../constants/Colors'
+import MyAlert from '../../../../components/MyAlert'
+import { WMSContext } from '../../../../context/WMSContext'
+import { WmSApi } from '../../../../api/WMSApi'
+import { DespachoCamionInterface } from '../../../../interfaces/DespachoCamionInterface'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 //import RNPrint from 'react-native-print';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
@@ -32,6 +32,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
         if (camion != '' && Chofer != '') {
             changeCamion(camion)
             changeChofer(Chofer)
+            console.log('RECID: '+WMSState.recID)
             try {
                 await WmSApi.get<DespachoCamionInterface[]>(`CrearDespacho/${WMSState.recID}/${Chofer}/${camion}`).then(x => {
                     changeDespachoID(x.data[0].id)
@@ -134,7 +135,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} texto2='' texto3='' />
             <Image
-                source={require('../assets/Packing.png')}
+                source={require('../../../../assets/Packing.png')}
                 style={{ width: 100, height: 100, resizeMode: 'contain' }}
             />
             <View style={style.textInput}>
@@ -148,7 +149,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
                 />
             </View>
             <Image
-                source={require('../assets/Chofer.png')}
+                source={require('../../../../assets/Chofer.png')}
                 style={{ width: 110, height: 110, resizeMode: 'contain' }}
             />
             <View style={style.textInput}>
