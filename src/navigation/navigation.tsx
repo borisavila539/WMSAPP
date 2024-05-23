@@ -14,6 +14,11 @@ import { EstadoTrasladosScreen } from '../screens/Despacho Tela/Opciones/EstadoT
 import { EstadotelaScreen } from '../screens/Despacho Tela/Opciones/EstadotelaScreen';
 import { RollosDespachoScreen } from '../screens/Despacho Tela/Opciones/Packing/RollosDespachoScreen';
 import { ReduccionCajasScreen } from '../screens/Reduccion Cajas/ReduccionCajasScreen';
+import { MenuDespachoPTScreen } from '../screens/DespachoPT/MenuDespachoPTScreen';
+import { DespachoPTPickingScreen } from '../screens/DespachoPT/Picking/DespachoPTPickingScreen';
+import { DespachoPTEstatusOP } from '../screens/DespachoPT/EstatusOP/DespachoPTEstatusOP';
+import { DespachoPTPacking } from '../screens/DespachoPT/Packing/DespachoPTPacking';
+import { DespachoPTOrdenesRecibir } from '../screens/DespachoPT/Recibir/DespachoPTOrdenesRecibir';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -29,7 +34,12 @@ export type RootStackParams = {
     EstadoTrasladoScreen:undefined
     EstadotelaScreen: undefined,
     RollosDespachoScreen:undefined,
-    ReduccionCajasScreen:undefined
+    ReduccionCajasScreen:undefined,
+    MenuDespachoPTScreen:undefined,
+    DespachoPTPickingScreen:undefined,
+    DespachoPTEstatusOP:undefined,
+    DespachoPTPacking:undefined,
+    DespachoPTOrdenesRecibir:undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -55,6 +65,11 @@ export const Navigation = () => {
             <Stack.Screen name='EstadotelaScreen' options={{title:'EstadotelaScreen'}} component={EstadotelaScreen}/>
             <Stack.Screen name='RollosDespachoScreen' options={{title:'RollosDespachoScreen'}} component={RollosDespachoScreen}/>
             <Stack.Screen name='ReduccionCajasScreen' options={{title:'ReduccionCajasScreen'}} component={ReduccionCajasScreen}/>
+            <Stack.Screen name='MenuDespachoPTScreen' options={{title:'MenuDespachoPTScreen'}} component={MenuDespachoPTScreen}/>
+            <Stack.Screen name='DespachoPTPickingScreen' options={{title:'DespachoPTPickingScreen'}} component={DespachoPTPickingScreen}/>
+            <Stack.Screen name='DespachoPTEstatusOP' options={{title:'DespachoPTEstatusOP'}} component={DespachoPTEstatusOP}/>
+            <Stack.Screen name='DespachoPTPacking' options={{title:'DespachoPTPacking'}} component={DespachoPTPacking}/>
+            <Stack.Screen name='DespachoPTOrdenesRecibir' options={{title:'DespachoPTOrdenesRecibir'}} component={DespachoPTOrdenesRecibir}/>
         </Stack.Navigator>
     )
 }

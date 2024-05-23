@@ -29,7 +29,7 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
                 pass,
                 logeado: false
             }
-            console.log(datos)
+            
             await WmSApi.post<LoginInterface>('Login', datos).then(x => {
                 if (x.data.logeado) {
                     setuser('')
@@ -43,7 +43,7 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
                 }
             })
         } catch (err) {
-            setMensajeAlerta('Error de conexion')
+            setMensajeAlerta('Error de conexion'+ err)
             setTipoMensaje(false);
             setShowMensajeAlerta(true);
         }

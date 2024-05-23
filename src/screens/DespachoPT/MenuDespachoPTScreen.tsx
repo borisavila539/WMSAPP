@@ -1,21 +1,24 @@
 import React, { FC, useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
-import { ScreensInterface } from '../interfaces/ScreeensInterface'
-import { RootStackParams } from '../navigation/navigation'
+import { ScreensInterface } from '../../interfaces/ScreeensInterface'
+import { RootStackParams } from '../../navigation/navigation'
 import { StackScreenProps } from '@react-navigation/stack'
-import { grey, navy } from '../constants/Colors'
-import Header from '../components/Header'
+import { grey, navy } from '../../constants/Colors'
+import Header from '../../components/Header'
 
-type props = StackScreenProps<RootStackParams, "MenuScreen">
-export const MenuScreen: FC<props> = ({ navigation }) => {
+type props = StackScreenProps<RootStackParams, "MenuDespachoPTScreen">
+export const MenuDespachoPTScreen : FC<props> = ({ navigation }) => {
     const [data, setData] = useState<ScreensInterface[]>([])
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'Diarios de Salida', Screen: 'SeleccionarDiarioScreen', image: require('../assets/RegistroRegalias.png') },
-            { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/PreparacionTela.png') },
-            { Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/ReduccionCajas.png') },
-            { Name: 'Despacho PT', Screen: 'MenuDespachoPTScreen', image: require('../assets/DespachoPT.png') }
+            { Name: 'Picking', Screen: 'DespachoPTPickingScreen', image: require('../../assets/Picking.png') },
+            { Name: 'Estatus OP', Screen: 'DespachoPTEstatusOP', image: require('../../assets/Picking.png') },
+            { Name: 'Packing', Screen: 'DespachoPTPacking', image: require('../../assets/Packing.png') },
+            { Name: 'Recibir', Screen: 'DespachoPTOrdenesRecibir', image: require('../../assets/Recibir.png') },
+            { Name: 'Auditoria', Screen: 'SeleccionarDiarioScreen', image: require('../../assets/ReduccionCajas.png') },
+            { Name: 'Liquidar', Screen: 'SeleccionarDiarioScreen', image: require('../../assets/Liquidar.png') },
+            { Name: 'ConsultaOP', Screen: 'SeleccionarDiarioScreen', image: require('../../assets/ConsultaOP.png') },   
         ]
         setData(tmp)
     }
@@ -41,7 +44,7 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
     }, [])
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey }}>
-            <Header texto1='' texto2='Menu' texto3='' />
+            <Header texto1='' texto2='Menu Despacho PT' texto3='' />
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.Screen.toString()}
