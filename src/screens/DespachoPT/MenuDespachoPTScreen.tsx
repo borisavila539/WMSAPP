@@ -14,7 +14,7 @@ export const MenuDespachoPTScreen : FC<props> = ({ navigation }) => {
         let tmp: ScreensInterface[] = [
             { Name: 'Picking', Screen: 'DespachoPTPickingScreen', image: require('../../assets/Picking.png') },
             { Name: 'Estatus OP', Screen: 'DespachoPTEstatusOP', image: require('../../assets/Picking.png') },
-            { Name: 'Packing', Screen: 'DespachoPTPacking', image: require('../../assets/Packing.png') },
+            { Name: 'Packing', Screen: 'DespachoPTPackingCamionChofer', image: require('../../assets/Packing.png') },
             { Name: 'Recibir', Screen: 'DespachoPTOrdenesRecibir', image: require('../../assets/Recibir.png') },
             { Name: 'Auditoria', Screen: 'SeleccionarDiarioScreen', image: require('../../assets/ReduccionCajas.png') },
             { Name: 'Liquidar', Screen: 'SeleccionarDiarioScreen', image: require('../../assets/Liquidar.png') },

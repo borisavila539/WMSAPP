@@ -17,8 +17,9 @@ import { ReduccionCajasScreen } from '../screens/Reduccion Cajas/ReduccionCajasS
 import { MenuDespachoPTScreen } from '../screens/DespachoPT/MenuDespachoPTScreen';
 import { DespachoPTPickingScreen } from '../screens/DespachoPT/Picking/DespachoPTPickingScreen';
 import { DespachoPTEstatusOP } from '../screens/DespachoPT/EstatusOP/DespachoPTEstatusOP';
-import { DespachoPTPacking } from '../screens/DespachoPT/Packing/DespachoPTPacking';
+import { DespachoPTPackingCamionChofer } from '../screens/DespachoPT/Packing/DespachoPTPackingCamionChofer';
 import { DespachoPTOrdenesRecibir } from '../screens/DespachoPT/Recibir/DespachoPTOrdenesRecibir';
+import { DespachoPTPacking } from '../screens/DespachoPT/Packing/DespachoPTPacking';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -38,8 +39,9 @@ export type RootStackParams = {
     MenuDespachoPTScreen:undefined,
     DespachoPTPickingScreen:undefined,
     DespachoPTEstatusOP:undefined,
-    DespachoPTPacking:undefined,
+    DespachoPTPackingCamionChofer:undefined,
     DespachoPTOrdenesRecibir:undefined,
+    DespachoPTPacking:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -68,8 +70,9 @@ export const Navigation = () => {
             <Stack.Screen name='MenuDespachoPTScreen' options={{title:'MenuDespachoPTScreen'}} component={MenuDespachoPTScreen}/>
             <Stack.Screen name='DespachoPTPickingScreen' options={{title:'DespachoPTPickingScreen'}} component={DespachoPTPickingScreen}/>
             <Stack.Screen name='DespachoPTEstatusOP' options={{title:'DespachoPTEstatusOP'}} component={DespachoPTEstatusOP}/>
-            <Stack.Screen name='DespachoPTPacking' options={{title:'DespachoPTPacking'}} component={DespachoPTPacking}/>
+            <Stack.Screen name='DespachoPTPackingCamionChofer' options={{title:'DespachoPTPackingCamionChofer'}} component={DespachoPTPackingCamionChofer}/>
             <Stack.Screen name='DespachoPTOrdenesRecibir' options={{title:'DespachoPTOrdenesRecibir'}} component={DespachoPTOrdenesRecibir}/>
+            <Stack.Screen name='DespachoPTPacking' options={{title:'DespachoPTPacking'}} component={DespachoPTPacking}/>
         </Stack.Navigator>
     )
 }

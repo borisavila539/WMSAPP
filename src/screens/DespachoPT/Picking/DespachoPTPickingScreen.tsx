@@ -21,11 +21,12 @@ export const DespachoPTPickingScreen: FC<props> = ({ navigation }) => {
     const [cargando, setCargando] = useState<boolean>(false);
     const { WMSState } = useContext(WMSContext);
     const [data, setData] = useState<PickingDespachoPTInterface[]>([])
+    
 
     const getData = async () => {
         setCargando(true)
         try {
-            await WmSApi.get<PickingDespachoPTInterface[]>('PickingDespachoPT/20').then((resp) => { //Colocar almacen
+            await WmSApi.get<PickingDespachoPTInterface[]>(`PickingDespachoPT/${WMSState.usuarioAlmacen}`).then((resp) => { //Colocar almacen
                 setData(resp.data)
                 console.log(resp.data)
             })

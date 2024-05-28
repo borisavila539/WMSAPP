@@ -10,3 +10,14 @@ export interface EstatusOPPTInterface {
     Costura2: string
     Textil2: string
 }
+
+export interface EstatusOPPTSendInterface {
+    id: number
+    prodID: string
+    size: string
+    costura1: number
+    textil1: number
+    costura2: number
+    textil2: number
+    usuario: string
+}

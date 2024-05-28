@@ -12,7 +12,8 @@ export interface WMSState {
     TRANSFERIDTO: string,
     INVENTLOCATIONIDTO: string,
     recID: string,
-    DespachoID: number
+    DespachoID: number,
+    usuarioAlmacen: number
 }
 
 //Estado inicial
@@ -26,7 +27,8 @@ export const WMSInitialState: WMSState = {
     TRANSFERIDTO: '',
     INVENTLOCATIONIDTO: '',
     recID: '',
-    DespachoID: 0
+    DespachoID: 0,
+    usuarioAlmacen: 0
 }
 
 export interface WMSContextProps {
@@ -41,6 +43,7 @@ export interface WMSContextProps {
     changeINVENTLOCATIONIDTO: (INVENTLOCATIONIDTO: string) => void
     changeRecId: (RecId: string) => void
     changeDespachoID: (DespachoID: number) => void
+    changeUsuarioAlmacen: (UsuarioAlmacen: number) => void
 }
 
 //crear el contexto
@@ -80,7 +83,9 @@ export const WMSProvider = ({ children }: any) => {
     const changeDespachoID = (DespachoID: number) => {
         dispatch({ type: 'changeDespachoID', payload: DespachoID })
     }
-
+    const changeUsuarioAlmacen = (UsuarioAlmacen: number) => {
+        dispatch({ type: 'changeUsuarioAlmacen', payload: UsuarioAlmacen })
+    }
 
     return (
         <WMSContext.Provider
@@ -95,7 +100,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeTRANSFERIDFROM,
                 changeTRANSFERIDTO,
                 changeRecId,
-                changeDespachoID
+                changeDespachoID,
+                changeUsuarioAlmacen
             }}
         >
             {children}

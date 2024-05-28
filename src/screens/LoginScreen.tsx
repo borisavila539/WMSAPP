@@ -19,7 +19,7 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
     const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-    const { changeUsuario } = useContext(WMSContext)
+    const { changeUsuario,changeUsuarioAlmacen } = useContext(WMSContext)
 
     const login = async () => {
         setEnviando(true)
@@ -27,7 +27,8 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
             let datos: LoginInterface = {
                 user,
                 pass,
-                logeado: false
+                logeado: false,
+                almacen:0
             }
             
             await WmSApi.post<LoginInterface>('Login', datos).then(x => {
@@ -35,6 +36,7 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
                     setuser('')
                     setPass('')
                     changeUsuario(x.data.user)
+                    changeUsuarioAlmacen(x.data.almacen)
                     navigation.navigate('MenuScreen');
                 } else {
                     setMensajeAlerta('Usuario o contraseña incorrecta...')

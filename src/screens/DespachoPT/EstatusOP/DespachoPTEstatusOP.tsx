@@ -1,25 +1,34 @@
 
 import { StackScreenProps } from '@react-navigation/stack'
-import React, { FC, useEffect, useState } from 'react'
-import { View, Text, ActivityIndicator, FlatList, TextInput, StyleSheet } from 'react-native'
+import React, { FC, useContext, useEffect, useState } from 'react'
+import { View, Text, ActivityIndicator, FlatList, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
 import { RootStackParams } from '../../../navigation/navigation'
 import Header from '../../../components/Header'
 import { grey, orange } from '../../../constants/Colors'
-import { EstatusOPPTInterface } from '../../../interfaces/DespachoPT/EstatusOP/GetEstatusOP'
+import { EstatusOPPTInterface, EstatusOPPTSendInterface } from '../../../interfaces/DespachoPT/EstatusOP/GetEstatusOP';
 import { WmSApi } from '../../../api/WMSApi'
+import { WMSContext, WMSState } from '../../../context/WMSContext';
+import MyAlert from '../../../components/MyAlert'
+import { convert } from 'react-native-html-to-pdf'
 type props = StackScreenProps<RootStackParams, "DespachoPTEstatusOP">
 
 export const DespachoPTEstatusOP: FC<props> = ({ navigation }) => {
   const [cargando, setCargando] = useState<boolean>(false)
   const [data, setData] = useState<EstatusOPPTInterface[]>([])
+  const { WMSState } = useContext(WMSContext)
+  const [enviando, setEnviando] = useState<boolean>(false)
+  const [indexEnviando, setindexEnviando] = useState<number>(-1)
+  const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
+  const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
+  const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
 
   const getData = async () => {
     if (!cargando) {
       setCargando(true)
       try {
-        await WmSApi.get<EstatusOPPTInterface[]>('EstatusOP_PT/20').then(resp => { //colcoar el almacen del usuario
+        await WmSApi.get<EstatusOPPTInterface[]>(`EstatusOP_PT/${WMSState.usuarioAlmacen}`).then(resp => { //colcoar el almacen del usuario
           setData(resp.data)
-          console.log(resp.data)
+          //console.log(resp.data)
         })
       } catch (err) {
 
@@ -29,13 +38,58 @@ export const DespachoPTEstatusOP: FC<props> = ({ navigation }) => {
 
   }
 
+  const enviarDiferencias = async (item: EstatusOPPTInterface, index: number) => {
+    setindexEnviando(index)
+    setEnviando(true)
+    console.log(item)
+    try {
+      let tmp: EstatusOPPTSendInterface = {
+        id: 0,
+        prodID: item.prodid,
+        size: item.size,
+        costura1: parseInt((item.Costura1 != null && item.Costura1 != '') ? item.Costura1 : '0'),
+        textil1: parseInt((item.Textil1 != null && item.Textil1 != '') ? item.Textil1 : '0'),
+        costura2: parseInt((item.Costura2 != null && item.Costura2 != '') ? item.Costura2 : '0'),
+        textil2: parseInt((item.Textil2 != null && item.Textil2 != '') ? item.Textil2 : '0'),
+        usuario: WMSState.usuario
+      }
+      if (tmp.costura1 + tmp.costura2 + tmp.textil1 + tmp.textil2 == item.cortado - item.escaneado) {
+        await WmSApi.post<EstatusOPPTSendInterface>('Insert_Estatus_Unidades_OP', tmp).then(resp => {
+          if (resp.data.id > 0) {
+            getData()
+
+          } else {
+            setMensajeAlerta('Error al enviar datos')
+            setTipoMensaje(false);
+            setShowMensajeAlerta(true);
+          }
+        })
+      } else {
+        setMensajeAlerta('Faltan unidades')
+        setTipoMensaje(false);
+        setShowMensajeAlerta(true);
+      }
+
+
+
+    } catch (err) {
+      console.log(err)
+      setMensajeAlerta('Error al enviar datos c')
+      setTipoMensaje(false);
+      setShowMensajeAlerta(true);
+    }
+
+    setindexEnviando(-1)
+    setEnviando(false)
+  }
+
   const renderItem = (item: EstatusOPPTInterface, index: number) => {
     return (
       <View style={styles.container}>
         <View style={styles.card}>
 
           <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontWeight: 'bold' }}>{item.prodcutsheetid}</Text>
+            <Text style={{ fontWeight: 'bold' }}>{item.prodcutsheetid} {item.size}</Text>
           </View>
 
           <View style={{ flexDirection: 'row' }}>
@@ -129,7 +183,16 @@ export const DespachoPTEstatusOP: FC<props> = ({ navigation }) => {
               </View>
             </View>
           </View>
+          <View style={styles.containerButton}>
+            <TouchableOpacity style={{ width: '100%', alignItems: 'center' }} disabled={enviando} onPress={() => enviarDiferencias(item, index)}>
+              {
 
+                index != indexEnviando ?
+                  <Text style={[styles.textCenter, { color: grey }]}>Enviar</Text> :
+                  <ActivityIndicator color={grey} />
+              }
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     )
@@ -148,11 +211,19 @@ export const DespachoPTEstatusOP: FC<props> = ({ navigation }) => {
               data={data}
               keyExtractor={(item) => item.prodid.toString()}
               renderItem={({ item, index }) => renderItem(item, index)}
+              ListEmptyComponent={() => {
+                return (
+                  <View style={{ flex: 1, alignItems: 'center' }}>
+                    <Text style={styles.textCenter}>No hay orden con diferencia</Text>
+                  </View>
+                )
+              }}
             />
             :
             <ActivityIndicator color={orange} />
         }
       </View>
+      <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
     </View>
   )
 }
@@ -182,7 +253,14 @@ const styles = StyleSheet.create({
   },
   alignText: {
     textAlign: 'center'
+  },
+  containerButton: {
+    width: '100%',
+    marginTop: 10,
+    alignItems: 'center',
+    backgroundColor: orange,
+    borderRadius: 10,
+    padding: 5,
   }
-
 })
 
