@@ -1,17 +1,18 @@
 import React, { FC, useContext, useEffect, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { WMSContext } from '../../context/WMSContext'
-import { WmSApi } from '../../api/WMSApi'
-import { DiariosAbriertosinterface } from '../../interfaces/DiariosAbiertosInterface'
-import { blue, grey, navy } from '../../constants/Colors'
+import { WMSContext } from '../../context/WMSContext';
+import { DiariosAbriertosinterface } from '../../interfaces/DiariosAbiertosInterface';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParams } from '../../navigation/navigation';
+import { WmSApi } from '../../api/WMSApi';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../../navigation/navigation'
-import Header from '../../components/Header'
+import Header from '../../components/Header';
+import { blue, grey, navy } from '../../constants/Colors';
 
-type props = StackScreenProps<RootStackParams, "SeleccionarDiarioScreen">
 
-export const SeleccionarDiarioScreen: FC<props> = ({ navigation }) => {
+type props = StackScreenProps<RootStackParams, "SeleccionarDiariosEntradaScreen">
+
+export const SeleccionarDiariosEntradaScreen: FC<props> = ({ navigation }) => {
     const { WMSState, changeDiario, changeNombreDiario } = useContext(WMSContext);
     const [cargando, setCargando] = useState<boolean>(false);
     const [Diarios, setDiarios] = useState<DiariosAbriertosinterface[]>([]);
@@ -35,7 +36,7 @@ export const SeleccionarDiarioScreen: FC<props> = ({ navigation }) => {
         const onPress = (item2: DiariosAbriertosinterface) => {
             changeDiario(item2.journalid)
             changeNombreDiario(item2.journalnameid)
-            navigation.navigate('IngresarLineasScreen')
+            navigation.navigate('IngresarLineasDiarioEntrada')
         }
         return (
             <View style={style.containerCard}>
@@ -62,7 +63,7 @@ export const SeleccionarDiarioScreen: FC<props> = ({ navigation }) => {
     }, [])
     return (
         <View style={style.container}>
-            <Header texto1='' texto2='Seleccione Diario Salida' texto3=''/>
+            <Header texto1='' texto2='Seleccione Diario Entrada' texto3=''/>
             <View style={style.textInput}>
                 <TextInput
                     placeholder='DIA-XXXXXX'

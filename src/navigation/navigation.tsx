@@ -20,6 +20,8 @@ import { DespachoPTEstatusOP } from '../screens/DespachoPT/EstatusOP/DespachoPTE
 import { DespachoPTPackingCamionChofer } from '../screens/DespachoPT/Packing/DespachoPTPackingCamionChofer';
 import { DespachoPTOrdenesRecibir } from '../screens/DespachoPT/Recibir/DespachoPTOrdenesRecibir';
 import { DespachoPTPacking } from '../screens/DespachoPT/Packing/DespachoPTPacking';
+import { SeleccionarDiariosEntradaScreen } from '../screens/DiarioEntrada/SeleccionarDiariosEntradaScreen';
+import { IngresarLineasDiarioEntrada } from '../screens/DiarioEntrada/IngresarLineasDiarioEntrada';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -41,7 +43,9 @@ export type RootStackParams = {
     DespachoPTEstatusOP:undefined,
     DespachoPTPackingCamionChofer:undefined,
     DespachoPTOrdenesRecibir:undefined,
-    DespachoPTPacking:undefined
+    DespachoPTPacking:undefined,
+    SeleccionarDiariosEntradaScreen:undefined,
+    IngresarLineasDiarioEntrada:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -73,6 +77,8 @@ export const Navigation = () => {
             <Stack.Screen name='DespachoPTPackingCamionChofer' options={{title:'DespachoPTPackingCamionChofer'}} component={DespachoPTPackingCamionChofer}/>
             <Stack.Screen name='DespachoPTOrdenesRecibir' options={{title:'DespachoPTOrdenesRecibir'}} component={DespachoPTOrdenesRecibir}/>
             <Stack.Screen name='DespachoPTPacking' options={{title:'DespachoPTPacking'}} component={DespachoPTPacking}/>
+            <Stack.Screen name='SeleccionarDiariosEntradaScreen' options={{title:'SeleccionarDiariosEntradaScreen'}} component={SeleccionarDiariosEntradaScreen}/>
+            <Stack.Screen name='IngresarLineasDiarioEntrada' options={{title:'IngresarLineasDiarioEntrada'}} component={IngresarLineasDiarioEntrada}/>
         </Stack.Navigator>
     )
 }
