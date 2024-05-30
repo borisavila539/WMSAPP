@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import { Text } from 'react-native-elements'
 import { RootStackParams } from '../../../navigation/navigation'
 import Header from '../../../components/Header'
@@ -10,7 +10,7 @@ import { WmSApi } from '../../../api/WMSApi'
 import { InsertBoxesDespachoPTInterface } from '../../../interfaces/DespachoPT/Picking/InsertBoxesDespachoPT'
 import { WMSContext } from '../../../context/WMSContext'
 import SoundPlayer from 'react-native-sound-player'
-import { PickingDespachoPTInterface } from '../../../interfaces/DespachoPT/Picking/PickingDespachoPTInterface'
+import { PickingPackingRecepcionDespachoPTInterface } from '../../../interfaces/DespachoPT/Picking/PickingDespachoPTInterface'
 
 
 type props = StackScreenProps<RootStackParams, "DespachoPTPickingScreen">
@@ -20,13 +20,13 @@ export const DespachoPTPickingScreen: FC<props> = ({ navigation }) => {
     const textInputRef = useRef<TextInput>(null);
     const [cargando, setCargando] = useState<boolean>(false);
     const { WMSState } = useContext(WMSContext);
-    const [data, setData] = useState<PickingDespachoPTInterface[]>([])
+    const [data, setData] = useState<PickingPackingRecepcionDespachoPTInterface[]>([])
     
 
     const getData = async () => {
         setCargando(true)
         try {
-            await WmSApi.get<PickingDespachoPTInterface[]>(`PickingDespachoPT/${WMSState.usuarioAlmacen}`).then((resp) => { //Colocar almacen
+            await WmSApi.get<PickingPackingRecepcionDespachoPTInterface[]>(`PickingDespachoPT/${WMSState.usuarioAlmacen}`).then((resp) => { //Colocar almacen
                 setData(resp.data)
                 console.log(resp.data)
             })
@@ -71,7 +71,7 @@ export const DespachoPTPickingScreen: FC<props> = ({ navigation }) => {
         }
     }
 
-    const renderItem = (item: PickingDespachoPTInterface) => {
+    const renderItem = (item: PickingPackingRecepcionDespachoPTInterface) => {
         const fecha = ():string =>{
             const fechaS = new Date(item.fechaPicking);
             return fechaS.getDate() + '/' + fechaS.getMonth() + '/' + fechaS.getFullYear()
@@ -133,7 +133,9 @@ export const DespachoPTPickingScreen: FC<props> = ({ navigation }) => {
                         renderItem={({ item, index }) => renderItem(item)}
                         showsVerticalScrollIndicator={false}
                         numColumns={2}
-                        
+                        refreshControl={
+                            <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                          }
                     />
                 }
             </View>

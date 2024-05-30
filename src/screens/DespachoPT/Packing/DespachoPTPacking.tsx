@@ -1,15 +1,16 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { RootStackParams } from '../../../navigation/navigation'
 import { WMSContext } from '../../../context/WMSContext'
 import Header from '../../../components/Header'
-import { black, grey } from '../../../constants/Colors'
+import { black, grey, orange } from '../../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { WmSApi } from '../../../api/WMSApi'
 import { PackingEnviarCajainterface } from '../../../interfaces/DespachoPT/Packing/PackingEnviarCajaInterface'
 import SoundPlayer from 'react-native-sound-player'
 import MyAlert from '../../../components/MyAlert'
+import { PickingPackingRecepcionDespachoPTInterface } from '../../../interfaces/DespachoPT/Picking/PickingDespachoPTInterface'
 
 
 type props = StackScreenProps<RootStackParams, "DespachoPTPacking">
@@ -22,6 +23,7 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
   const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
   const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
+  const [data,setData] = useState<PickingPackingRecepcionDespachoPTInterface[]>([])
 
   const PlaySound = (estado: string) => {
     try {
@@ -31,8 +33,17 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
     }
   }
 
-  const getData = () => {
+  const getData = async() => {
+    setCargando(true)
+        try {
+            await WmSApi.get<PickingPackingRecepcionDespachoPTInterface[]>(`PackingDespachoPT/${WMSState.DespachoID}`).then((resp) => { //Colocar almacen
+                setData(resp.data)
+                console.log(resp.data)
+            })
+        } catch (err) {
 
+        }
+        setCargando(false)
   }
 
   const AgregarCajapacking = async () => {
@@ -44,20 +55,42 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
         await WmSApi.get<PackingEnviarCajainterface>(`packingDespachoPT/${Prod[0]}/${WMSState.usuario}/${Prod[1]}/${WMSState.DespachoID}`).then(resp => {
           if (resp.data.packing) {
             PlaySound('success')
+            getData()
           } else {
             PlaySound('error')
-            setMensajeAlerta('Favor colocar unidades de 2da y 3eras')
+            setMensajeAlerta('Favor colocar unidades de 2da y 3eras o no fue escaneada en Picking')
             setTipoMensaje(false)
             setShowMensajeAlerta(true)
           }
-          setProdIDBox('')
+          
         })
       } catch (err) {
-
+        PlaySound('error')
       }
+      setProdIDBox('')
       setCargando(false)
     }
   }
+
+  const renderItem = (item: PickingPackingRecepcionDespachoPTInterface) => {
+    const fecha = ():string =>{
+        const fechaS = new Date(item.fechaPicking);
+        return fechaS.getDate() + '/' + fechaS.getMonth() + '/' + fechaS.getFullYear()
+    }
+    
+    return (
+        <View style={{ width: '50%', alignItems: 'center' }}>
+            <View style={{ width: '95%', backgroundColor: orange, borderRadius: 10, marginBottom: 5, padding: 5 }}>
+                <Text style={style.textRender}>{item.prodID}</Text>
+                <Text style={style.textRender}>Talla: {item.size}</Text>
+                <Text style={style.textRender}>QTY: {item.qty}</Text>
+                <Text style={style.textRender}>Color {item.color}</Text>
+                <Text style={style.textRender}>Caja: {item.box}</Text>
+                <Text style={style.textRender}>Fecha: {fecha()}</Text>
+            </View>
+        </View>
+    )
+}
 
   useEffect(() => {
     getData()
@@ -91,6 +124,21 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
           <ActivityIndicator size={20} />
         }
       </View>
+      <View style={{ flex: 1, width: '100%' }}>
+                {
+                    data.length > 0 &&
+                    <FlatList
+                        data={data}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item, index }) => renderItem(item)}
+                        showsVerticalScrollIndicator={false}
+                        numColumns={2}
+                        refreshControl={
+                          <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                        }
+                    />
+                }
+            </View>
       <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
 
     </View>

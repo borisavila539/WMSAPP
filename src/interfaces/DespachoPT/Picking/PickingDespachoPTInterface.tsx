@@ -1,4 +1,4 @@
-export interface PickingDespachoPTInterface{
+export interface PickingPackingRecepcionDespachoPTInterface{
     id: number,
     prodID: string,
     size: string,
