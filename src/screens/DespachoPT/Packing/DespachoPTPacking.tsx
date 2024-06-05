@@ -11,6 +11,7 @@ import { PackingEnviarCajainterface } from '../../../interfaces/DespachoPT/Packi
 import SoundPlayer from 'react-native-sound-player'
 import MyAlert from '../../../components/MyAlert'
 import { PickingPackingRecepcionDespachoPTInterface } from '../../../interfaces/DespachoPT/Picking/PickingDespachoPTInterface'
+import { EnviarDespachoPTInterface } from '../../../interfaces/DespachoPT/Packing/DespachosPTInterface'
 
 
 type props = StackScreenProps<RootStackParams, "DespachoPTPacking">
@@ -23,7 +24,8 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
   const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
   const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-  const [data,setData] = useState<PickingPackingRecepcionDespachoPTInterface[]>([])
+  const [data, setData] = useState<PickingPackingRecepcionDespachoPTInterface[]>([])
+  const [Enviando, setEnviando] = useState<boolean>(false)
 
   const PlaySound = (estado: string) => {
     try {
@@ -33,17 +35,38 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
     }
   }
 
-  const getData = async() => {
-    setCargando(true)
-        try {
-            await WmSApi.get<PickingPackingRecepcionDespachoPTInterface[]>(`PackingDespachoPT/${WMSState.DespachoID}`).then((resp) => { //Colocar almacen
-                setData(resp.data)
-                console.log(resp.data)
-            })
-        } catch (err) {
-
+  const EnviarDespacho = async () => {
+    setEnviando(true)
+    try {
+      await WmSApi.get<EnviarDespachoPTInterface>(`EnviarDespachoPT/${WMSState.DespachoID}/${WMSState.usuario}`).then(resp => {
+        if (resp.data.descripcion == "Enviado") {
+          navigation.goBack();
+        } else {
+          setMensajeAlerta('Despacho no Enviado')
+          setTipoMensaje(false)
+          setShowMensajeAlerta(true)
         }
-        setCargando(false)
+      })
+    } catch (err) {
+      console.log(err)
+      setMensajeAlerta('Error al Enviar despacho')
+      setTipoMensaje(false)
+      setShowMensajeAlerta(true)
+    }
+    setEnviando(false)
+  }
+
+  const getData = async () => {
+    setCargando(true)
+    try {
+      await WmSApi.get<PickingPackingRecepcionDespachoPTInterface[]>(`PackingDespachoPT/${WMSState.DespachoID}`).then((resp) => { //Colocar almacen
+        setData(resp.data)
+        console.log(resp.data)
+      })
+    } catch (err) {
+
+    }
+    setCargando(false)
   }
 
   const AgregarCajapacking = async () => {
@@ -62,7 +85,7 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
             setTipoMensaje(false)
             setShowMensajeAlerta(true)
           }
-          
+
         })
       } catch (err) {
         PlaySound('error')
@@ -73,24 +96,24 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   }
 
   const renderItem = (item: PickingPackingRecepcionDespachoPTInterface) => {
-    const fecha = ():string =>{
-        const fechaS = new Date(item.fechaPicking);
-        return fechaS.getDate() + '/' + fechaS.getMonth() + '/' + fechaS.getFullYear()
+    const fecha = (): string => {
+      const fechaS = new Date(item.fechaPicking);
+      return fechaS.getDate() + '/' + fechaS.getMonth() + '/' + fechaS.getFullYear()
     }
-    
+
     return (
-        <View style={{ width: '50%', alignItems: 'center' }}>
-            <View style={{ width: '95%', backgroundColor: orange, borderRadius: 10, marginBottom: 5, padding: 5 }}>
-                <Text style={style.textRender}>{item.prodID}</Text>
-                <Text style={style.textRender}>Talla: {item.size}</Text>
-                <Text style={style.textRender}>QTY: {item.qty}</Text>
-                <Text style={style.textRender}>Color {item.color}</Text>
-                <Text style={style.textRender}>Caja: {item.box}</Text>
-                <Text style={style.textRender}>Fecha: {fecha()}</Text>
-            </View>
+      <View style={{ width: '50%', alignItems: 'center' }}>
+        <View style={{ width: '95%', backgroundColor: orange, borderRadius: 10, marginBottom: 5, padding: 5 }}>
+          <Text style={style.textRender}>{item.prodID}</Text>
+          <Text style={style.textRender}>Talla: {item.size}</Text>
+          <Text style={style.textRender}>QTY: {item.qty}</Text>
+          <Text style={style.textRender}>Color {item.color}</Text>
+          <Text style={style.textRender}>Caja: {item.box}</Text>
+          <Text style={style.textRender}>Fecha: {fecha()}</Text>
         </View>
+      </View>
     )
-}
+  }
 
   useEffect(() => {
     getData()
@@ -105,40 +128,55 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   return (
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
       <Header texto2={'Camion: ' + WMSState.Camion + ' Chofer: ' + WMSState.Chofer} texto3={''} texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} />
-      <View style={[style.textInput, { borderColor: '#77D970' }]}>
-        <TextInput
-          ref={textInputRef}
-          onChangeText={(value) => { setProdIDBox(value) }}
-          value={ProdIDBox}
-          style={style.input}
-          placeholder='Escanear Ingreso...'
-          autoFocus
-          onBlur={() => textInputRef.current?.isFocused() ? null : textInputRef.current?.focus()}
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={[style.textInput, { borderColor: '#77D970', width: '85%' }]}>
+          <TextInput
+            ref={textInputRef}
+            onChangeText={(value) => { setProdIDBox(value) }}
+            value={ProdIDBox}
+            style={style.input}
+            placeholder='Escanear Ingreso...'
+            autoFocus
+            onBlur={() => textInputRef.current?.isFocused() ? null : textInputRef.current?.focus()}
 
-        />
-        {!cargando ?
-          <TouchableOpacity onPress={() => setProdIDBox('')}>
-            <Icon name='times' size={15} color={black} />
-          </TouchableOpacity>
-          :
-          <ActivityIndicator size={20} />
+          />
+          {!cargando ?
+            <TouchableOpacity onPress={() => setProdIDBox('')}>
+              <Icon name='times' size={15} color={black} />
+            </TouchableOpacity>
+            :
+            <ActivityIndicator size={20} />
+          }
+
+        </View>
+        {
+
+        }
+        <TouchableOpacity onPress={!Enviando ? () => EnviarDespacho() : () => null} style={{ width: '13%', backgroundColor: '#77D970', borderRadius: 10 }} >
+          {
+            Enviando ?
+              <ActivityIndicator size={20} />
+              :
+              <Text style={{ textAlign: 'center' }}><Icon name='check' size={30} color={grey} /></Text>
+          }
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ flex: 1, width: '100%' }}>
+        {
+          data.length > 0 &&
+          <FlatList
+            data={data}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item, index }) => renderItem(item)}
+            showsVerticalScrollIndicator={false}
+            numColumns={2}
+            refreshControl={
+              <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+            }
+          />
         }
       </View>
-      <View style={{ flex: 1, width: '100%' }}>
-                {
-                    data.length > 0 &&
-                    <FlatList
-                        data={data}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item, index }) => renderItem(item)}
-                        showsVerticalScrollIndicator={false}
-                        numColumns={2}
-                        refreshControl={
-                          <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
-                        }
-                    />
-                }
-            </View>
       <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
 
     </View>
