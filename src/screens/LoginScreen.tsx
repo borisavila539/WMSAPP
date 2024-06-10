@@ -30,8 +30,8 @@ export const LoginScreen: FC<props> = ({ navigation }) => {
                 logeado: false,
                 almacen:0
             }
-            
-            await WmSApi.post<LoginInterface>('Login', datos).then(x => {
+            //navigation.navigate('DespachoPTConsultaOPDetalle');
+            await WmSApi.post<LoginInterface>('Login', datos).then(x => {                
                 if (x.data.logeado) {
                     setuser('')
                     setPass('')

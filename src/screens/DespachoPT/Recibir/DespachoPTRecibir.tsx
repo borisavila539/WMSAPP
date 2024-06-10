@@ -76,11 +76,11 @@ export const DespachoPTRecibir: FC<props> = ({ navigation }) => {
                         setProdIDBox('')
                         getData()
                     } else {
-                        PlaySound('success')
+                        PlaySound('error')
                     }
                 })
             } catch (err) {
-                PlaySound('success')
+                PlaySound('error')
             }
             setCargando(false)
         }

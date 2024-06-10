@@ -2,8 +2,6 @@ import { Modal, PermissionsAndroid, Pressable, StyleSheet, Text, View, } from 'r
 import Icon from 'react-native-vector-icons/Ionicons'
 import { myAlertInterface } from '../interfaces/MyAlertinterface';
 import { grey, navy } from '../constants/Colors';
-import { useEffect } from 'react';
-import SoundPlayer from 'react-native-sound-player';
 
 function MyAlert({ visible, tipoMensaje, mensajeAlerta, onPress }: myAlertInterface) {
     return (

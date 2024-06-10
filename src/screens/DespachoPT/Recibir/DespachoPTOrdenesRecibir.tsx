@@ -16,7 +16,7 @@ export const DespachoPTOrdenesRecibir: FC<props> = ({ navigation }) => {
 
   const getData = async () => {
     try {
-      await WmSApi.get<DespachosPTInterface[]>('DespachoPTEnviados').then(resp => {
+      await WmSApi.get<DespachosPTInterface[]>('DespachoPTEstado/Enviado').then(resp => {
         setdata(resp.data)
       })
     } catch (err) {

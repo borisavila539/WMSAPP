@@ -25,6 +25,11 @@ import { IngresarLineasDiarioEntrada } from '../screens/DiarioEntrada/IngresarLi
 import { SeleccionarDiarioTransferirScreen } from '../screens/DiarioTransferir/SeleccionarDiarioTransferirScreen';
 import { IngresarLineasDiarioTransferir } from '../screens/DiarioTransferir/IngresarLineasDiarioTransferir';
 import { DespachoPTRecibir } from '../screens/DespachoPT/Recibir/DespachoPTRecibir';
+import { DespachoPTAuditoria } from '../screens/DespachoPT/Auditoria/DespachoPTAuditoria';
+import { DespachoPTAuditoriaCajas } from '../screens/DespachoPT/Auditoria/DespachoPTAuditoriaCajas';
+import { DespachoPTAuditoriaCajasLineas } from '../screens/DespachoPT/Auditoria/DespachoPTAuditoriaCajasLineas';
+import { DespachoPTConsultaOPDespachos } from '../screens/DespachoPT/ConsultaOP/DespachoPTConsultaOPDespachos';
+import { DespachoPTConsultaOPDetalle } from '../screens/DespachoPT/ConsultaOP/DespachoPTConsultaOPDetalle';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -52,6 +57,11 @@ export type RootStackParams = {
     SeleccionarDiarioTransferirScreen: undefined,
     IngresarLineasDiarioTransferir: undefined,
     DespachoPTRecibir: undefined,
+    DespachoPTAuditoria: undefined,
+    DespachoPTAuditoriaCajas:undefined,
+    DespachoPTAuditoriaCajasLineas:undefined,
+    DespachoPTConsultaOPDespachos:undefined,
+    DespachoPTConsultaOPDetalle:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -88,6 +98,11 @@ export const Navigation = () => {
             <Stack.Screen name='SeleccionarDiarioTransferirScreen' options={{ title: 'SeleccionarDiarioTransferirScreen' }} component={SeleccionarDiarioTransferirScreen} />
             <Stack.Screen name='IngresarLineasDiarioTransferir' options={{ title: 'IngresarLineasDiarioTransferir' }} component={IngresarLineasDiarioTransferir} />
             <Stack.Screen name='DespachoPTRecibir' options={{ title: 'DespachoPTRecibir' }} component={DespachoPTRecibir} />
+            <Stack.Screen name='DespachoPTAuditoria' options={{ title: 'DespachoPTAuditoria' }} component={DespachoPTAuditoria} />
+            <Stack.Screen name='DespachoPTAuditoriaCajas' options={{ title: 'DespachoPTAuditoriaCajas' }} component={DespachoPTAuditoriaCajas} />
+            <Stack.Screen name='DespachoPTAuditoriaCajasLineas' options={{ title: 'DespachoPTAuditoriaCajasLineas' }} component={DespachoPTAuditoriaCajasLineas} />
+            <Stack.Screen name='DespachoPTConsultaOPDespachos' options={{ title: 'DespachoPTConsultaOPDespachos' }} component={DespachoPTConsultaOPDespachos} />
+            <Stack.Screen name='DespachoPTConsultaOPDetalle' options={{ title: 'DespachoPTConsultaOPDetalle' }} component={DespachoPTConsultaOPDetalle} />
         </Stack.Navigator>
     )
 }

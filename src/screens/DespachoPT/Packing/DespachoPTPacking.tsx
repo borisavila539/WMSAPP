@@ -127,7 +127,7 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   }, [ProdIDBox])
   return (
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-      <Header texto2={'Camion: ' + WMSState.Camion + ' Chofer: ' + WMSState.Chofer} texto3={''} texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} />
+      <Header texto2={'Camion: ' + WMSState.Camion + ' Chofer: ' + WMSState.Chofer} texto3={'Cajas: ' + data.length} texto1='' />
       <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={[style.textInput, { borderColor: '#77D970', width: '85%' }]}>
           <TextInput
