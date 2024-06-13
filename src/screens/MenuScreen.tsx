@@ -12,12 +12,12 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'Diarios de Salida', Screen: 'SeleccionarDiarioScreen', image: require('../assets/DiarioSalida.jpg') },
-            { Name: 'Diarios de Entrada', Screen: 'SeleccionarDiariosEntradaScreen', image: require('../assets/DiarioEntrada.jpg') },
+            { Name: 'Diarios de Salida', Screen: 'SeleccionarDiarioScreen', image: require('../assets/DiarioSalida.png') },
+            { Name: 'Diarios de Entrada', Screen: 'SeleccionarDiariosEntradaScreen', image: require('../assets/DiarioEntrada.png') },
             { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/DespachoTela.jpg') },
-            { Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/ReduccionCajas.jpg') },
-            { Name: 'Despacho PT', Screen: 'MenuDespachoPTScreen', image: require('../assets/DespachoPT.jpg') },
-            { Name: 'Diarios de Tranferencia', Screen: 'SeleccionarDiarioTransferirScreen', image: require('../assets/Transferir.jpg') }
+            { Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/AuditoriaImagen.png') },
+            { Name: 'Despacho PT', Screen: 'MenuDespachoPTScreen', image: require('../assets/DespachoPT.png') },
+            { Name: 'Diarios de Tranferencia', Screen: 'SeleccionarDiarioTransferirScreen', image: require('../assets/Transferir.png') }
         ]
         setData(tmp)
     }

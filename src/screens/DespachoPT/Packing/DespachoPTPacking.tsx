@@ -20,12 +20,19 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   const { WMSState } = useContext(WMSContext);
   const [ProdIDBox, setProdIDBox] = useState<string>('')
   const textInputRef = useRef<TextInput>(null);
+  const cajasSegunasRef = useRef<TextInput>(null);
+  const cajasTercerasRef = useRef<TextInput>(null);
+
   const [cargando, setCargando] = useState<boolean>(false);
   const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
   const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
   const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
   const [data, setData] = useState<PickingPackingRecepcionDespachoPTInterface[]>([])
   const [Enviando, setEnviando] = useState<boolean>(false)
+  const [cajasSegundas, setCajasSegundas] = useState<string>('')
+  const [cajasTerceras, setCajasTerceras] = useState<string>('')
+
+
 
   const PlaySound = (estado: string) => {
     try {
@@ -38,7 +45,7 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
   const EnviarDespacho = async () => {
     setEnviando(true)
     try {
-      await WmSApi.get<EnviarDespachoPTInterface>(`EnviarDespachoPT/${WMSState.DespachoID}/${WMSState.usuario}`).then(resp => {
+      await WmSApi.get<EnviarDespachoPTInterface>(`EnviarDespachoPT/${WMSState.DespachoID}/${WMSState.usuario}/${cajasSegundas.length > 0 ? cajasSegundas : 0}/${cajasTerceras.length > 0 ? cajasTerceras : 0}`).then(resp => {
         if (resp.data.descripcion == "Enviado") {
           navigation.goBack();
         } else {
@@ -137,7 +144,7 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
             style={style.input}
             placeholder='Escanear Ingreso...'
             autoFocus
-            onBlur={() => textInputRef.current?.isFocused() ? null : textInputRef.current?.focus()}
+            onBlur={() => textInputRef.current?.isFocused() ? null : (cajasSegunasRef.current?.isFocused() || cajasTercerasRef.current?.isFocused() ? null:textInputRef.current?.focus()) }
 
           />
           {!cargando ?
@@ -149,6 +156,7 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
           }
 
         </View>
+
         {
 
         }
@@ -161,7 +169,27 @@ export const DespachoPTPacking: FC<props> = ({ navigation }) => {
           }
         </TouchableOpacity>
       </View>
+      <View style={{ width: '100%', flexDirection: 'row' }}>
+        <View style={[style.textInput, { width: '50%' }]}>
+          <TextInput
+            ref={cajasSegunasRef}
+            onChangeText={(value) => { setCajasSegundas(value) }}
+            value={cajasSegundas}
+            style={{ width: '100%', textAlign: 'center' }}
+            placeholder='Irregulares'
 
+          />
+        </View>
+        <View style={[style.textInput, { width: '50%' }]}>
+          <TextInput
+            ref={cajasTercerasRef}
+            onChangeText={(value) => { setCajasTerceras(value) }}
+            value={cajasTerceras}
+            style={{ width: '100%', textAlign: 'center' }}
+            placeholder='Terceras'
+          />
+        </View>
+      </View>
       <View style={{ flex: 1, width: '100%' }}>
         {
           data.length > 0 &&
