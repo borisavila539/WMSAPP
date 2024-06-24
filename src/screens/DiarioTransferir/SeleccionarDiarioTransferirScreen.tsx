@@ -23,8 +23,9 @@ export const SeleccionarDiarioTransferirScreen: FC<props> = ({ navigation }) => 
     const getData = async () => {
         setCargando(true)
         try {
-            await WmSApi.get<DiariosAbriertosinterface[]>(`DiariosTransferirAbiertos/${WMSState.usuario}/${filtro.length > 0 ? filtro : '-'}`).then(resp => {
+            await WmSApi.get<DiariosAbriertosinterface[]>(`DiariosTransferirAbiertos/24402/-`).then(resp => {
                 setDiarios(resp.data)
+                
             })
         } catch (err) {
             console.log(err)

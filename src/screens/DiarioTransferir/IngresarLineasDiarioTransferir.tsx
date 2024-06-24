@@ -10,6 +10,7 @@ import SoundPlayer from 'react-native-sound-player'
 import MyAlert from '../../components/MyAlert'
 import Header from '../../components/Header'
 import Icon from 'react-native-vector-icons/FontAwesome5'
+import { EnviarCorreoTransferirInterface } from '../../interfaces/EnviarCorreoTransferirInterface'
 
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasDiarioTransferir">
@@ -26,6 +27,7 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
     const [Linea, setLinea] = useState<GrupoLineasDiariointerface>()
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [add, setAdd] = useState<boolean>(true);
+    const [Enviando, setEnviando] = useState<boolean>(false)
 
 
     const getData = async () => {
@@ -162,6 +164,25 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
         )
     }
 
+    const EnviarDiarioTransferir = async() => {
+        if(!Enviando){
+            setEnviando(true)
+            try{
+                await WmSApi.get<EnviarCorreoTransferirInterface>(`EnviarCorreotransferir/${WMSState.diario}/${WMSState.usuario}`).then(resp =>{
+                    console.log(resp.data)
+                    if(resp.data.journalID != ''){
+                        navigation.goBack()
+                        navigation.goBack()
+
+                    }
+                })
+            }catch(err){
+
+            }
+            setEnviando(false)
+        }
+    }
+
     useEffect(() => {
         textInputRef.current?.focus()
         //textInputRef.current?.blur()
@@ -200,28 +221,38 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1={WMSState.diario + ':' + WMSState.nombreDiario} texto2={'Articulos Ingresadas: ' + getCantidadTotal().toString()} texto3='' />
-            <View style={[style.textInput, { borderColor: add ? '#77D970' : '#CD4439' }]}>
-                <Switch value={add} onValueChange={() => setAdd(!add)}
-                    trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
-                    thumbColor={add ? '#77D970' : '#CD4439'} />
+            <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={[style.textInput, { borderColor: add ? '#77D970' : '#CD4439' }]}>
+                    <Switch value={add} onValueChange={() => setAdd(!add)}
+                        trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
+                        thumbColor={add ? '#77D970' : '#CD4439'} />
 
-                <TextInput
-                    ref={textInputRef}
-                    onChangeText={(value) => { setbarcode(value) }}
-                    value={barCode}
-                    style={style.input}
-                    //onSubmitEditing={handleEnterPress}
-                    placeholder={add ? 'Escanear Ingreso...' : 'Escanear Reduccion...'}
+                    <TextInput
+                        ref={textInputRef}
+                        onChangeText={(value) => { setbarcode(value) }}
+                        value={barCode}
+                        style={style.input}
+                        //onSubmitEditing={handleEnterPress}
+                        placeholder={add ? 'Escanear Ingreso...' : 'Escanear Reduccion...'}
 
-                />
-                {!cargando ?
-                    <TouchableOpacity onPress={() => setbarcode('')}>
-                        <Icon name='times' size={15} color={black} />
-                    </TouchableOpacity>
-                    :
-                    <ActivityIndicator size={20} />
-                }
+                    />
+                    {!cargando ?
+                        <TouchableOpacity onPress={() => setbarcode('')}>
+                            <Icon name='times' size={15} color={black} />
+                        </TouchableOpacity>
+                        :
+                        <ActivityIndicator size={20} />
+                    }
 
+                </View>
+                <TouchableOpacity onPress={!Enviando ? () => EnviarDiarioTransferir() : () => null} style={{ width: '13%', backgroundColor: '#77D970', borderRadius: 10 }} >
+                    {
+                        Enviando ?
+                            <ActivityIndicator size={20} />
+                            :
+                            <Text style={{ textAlign: 'center' }}><Icon name='check' size={30} color={grey} /></Text>
+                    }
+                </TouchableOpacity>
             </View>
 
 
@@ -275,7 +306,7 @@ const style = StyleSheet.create({
     },
     textInput: {
         maxWidth: 450,
-        width: '95%',
+        width: '87%',
         backgroundColor: grey,
         borderRadius: 10,
         flexDirection: 'row',
