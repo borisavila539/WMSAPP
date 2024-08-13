@@ -15,6 +15,7 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
             { Name: 'Diarios de Salida', Screen: 'SeleccionarDiarioScreen', image: require('../assets/DiarioSalida.png') },
             { Name: 'Diarios de Entrada', Screen: 'SeleccionarDiariosEntradaScreen', image: require('../assets/DiarioEntrada.png') },
             { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/DespachoTela.jpg') },
+            { Name: 'Busqueda Rollos', Screen: 'BusquedaRolloAXScreen', image: require('../assets/DespachoTela.jpg') },
             { Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/AuditoriaImagen.png') },
             { Name: 'Despacho PT', Screen: 'MenuDespachoPTScreen', image: require('../assets/DespachoPT.png') },
             { Name: 'Diarios de Tranferencia', Screen: 'SeleccionarDiarioTransferirScreen', image: require('../assets/Transferir.png') }

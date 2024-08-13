@@ -82,7 +82,7 @@ export const DespachoPTConsultaOPDespachos: FC<props> = ({ navigation }) => {
                 />
 
             </View>
-            <View style={{ width: '100%' }}>
+            <View style={{ width: '100%',flex:1 }}>
                 <FlatList
                     data={Data}
                     keyExtractor={(item) => item.prodCutSheetID.toString()}

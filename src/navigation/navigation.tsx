@@ -30,6 +30,8 @@ import { DespachoPTAuditoriaCajas } from '../screens/DespachoPT/Auditoria/Despac
 import { DespachoPTAuditoriaCajasLineas } from '../screens/DespachoPT/Auditoria/DespachoPTAuditoriaCajasLineas';
 import { DespachoPTConsultaOPDespachos } from '../screens/DespachoPT/ConsultaOP/DespachoPTConsultaOPDespachos';
 import { DespachoPTConsultaOPDetalle } from '../screens/DespachoPT/ConsultaOP/DespachoPTConsultaOPDetalle';
+import { ReduccionCajasScreen2 } from '../screens/Reduccion Cajas/ReduccionCajasScreen2';
+import { BusquedaRolloAXScreen } from '../screens/BusquedaRolloAX/BusquedaRolloAXScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -46,6 +48,7 @@ export type RootStackParams = {
     EstadotelaScreen: undefined,
     RollosDespachoScreen: undefined,
     ReduccionCajasScreen: undefined,
+    ReduccionCajasScreen2: undefined,
     MenuDespachoPTScreen: undefined,
     DespachoPTPickingScreen: undefined,
     DespachoPTEstatusOP: undefined,
@@ -61,7 +64,8 @@ export type RootStackParams = {
     DespachoPTAuditoriaCajas:undefined,
     DespachoPTAuditoriaCajasLineas:undefined,
     DespachoPTConsultaOPDespachos:undefined,
-    DespachoPTConsultaOPDetalle:undefined
+    DespachoPTConsultaOPDetalle:undefined,
+    BusquedaRolloAXScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -87,6 +91,8 @@ export const Navigation = () => {
             <Stack.Screen name='EstadotelaScreen' options={{ title: 'EstadotelaScreen' }} component={EstadotelaScreen} />
             <Stack.Screen name='RollosDespachoScreen' options={{ title: 'RollosDespachoScreen' }} component={RollosDespachoScreen} />
             <Stack.Screen name='ReduccionCajasScreen' options={{ title: 'ReduccionCajasScreen' }} component={ReduccionCajasScreen} />
+            <Stack.Screen name='ReduccionCajasScreen2' options={{ title: 'ReduccionCajasScreen2' }} component={ReduccionCajasScreen2} />
+            
             <Stack.Screen name='MenuDespachoPTScreen' options={{ title: 'MenuDespachoPTScreen' }} component={MenuDespachoPTScreen} />
             <Stack.Screen name='DespachoPTPickingScreen' options={{ title: 'DespachoPTPickingScreen' }} component={DespachoPTPickingScreen} />
             <Stack.Screen name='DespachoPTEstatusOP' options={{ title: 'DespachoPTEstatusOP' }} component={DespachoPTEstatusOP} />
@@ -103,6 +109,7 @@ export const Navigation = () => {
             <Stack.Screen name='DespachoPTAuditoriaCajasLineas' options={{ title: 'DespachoPTAuditoriaCajasLineas' }} component={DespachoPTAuditoriaCajasLineas} />
             <Stack.Screen name='DespachoPTConsultaOPDespachos' options={{ title: 'DespachoPTConsultaOPDespachos' }} component={DespachoPTConsultaOPDespachos} />
             <Stack.Screen name='DespachoPTConsultaOPDetalle' options={{ title: 'DespachoPTConsultaOPDetalle' }} component={DespachoPTConsultaOPDetalle} />
+            <Stack.Screen name='BusquedaRolloAXScreen' options={{ title: 'BusquedaRolloAXScreen' }} component={BusquedaRolloAXScreen} />
         </Stack.Navigator>
     )
 }

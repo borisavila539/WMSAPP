@@ -10,5 +10,6 @@ export interface DespachoTelaDetalleInterface {
     bfpitemname: string,
     picking: Boolean
     packing: Boolean,
-    receive:boolean
+    receive:boolean,
+    wmslocationid:string
 }

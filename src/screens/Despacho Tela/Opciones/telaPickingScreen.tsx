@@ -180,6 +180,8 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
             <Text style={style.textRender}>Color: {item.name} {item.configid.length > 0 ? ' - ' + item.configid : ''}</Text>
             <Text style={style.textRender}>{item.itemid}</Text>
             <Text style={style.textRender}>{item.inventbatchid}</Text>
+            <Text style={style.textRender}>Ubicacion: {item.wmslocationid}</Text>
+
           </View>
         </View>
       </>
