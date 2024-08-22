@@ -32,6 +32,11 @@ import { DespachoPTConsultaOPDespachos } from '../screens/DespachoPT/ConsultaOP/
 import { DespachoPTConsultaOPDetalle } from '../screens/DespachoPT/ConsultaOP/DespachoPTConsultaOPDetalle';
 import { ReduccionCajasScreen2 } from '../screens/Reduccion Cajas/ReduccionCajasScreen2';
 import { BusquedaRolloAXScreen } from '../screens/BusquedaRolloAX/BusquedaRolloAXScreen';
+import { DespachoRecibidoLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/DespachoRecibidoLiquidacionScreen';
+import { OrdenesLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/OrdenesLiquidacionScreen';
+import { DestalleOrdenLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/DestalleOrdenLiquidacionScreen';
+import { DiariosinventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/DiariosinventarioCiclicoTelaScreen';
+import { DetalleInventarioCliclicoTelaScreen } from '../screens/InventarioCiclicoTela/DetalleInventarioCliclicoTelaScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -61,11 +66,16 @@ export type RootStackParams = {
     IngresarLineasDiarioTransferir: undefined,
     DespachoPTRecibir: undefined,
     DespachoPTAuditoria: undefined,
-    DespachoPTAuditoriaCajas:undefined,
-    DespachoPTAuditoriaCajasLineas:undefined,
-    DespachoPTConsultaOPDespachos:undefined,
-    DespachoPTConsultaOPDetalle:undefined,
-    BusquedaRolloAXScreen:undefined
+    DespachoPTAuditoriaCajas: undefined,
+    DespachoPTAuditoriaCajasLineas: undefined,
+    DespachoPTConsultaOPDespachos: undefined,
+    DespachoPTConsultaOPDetalle: undefined,
+    BusquedaRolloAXScreen: undefined,
+    DespachoRecibidoLiquidacionScreen: undefined,
+    OrdenesLiquidacionScreen: undefined,
+    DestalleOrdenLiquidacionScreen:undefined,
+    DiariosinventarioCiclicoTelaScreen: undefined,
+    DetalleInventarioCliclicoTelaScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -92,7 +102,7 @@ export const Navigation = () => {
             <Stack.Screen name='RollosDespachoScreen' options={{ title: 'RollosDespachoScreen' }} component={RollosDespachoScreen} />
             <Stack.Screen name='ReduccionCajasScreen' options={{ title: 'ReduccionCajasScreen' }} component={ReduccionCajasScreen} />
             <Stack.Screen name='ReduccionCajasScreen2' options={{ title: 'ReduccionCajasScreen2' }} component={ReduccionCajasScreen2} />
-            
+
             <Stack.Screen name='MenuDespachoPTScreen' options={{ title: 'MenuDespachoPTScreen' }} component={MenuDespachoPTScreen} />
             <Stack.Screen name='DespachoPTPickingScreen' options={{ title: 'DespachoPTPickingScreen' }} component={DespachoPTPickingScreen} />
             <Stack.Screen name='DespachoPTEstatusOP' options={{ title: 'DespachoPTEstatusOP' }} component={DespachoPTEstatusOP} />
@@ -109,7 +119,19 @@ export const Navigation = () => {
             <Stack.Screen name='DespachoPTAuditoriaCajasLineas' options={{ title: 'DespachoPTAuditoriaCajasLineas' }} component={DespachoPTAuditoriaCajasLineas} />
             <Stack.Screen name='DespachoPTConsultaOPDespachos' options={{ title: 'DespachoPTConsultaOPDespachos' }} component={DespachoPTConsultaOPDespachos} />
             <Stack.Screen name='DespachoPTConsultaOPDetalle' options={{ title: 'DespachoPTConsultaOPDetalle' }} component={DespachoPTConsultaOPDetalle} />
+            
+            {/* Busqeuda de rollos */}
             <Stack.Screen name='BusquedaRolloAXScreen' options={{ title: 'BusquedaRolloAXScreen' }} component={BusquedaRolloAXScreen} />
+
+            {/* Liquidacion */}
+            <Stack.Screen name='DespachoRecibidoLiquidacionScreen' options={{ title: 'DespachoRecibidoLiquidacionScreen' }} component={DespachoRecibidoLiquidacionScreen} />
+            <Stack.Screen name='OrdenesLiquidacionScreen' options={{ title: 'OrdenesLiquidacionScreen' }} component={OrdenesLiquidacionScreen} />
+            <Stack.Screen name='DestalleOrdenLiquidacionScreen' options={{ title: 'DestalleOrdenLiquidacionScreen' }} component={DestalleOrdenLiquidacionScreen} />
+
+            {/*Inventario cilico tela */}
+
+            <Stack.Screen name='DiariosinventarioCiclicoTelaScreen' options={{ title: 'DiariosinventarioCiclicoTelaScreen' }} component={DiariosinventarioCiclicoTelaScreen} />
+            <Stack.Screen name='DetalleInventarioCliclicoTelaScreen' options={{ title: 'DetalleInventarioCliclicoTelaScreen' }} component={DetalleInventarioCliclicoTelaScreen} />
         </Stack.Navigator>
     )
 }

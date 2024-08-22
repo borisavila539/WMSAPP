@@ -17,7 +17,7 @@ export const MenuDespachoPTScreen : FC<props> = ({ navigation }) => {
             { Name: 'Packing', Screen: 'DespachoPTPackingCamionChofer', image: require('../../assets/Packing.png') },
             { Name: 'Recibir', Screen: 'DespachoPTOrdenesRecibir', image: require('../../assets/Recibir.png') },
             { Name: 'Auditoria', Screen: 'DespachoPTAuditoria', image: require('../../assets/AuditoriaImagen.png') },
-            { Name: 'Liquidar', Screen: 'SeleccionarDiarioScreen', image: require('../../assets/Liquidar.png') },
+            { Name: 'Liquidar', Screen: 'DespachoRecibidoLiquidacionScreen', image: require('../../assets/Liquidar.png') },
             { Name: 'ConsultaOP', Screen: 'DespachoPTConsultaOPDespachos', image: require('../../assets/ConsultaOP.png') },   
         ]
         setData(tmp)
