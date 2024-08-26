@@ -4,7 +4,7 @@ import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInpu
 import { RootStackParams } from '../../navigation/navigation'
 import { DetalleInventarioCliclicoTelainterface } from '../../interfaces/InventarioCiclicoTela/DetalleInventarioCliclicoTelainterface'
 import { WmSApi } from '../../api/WMSApi'
-import { black, blue, grey, navy, orange } from '../../constants/Colors'
+import { black, blue, green, grey, navy, orange } from '../../constants/Colors'
 import Header from '../../components/Header'
 import { WMSContext } from '../../context/WMSContext'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -21,10 +21,11 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
     const [dataExist, setDataExist] = useState<DetalleInventarioCliclicoTelainterface[]>([])
     const textInputRef = useRef<TextInput>(null);
     const [InventSerialID, setinventSerialID] = useState<string>('')
-
-
     const [cargando, setCargando] = useState<Boolean>(false)
     const { WMSState } = useContext(WMSContext)
+    const [enviar, setEnviar] = useState<boolean>(false)
+    const [MensajeEnviado, setMensajeEnviado] = useState<string>('')
+
     const getData = async () => {
         setCargando(true)
         try {
@@ -40,6 +41,20 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
 
         }
         setCargando(false)
+    }
+
+    const EnviarDiarioAX = async () => {
+        setEnviar(true)
+        try {
+            await WmSApi.get<string>(`EnviarInventarioCilcicoTela/${WMSState.diario}`)
+                .then(resp => {
+                    setMensajeEnviado(resp.data)
+                })
+        } catch (err) {
+
+        }
+        setEnviar(false)
+
     }
 
     const renderItem = (item: DetalleInventarioCliclicoTelainterface) => {
@@ -119,8 +134,36 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
                     <ActivityIndicator size={20} />
                 }
             </View>
+            <View style={{ width: '100%', flexDirection: 'row' }}>
+                <View style={{ width: '50%' }}>
+                    <TouchableOpacity
+                        style={{ backgroundColor: green, width: '98%', alignItems: 'center', borderRadius: 10, paddingVertical: 7 }}
+                        onPress={() => navigation.navigate('AgregarInventarioCiclicoTelaScreen')}>
+                        <Icon name='plus' size={15} color={black} />
+                        <Text style={[style.textRender, { color: black }]}>Agregar</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={{ width: '50%' }}>
+                    <TouchableOpacity style={{ backgroundColor: green, width: '98%', alignItems: 'center', borderRadius: 10, paddingVertical: 7 }} onPress={EnviarDiarioAX}>
+                        {
+                            enviar ?
+                                <ActivityIndicator size={20} color={black} />
+                                :
+                                <Icon name='check' size={15} color={black} />
 
-
+                        }
+                        <Text style={[style.textRender, { color: black }]}>Enviar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+            {
+                MensajeEnviado != '' &&
+                <TouchableOpacity onPress={() => setMensajeEnviado('')} style={{ width: '90%', borderRadius: 10, borderWidth: 1, marginTop: 2, padding: 3, borderColor: blue }}>
+                    <Text style={{ color: orange }}>
+                        {MensajeEnviado}
+                    </Text>
+                </TouchableOpacity>
+            }
             <View style={{ flexDirection: 'row', flex: 1, width: '100%' }}>
 
                 <View style={{ flex: 1, width: '100%' }}>

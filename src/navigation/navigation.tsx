@@ -37,6 +37,8 @@ import { OrdenesLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/Orde
 import { DestalleOrdenLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/DestalleOrdenLiquidacionScreen';
 import { DiariosinventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/DiariosinventarioCiclicoTelaScreen';
 import { DetalleInventarioCliclicoTelaScreen } from '../screens/InventarioCiclicoTela/DetalleInventarioCliclicoTelaScreen';
+import { AgregarInventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/AgregarInventarioCiclicoTelaScreen';
+import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCajas/RecepcionUbicacionCajasScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -75,7 +77,9 @@ export type RootStackParams = {
     OrdenesLiquidacionScreen: undefined,
     DestalleOrdenLiquidacionScreen:undefined,
     DiariosinventarioCiclicoTelaScreen: undefined,
-    DetalleInventarioCliclicoTelaScreen:undefined
+    DetalleInventarioCliclicoTelaScreen:undefined,
+    AgregarInventarioCiclicoTelaScreen:undefined,
+    RecepcionUbicacionCajasScreen: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -132,6 +136,9 @@ export const Navigation = () => {
 
             <Stack.Screen name='DiariosinventarioCiclicoTelaScreen' options={{ title: 'DiariosinventarioCiclicoTelaScreen' }} component={DiariosinventarioCiclicoTelaScreen} />
             <Stack.Screen name='DetalleInventarioCliclicoTelaScreen' options={{ title: 'DetalleInventarioCliclicoTelaScreen' }} component={DetalleInventarioCliclicoTelaScreen} />
+            <Stack.Screen name='AgregarInventarioCiclicoTelaScreen' options={{ title: 'AgregarInventarioCiclicoTelaScreen' }} component={AgregarInventarioCiclicoTelaScreen} />
+            {/*Recepcion ubicacion cajas */}
+            <Stack.Screen name='RecepcionUbicacionCajasScreen' options={{ title: 'RecepcionUbicacionCajasScreen' }} component={RecepcionUbicacionCajasScreen} />
         </Stack.Navigator>
     )
 }
