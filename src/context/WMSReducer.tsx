@@ -1,3 +1,4 @@
+import { UbicacionesInterface } from "../interfaces/RecepcionUbicacionCajas/RecepcionUbicacionCajasInterface"
 import { WMSState } from "./WMSContext"
 
 type WMSAction =
@@ -14,6 +15,7 @@ type WMSAction =
     | { type: 'changeUsuarioAlmacen', payload: number }
     | { type: 'changeBox', payload: number }
     | { type: 'changeProdID', payload: string }
+    | { type: 'changeUbicaciones', payload: UbicacionesInterface[] }
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -82,6 +84,11 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
             return {
                 ...state,
                 ProdID: action.payload
+            }
+        case "changeUbicaciones":
+            return {
+                ...state,
+                ubicaciones: action.payload
             }
 
         default:

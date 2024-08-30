@@ -1,5 +1,6 @@
 import { createContext, useReducer } from "react";
 import { WMSReducer } from "./WMSReducer";
+import { UbicacionesInterface } from '../interfaces/RecepcionUbicacionCajas/RecepcionUbicacionCajasInterface';
 
 //Definir la informacion a grabar
 export interface WMSState {
@@ -15,7 +16,8 @@ export interface WMSState {
     DespachoID: number,
     usuarioAlmacen: number,
     ProdID:string,
-    Box: number
+    Box: number,
+    ubicaciones:UbicacionesInterface[]
 }
 
 //Estado inicial
@@ -32,7 +34,8 @@ export const WMSInitialState: WMSState = {
     DespachoID: 0,
     usuarioAlmacen: 0,
     ProdID :'',
-    Box:0
+    Box:0,
+    ubicaciones:[]
 }
 
 export interface WMSContextProps {
@@ -50,6 +53,7 @@ export interface WMSContextProps {
     changeUsuarioAlmacen: (UsuarioAlmacen: number) => void
     changeProdID: (ProdID: string)=> void
     changeBox: (Box:number)=> void
+    changeUbicaciones: (ubicaciones:UbicacionesInterface[]) => void
 }
 
 //crear el contexto
@@ -99,6 +103,9 @@ export const WMSProvider = ({ children }: any) => {
     const changeBox = (Box: number) => {
         dispatch({ type: 'changeBox', payload: Box })
     }
+    const changeUbicaciones = (ubicaciones:UbicacionesInterface[]) => {
+        dispatch({ type: 'changeUbicaciones', payload: ubicaciones })
+    }
 
     return (
         <WMSContext.Provider
@@ -116,7 +123,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeDespachoID,
                 changeUsuarioAlmacen,
                 changeBox,
-                changeProdID
+                changeProdID,
+                changeUbicaciones
             }}
         >
             {children}

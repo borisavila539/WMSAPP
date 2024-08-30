@@ -17,7 +17,6 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
             { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/DespachoTela.jpg') },
             { Name: 'Busqueda Rollos', Screen: 'BusquedaRolloAXScreen', image: require('../assets/DespachoTela.jpg') },
             { Name: 'Ciclico Tela', Screen: 'DiariosinventarioCiclicoTelaScreen', image: require('../assets/DespachoTela.jpg') },
-
             { Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/AuditoriaImagen.png') },
             { Name: 'Despacho PT', Screen: 'MenuDespachoPTScreen', image: require('../assets/DespachoPT.png') },
             { Name: 'Diarios de Tranferencia', Screen: 'SeleccionarDiarioTransferirScreen', image: require('../assets/Transferir.png') },
@@ -31,7 +30,7 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
         return (
             <View style={{ width: '50%', alignItems: 'center' }}>
                 <View style={{ width: '95%', borderWidth: 1, alignItems: 'center', borderRadius: 15, paddingVertical: 5, marginTop: 5 }}>
-                    <TouchableOpacity onPress={() => navigation.navigate(item.Screen)}>
+                    <TouchableOpacity onPress={() => navigation.navigate(item.Screen)} style={{alignItems: 'center'}}>
                         <Image
                             source={item.image}
                             style={{ width: 100, height: 100, resizeMode: 'contain' }}
