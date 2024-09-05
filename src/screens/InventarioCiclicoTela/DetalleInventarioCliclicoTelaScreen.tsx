@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, FlatList, Modal, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native'
 import { RootStackParams } from '../../navigation/navigation'
 import { DetalleInventarioCliclicoTelainterface } from '../../interfaces/InventarioCiclicoTela/DetalleInventarioCliclicoTelainterface'
 import { WmSApi } from '../../api/WMSApi'
@@ -20,11 +20,17 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
     const [dataNoexist, setDataNoExist] = useState<DetalleInventarioCliclicoTelainterface[]>([])
     const [dataExist, setDataExist] = useState<DetalleInventarioCliclicoTelainterface[]>([])
     const textInputRef = useRef<TextInput>(null);
+    const textInputRef2 = useRef<TextInput>(null);
     const [InventSerialID, setinventSerialID] = useState<string>('')
     const [cargando, setCargando] = useState<Boolean>(false)
+    const [actualizando, setActualizando] = useState<Boolean>(false)
     const { WMSState } = useContext(WMSContext)
     const [enviar, setEnviar] = useState<boolean>(false)
     const [MensajeEnviado, setMensajeEnviado] = useState<string>('')
+    const [qty, setQty] = useState<string>('')
+    const [modalVisible, setModalVisible] = useState<boolean>(false)
+    const [edit, setEdit] = useState<boolean>(false)
+    const [rollo, setRollo] = useState<string>('')
 
     const getData = async () => {
         setCargando(true)
@@ -51,7 +57,7 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
                     setMensajeEnviado(resp.data)
                 })
         } catch (err) {
-
+            console.log(err)
         }
         setEnviar(false)
 
@@ -61,7 +67,14 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <View style={{ width: '95%', backgroundColor: !item.exist ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
-                    <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventSerialID}</Text>
+                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventSerialID}</Text>
+
+                        <TouchableOpacity onPress={() => { setEdit(true); setRollo(item.inventSerialID) }}>
+                            <Icon name='edit' size={20} color={grey} />
+                        </TouchableOpacity>
+
+                    </View>
                     <Text style={style.textRender}>PR: {item.apvendRoll}</Text>
                     <Text style={style.textRender}>Tela: {item.reference}</Text>
                     <Text style={style.textRender}>Color: {item.colorName}{'(' + item.inventColorID + ')'}</Text>
@@ -84,7 +97,8 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
 
     const VerificarRollo = async () => {
         try {
-            await WmSApi.get<DetalleInventarioCliclicoTelainterface>(`InventarioCiclicoTelaExist/${WMSState.diario}/${InventSerialID}/${WMSState.usuario}`)
+            let item: DetalleInventarioCliclicoTelainterface | undefined = data.find(x => x.inventSerialID == InventSerialID)
+            await WmSApi.get<DetalleInventarioCliclicoTelainterface>(`InventarioCiclicoTelaExist/${WMSState.diario}/${InventSerialID}/${WMSState.usuario}/${item?.inventOnHand ? item?.inventOnHand : 0}`)
                 .then(resp => {
                     if (resp.data.exist) {
                         setinventSerialID('')
@@ -101,6 +115,27 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
         }
 
     }
+    const ActualizarCantidad = async () => {
+        setActualizando(true)
+        try {
+            await WmSApi.get<DetalleInventarioCliclicoTelainterface>(`ActuallizarQTYCiclicoTela/${rollo}/${qty}`).then(resp => {
+                if (resp.data.inventOnHand.toString() == qty) {
+                    setQty('')
+                    setEdit(false)
+                    textInputRef.current?.focus()
+                    PlaySound('success')
+
+                    getData()
+                } else {
+                    PlaySound('error')
+                }
+            })
+
+        } catch (err) {
+            PlaySound('error')
+        }
+        setActualizando(false)
+    }
     useEffect(() => {
         getData();
     }, [])
@@ -110,7 +145,6 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
             VerificarRollo()
             //textInputRef.current?.blur()
         }
-
     }, [InventSerialID])
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
@@ -123,7 +157,7 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
                     style={style.input}
                     placeholder='Escanear Ingreso...'
                     autoFocus
-                    onBlur={() => textInputRef.current?.focus()}
+                    onBlur={() => textInputRef2.current?.isFocused() ? null : textInputRef.current?.focus()}
 
                 />
                 {!cargando ?
@@ -133,7 +167,31 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
                     :
                     <ActivityIndicator size={20} />
                 }
+
             </View>
+            {
+                edit &&
+                <View style={[style.textInput, { borderColor: '#77D970' }]}>
+                    <TextInput
+                        ref={textInputRef2}
+                        onChangeText={(value) => { setQty(value) }}
+                        value={qty}
+                        style={style.input}
+                        keyboardType='decimal-pad'
+                        placeholder={'Actualizar QTY ' + rollo}
+
+                    />
+                    {!actualizando ?
+                        <TouchableOpacity onPress={() => ActualizarCantidad()}>
+                            <Icon name='check' size={15} color={black} />
+                        </TouchableOpacity>
+                        :
+                        <ActivityIndicator size={20} />
+                    }
+
+                </View>
+            }
+
             <View style={{ width: '100%', flexDirection: 'row' }}>
                 <View style={{ width: '50%' }}>
                     <TouchableOpacity
@@ -197,7 +255,22 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
                         />
                     }
                 </View>
-
+                <Modal visible={modalVisible} transparent={true}>
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1, backgroundColor: '#00000099' }}>
+                        <Text style={{ fontWeight: 'bold', marginTop: 10, color: navy }}>
+                            Nueva Cantidad
+                        </Text>
+                        <View style={[style.textInput, { borderColor: '#77D970' }]}>
+                            <TextInput
+                                ref={textInputRef}
+                                onChangeText={(value) => { setQty(value) }}
+                                value={qty}
+                                style={style.input}
+                                placeholder='Escanear Ingreso...'
+                            />
+                        </View>
+                    </View>
+                </Modal>
 
             </View>
         </View>

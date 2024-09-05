@@ -39,6 +39,7 @@ import { DiariosinventarioCiclicoTelaScreen } from '../screens/InventarioCiclico
 import { DetalleInventarioCliclicoTelaScreen } from '../screens/InventarioCiclicoTela/DetalleInventarioCliclicoTelaScreen';
 import { AgregarInventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/AgregarInventarioCiclicoTelaScreen';
 import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCajas/RecepcionUbicacionCajasScreen';
+import { DeclaracionEnvioScreen } from '../screens/DeclaracionEnvio/DeclaracionEnvioScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -79,7 +80,8 @@ export type RootStackParams = {
     DiariosinventarioCiclicoTelaScreen: undefined,
     DetalleInventarioCliclicoTelaScreen:undefined,
     AgregarInventarioCiclicoTelaScreen:undefined,
-    RecepcionUbicacionCajasScreen: undefined
+    RecepcionUbicacionCajasScreen: undefined,
+    DeclaracionEnvioScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -139,6 +141,9 @@ export const Navigation = () => {
             <Stack.Screen name='AgregarInventarioCiclicoTelaScreen' options={{ title: 'AgregarInventarioCiclicoTelaScreen' }} component={AgregarInventarioCiclicoTelaScreen} />
             {/*Recepcion ubicacion cajas */}
             <Stack.Screen name='RecepcionUbicacionCajasScreen' options={{ title: 'RecepcionUbicacionCajasScreen' }} component={RecepcionUbicacionCajasScreen} />
+            
+            {/*Declaracion de envio */}
+            <Stack.Screen name='DeclaracionEnvioScreen' options={{ title: 'DeclaracionEnvioScreen' }} component={DeclaracionEnvioScreen} />
         </Stack.Navigator>
     )
 }
