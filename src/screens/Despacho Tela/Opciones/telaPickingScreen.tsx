@@ -31,42 +31,45 @@ export const TelaPickingScreen: FC<props> = ({ navigation }) => {
 
 
   const getData = async () => {
-    setCargando(true)
-    try {
-      await WmSApi.get<DespachoTelaDetalleInterface[]>(`DespachotelasDetalle/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}/PICKING`).then(resp => {
-        //DespachotelasDetalle/TRAS-0093249/TRAS-0093610/1/PICKING
-        //DespachotelasDetalle/TRAS-0093358/TRAS-0093562/20/PICKING
-        let picking: DespachoTelaDetalleInterface[] = [];
-        let nopicking: DespachoTelaDetalleInterface[] = [];
-
-
-        resp.data.map(element => {
-          if (filtro.length > 0) {
-            if (element.picking && (element.inventserialid.includes(filtro) || element.apvendroll.includes(filtro))) {
-              picking.push(element)
-            } else if (element.inventserialid.includes(filtro) || element.apvendroll.includes(filtro)) {
-              nopicking.push(element)
-            }
-          } else {
-            if (element.picking) {
-              picking.push(element)
+    if(!cargando)
+    {
+      setCargando(true)
+      try {
+        await WmSApi.get<DespachoTelaDetalleInterface[]>(`DespachotelasDetalle/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}/PICKING`).then(resp => {
+          //DespachotelasDetalle/TRAS-0093249/TRAS-0093610/1/PICKING
+          //DespachotelasDetalle/TRAS-0093358/TRAS-0093562/20/PICKING
+          let picking: DespachoTelaDetalleInterface[] = [];
+          let nopicking: DespachoTelaDetalleInterface[] = [];
+  
+  
+          resp.data.map(element => {
+            if (filtro.length > 0) {
+              if (element.picking && (element.inventserialid.includes(filtro) || element.apvendroll.includes(filtro))) {
+                picking.push(element)
+              } else if (element.inventserialid.includes(filtro) || element.apvendroll.includes(filtro)) {
+                nopicking.push(element)
+              }
             } else {
-              nopicking.push(element)
+              if (element.picking) {
+                picking.push(element)
+              } else {
+                nopicking.push(element)
+              }
             }
-          }
-
+  
+          })
+          
+          setDataPicking(picking)
+          setNoDataPicking(nopicking)
+          setData(resp.data)
         })
-        
-        setDataPicking(picking)
-        setNoDataPicking(nopicking)
-        setData(resp.data)
-      })
-    } catch (err) {
-      console.log('error de conexion')
-    }
-    setCargando(false)
+      } catch (err) {
+        console.log('error de conexion')
+      }
+      setCargando(false)
+    }    
   }
-
+  
   const VerificarRollo = async () => {
     try{
       let tmp: DespachoTelaDetalleInterface = data.find(x => x.inventserialid == InventSerialID)

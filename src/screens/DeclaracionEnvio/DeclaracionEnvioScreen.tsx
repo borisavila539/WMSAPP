@@ -127,9 +127,10 @@ export const DeclaracionEnvioScreen: FC<props> = ({ navigation }) => {
             }
             <View style={{ width: '100%', marginTop: 5, flex: 1 }}>
                 <FlatList
-                    data={WMSState.ubicaciones}
+                    data={WMSState.ubicaciones.reverse()}
                     keyExtractor={(item) => item.ubicacion}
                     renderItem={({ item, index }) => renderItem(item)}
+                    
                 />
             </View>
 

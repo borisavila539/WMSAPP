@@ -29,39 +29,43 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
 
   const getData = async () => {
     console.log(WMSState.recID)
-    setCargando(true)
-    try {
-      await WmSApi.get<DespachoTelaDetalleInterface[]>(`DespachotelasDetalle/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}/PACKING`).then(resp => {
-        //DespachotelasDetalle/TRAS-0093249/TRAS-0093610/1/PICKING
-        //DespachotelasDetalle/TRAS-0093358/TRAS-0093562/20/PICKING
-        let picking: DespachoTelaDetalleInterface[] = [];
-        let nopicking: DespachoTelaDetalleInterface[] = [];
+    if (!cargando) {
+      setCargando(true)
+
+      try {
+        await WmSApi.get<DespachoTelaDetalleInterface[]>(`DespachotelasDetalle/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}/PACKING`).then(resp => {
+          //DespachotelasDetalle/TRAS-0093249/TRAS-0093610/1/PICKING
+          //DespachotelasDetalle/TRAS-0093358/TRAS-0093562/20/PICKING
+          let picking: DespachoTelaDetalleInterface[] = [];
+          let nopicking: DespachoTelaDetalleInterface[] = [];
 
 
-        resp.data.map(element => {
-          if (Filtro.length > 0) {
-            if (element.packing && (element.inventserialid.includes(Filtro) || element.apvendroll.includes(Filtro))) {
-              picking.push(element)
-            } else if (element.inventserialid.includes(Filtro) || element.apvendroll.includes(Filtro)) {
-              nopicking.push(element)
-            }
-          } else {
-            if (element.packing) {
-              picking.push(element)
+          resp.data.map(element => {
+            if (Filtro.length > 0) {
+              if (element.packing && (element.inventserialid.includes(Filtro) || element.apvendroll.includes(Filtro))) {
+                picking.push(element)
+              } else if (element.inventserialid.includes(Filtro) || element.apvendroll.includes(Filtro)) {
+                nopicking.push(element)
+              }
             } else {
-              nopicking.push(element)
+              if (element.packing) {
+                picking.push(element)
+              } else {
+                nopicking.push(element)
+              }
             }
-          }
 
+          })
+          setDataPicking(picking)
+          setNoDataPicking(nopicking)
+          setData(resp.data)
         })
-        setDataPicking(picking)
-        setNoDataPicking(nopicking)
-        setData(resp.data)
-      })
-    } catch (err) {
-      console.log('error de conexion')
+      } catch (err) {
+        console.log('error de conexion')
+      }
+      setCargando(false)
     }
-    setCargando(false)
+
   }
 
   const VerificarRollo = async () => {
@@ -164,8 +168,8 @@ export const TelaPackingScreen: FC<props> = ({ navigation }) => {
 
   const cerrarCamion = async () => {
     try {
-      await WmSApi.get<CerrarDespachoInterface[]>(`CerrarDespacho/${WMSState.DespachoID}`).then(resp=>{
-        if(resp.data[0].estado){          
+      await WmSApi.get<CerrarDespachoInterface[]>(`CerrarDespacho/${WMSState.DespachoID}`).then(resp => {
+        if (resp.data[0].estado) {
           navigation.goBack()
         }
       })

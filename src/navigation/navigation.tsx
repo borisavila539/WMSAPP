@@ -40,6 +40,7 @@ import { DetalleInventarioCliclicoTelaScreen } from '../screens/InventarioCiclic
 import { AgregarInventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/AgregarInventarioCiclicoTelaScreen';
 import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCajas/RecepcionUbicacionCajasScreen';
 import { DeclaracionEnvioScreen } from '../screens/DeclaracionEnvio/DeclaracionEnvioScreen';
+import { ControlCajaEtiquetasScreen } from '../screens/ControlCajasEtiqueta/ControlCajaEtiquetasScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -76,12 +77,13 @@ export type RootStackParams = {
     BusquedaRolloAXScreen: undefined,
     DespachoRecibidoLiquidacionScreen: undefined,
     OrdenesLiquidacionScreen: undefined,
-    DestalleOrdenLiquidacionScreen:undefined,
+    DestalleOrdenLiquidacionScreen: undefined,
     DiariosinventarioCiclicoTelaScreen: undefined,
-    DetalleInventarioCliclicoTelaScreen:undefined,
-    AgregarInventarioCiclicoTelaScreen:undefined,
+    DetalleInventarioCliclicoTelaScreen: undefined,
+    AgregarInventarioCiclicoTelaScreen: undefined,
     RecepcionUbicacionCajasScreen: undefined,
-    DeclaracionEnvioScreen:undefined
+    DeclaracionEnvioScreen: undefined,
+    ControlCajaEtiquetasScreen: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -125,7 +127,7 @@ export const Navigation = () => {
             <Stack.Screen name='DespachoPTAuditoriaCajasLineas' options={{ title: 'DespachoPTAuditoriaCajasLineas' }} component={DespachoPTAuditoriaCajasLineas} />
             <Stack.Screen name='DespachoPTConsultaOPDespachos' options={{ title: 'DespachoPTConsultaOPDespachos' }} component={DespachoPTConsultaOPDespachos} />
             <Stack.Screen name='DespachoPTConsultaOPDetalle' options={{ title: 'DespachoPTConsultaOPDetalle' }} component={DespachoPTConsultaOPDetalle} />
-            
+
             {/* Busqeuda de rollos */}
             <Stack.Screen name='BusquedaRolloAXScreen' options={{ title: 'BusquedaRolloAXScreen' }} component={BusquedaRolloAXScreen} />
 
@@ -141,9 +143,12 @@ export const Navigation = () => {
             <Stack.Screen name='AgregarInventarioCiclicoTelaScreen' options={{ title: 'AgregarInventarioCiclicoTelaScreen' }} component={AgregarInventarioCiclicoTelaScreen} />
             {/*Recepcion ubicacion cajas */}
             <Stack.Screen name='RecepcionUbicacionCajasScreen' options={{ title: 'RecepcionUbicacionCajasScreen' }} component={RecepcionUbicacionCajasScreen} />
-            
+
             {/*Declaracion de envio */}
             <Stack.Screen name='DeclaracionEnvioScreen' options={{ title: 'DeclaracionEnvioScreen' }} component={DeclaracionEnvioScreen} />
+            {/*ControlCajaEtiquetasScreen */}
+            <Stack.Screen name='ControlCajaEtiquetasScreen' options={{ title: 'ControlCajaEtiquetasScreen' }} component={ControlCajaEtiquetasScreen} />
+
         </Stack.Navigator>
     )
 }
