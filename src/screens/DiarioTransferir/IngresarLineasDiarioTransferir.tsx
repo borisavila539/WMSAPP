@@ -2,15 +2,16 @@ import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { RootStackParams } from '../../navigation/navigation'
-import { GrupoLineasDiariointerface, LineasDiariointerface } from '../../interfaces/LineasDiarioInterface'
+import { CajasLineasDiario, GrupoLineasDiariointerface, LineasDiariointerface } from '../../interfaces/LineasDiarioInterface'
 import { WmSApi } from '../../api/WMSApi'
 import { WMSContext } from '../../context/WMSContext'
-import { black, blue, grey, orange } from '../../constants/Colors'
+import { black, blue, grey, navy, orange } from '../../constants/Colors'
 import SoundPlayer from 'react-native-sound-player'
 import MyAlert from '../../components/MyAlert'
 import Header from '../../components/Header'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { EnviarCorreoTransferirInterface } from '../../interfaces/EnviarCorreoTransferirInterface'
+import Printers from '../../components/Printers'
 
 
 type props = StackScreenProps<RootStackParams, "IngresarLineasDiarioTransferir">
@@ -28,14 +29,17 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [add, setAdd] = useState<boolean>(true);
     const [Enviando, setEnviando] = useState<boolean>(false)
-
+    const [BoxCode, setBoxCode] = useState<string>('')
+    const [LineasCajas, setLineasCajas] = useState<CajasLineasDiario[]>([])
+    const [IMBoxCodeSelected, setIMBoxCodeSelected] = useState<string>('');
+    const [ShowImpresoras, setShowImpresoras] = useState<boolean>(false);
 
     const getData = async () => {
 
         if (!cargando) {
             setCargando(true)
             try {
-                await WmSApi.get<LineasDiariointerface[]>(`LineasDiario/${WMSState.diario}`).then(resp => {//WMSState.diario
+                await WmSApi.get<LineasDiariointerface[]>(`LineasDiarioTransferir/${WMSState.diario}`).then(resp => {
                     const groupedData: { [key: string]: LineasDiariointerface[] } = {};
 
                     resp.data.forEach(element => {
@@ -50,6 +54,23 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                         items: groupedData[key],
                     }));
                     setLineas(groupedArray)
+                    //probando agrupacion por caja
+                    const groupedDataCajas: { [key: string]: GrupoLineasDiariointerface[] } = {};
+                    groupedArray.forEach(element => {
+                        const key = element.items[0].imboxcode
+                        if (!groupedDataCajas[key]) {
+                            groupedDataCajas[key] = []
+                        }
+
+                        groupedDataCajas[key].push(element)
+                    })
+                    const groupedArrayCajas: CajasLineasDiario[] = Object.keys(groupedDataCajas).map(key => ({
+                        key,
+                        show: true,
+                        items: groupedDataCajas[key],
+                    }));
+
+                    setLineasCajas(groupedArrayCajas)
                 })
             } catch (err) {
                 console.log(err)
@@ -86,37 +107,79 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
     }
 
     const AgregarEliminarArticulo = async (PROCESO: string) => {
-
-        try {
-            await WmSApi.get<string>(`TransferirMovimiento/${WMSState.diario}/${barCode}/${PROCESO}`).then(x => {
-                if (x.data == 'OK') {
-                    getData();
-                } else {
-                    setbarcode('')
-                    setMensajeAlerta(x.data.slice(0, 120))
-                    setTipoMensaje(false);
-                    setShowMensajeAlerta(true);
-                    try {
-                        SoundPlayer.playSoundFile('error', 'mp3')
-                    } catch (err) {
-                        console.log('Sin sonido')
-                        console.log(err)
-                    }
-                }
-            })
-            setTimeout(() => {
-                textInputRef.current?.focus()
-            }, 0);
-        } catch (err) {
-            setbarcode('')
-            setMensajeAlerta('Error de envio')
+        if (BoxCode == "") {
+            setMensajeAlerta("Debe seleccionar una caja")
             setTipoMensaje(false);
             setShowMensajeAlerta(true);
+        } else {
+            try {
+                await WmSApi.get<string>(`TransferirMovimiento/${WMSState.diario}/${barCode}/${PROCESO}/${BoxCode}`).then(x => {
+                    
+                    if (x.data == 'OK') {
+                        getData();
+                    } else {
+                        setbarcode('')
+                        setMensajeAlerta(x.data.slice(0, 120))
+                        setTipoMensaje(false);
+                        setShowMensajeAlerta(true);
+                        try {
+                            SoundPlayer.playSoundFile('error', 'mp3')
+                        } catch (err) {
+                            console.log('Sin sonido')
+                            console.log(err)
+                        }
+                    }
+                })
+                setTimeout(() => {
+                    textInputRef.current?.focus()
+                }, 0);
+            } catch (err) {
+                setbarcode('')
+                setMensajeAlerta('Error de envio')
+                setTipoMensaje(false);
+                setShowMensajeAlerta(true);
+            }
         }
-
-
     }
 
+    const renderItemCajas = (item: CajasLineasDiario, index: number) => {
+
+        return (
+            <View style={style.containerCard}>
+                <View style={[style.card, { flexDirection: "column", borderWidth: 2, borderColor: blue }]}>
+                    <View style={{ width: '100%', flexDirection: "row", justifyContent: 'space-between', alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => {
+                            const nuevo = [...LineasCajas];
+                            nuevo[index].show = !item.show;
+                            setLineasCajas(nuevo)
+                        }}>
+                            <Icon name={item.show ? 'chevron-up' : 'chevron-down'} size={25} color={blue} />
+                        </TouchableOpacity>
+
+                        <Text style={{ fontWeight: 'bold', color: navy }}>Caja: {item.key}</Text>
+                        <TouchableOpacity onPress={() => {
+                            setIMBoxCodeSelected(item.key)
+                            setShowImpresoras(true)
+                        }}>
+                            <Icon name='print' size={30} color={blue} />
+                        </TouchableOpacity>
+
+                    </View>
+                    {
+                        item.show &&
+                        item.items.map(element => (
+                            <View key={element.key + item.key}>
+                                {
+                                    renderItem(element, blue, false)
+                                }
+
+                            </View>
+                        ))
+                    }
+                </View>
+            </View>
+        )
+    }
     const renderItem = (item: GrupoLineasDiariointerface, color: string, caja: boolean) => {
 
         return (
@@ -145,7 +208,7 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                                 item.items.map(subitem => (
                                     <View key={subitem.inventsizeid + 'QTY'} style={{ flexDirection: 'row' }}>
                                         <Text style={{ color: color }} >{Giones(4 - subitem.qty.toString().length)}</Text>
-                                        <Text style={style.textCard} >{-subitem.qty}</Text>
+                                        <Text style={style.textCard} >{subitem.qty}</Text>
                                     </View>
 
                                 ))
@@ -155,7 +218,7 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                     <View style={{ width: '19%' }}>
                         <Text style={[style.textCard, { textAlign: 'right' }]}>
                             {
-                                -getCantidad(item.items)
+                                getCantidad(item.items)
                             }
                         </Text>
                     </View>
@@ -164,19 +227,19 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
         )
     }
 
-    const EnviarDiarioTransferir = async() => {
-        if(!Enviando){
+    const EnviarDiarioTransferir = async () => {
+        if (!Enviando) {
             setEnviando(true)
-            try{
-                await WmSApi.get<EnviarCorreoTransferirInterface>(`EnviarCorreotransferir/${WMSState.diario}/${WMSState.usuario}`).then(resp =>{
+            try {
+                await WmSApi.get<EnviarCorreoTransferirInterface>(`EnviarCorreotransferir/${WMSState.diario}/${WMSState.usuario}`).then(resp => {
                     console.log(resp.data)
-                    if(resp.data.journalID != ''){
+                    if (resp.data.journalID != '') {
                         navigation.goBack()
                         navigation.goBack()
 
                     }
                 })
-            }catch(err){
+            } catch (err) {
 
             }
             setEnviando(false)
@@ -211,11 +274,17 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
     }, [textInputRef.current?.isFocused()])
 
     useEffect(() => {
-        if (barCode.length == 13 && !cargando && add) {
-            AgregarEliminarArticulo('ADD')
-        } else if (barCode.length == 13 && !cargando && !add) {
-            AgregarEliminarArticulo('REMOVE')
+        if (barCode.startsWith('IM')) {
+            setBoxCode(barCode)
+            setbarcode('')
+        } else {
+            if (barCode.length >= 10 && !cargando && add) {
+                AgregarEliminarArticulo('ADD')
+            } else if (barCode.length == 13 && !cargando && !add) {
+                AgregarEliminarArticulo('REMOVE')
+            }
         }
+
     }, [barCode])
 
     return (
@@ -255,7 +324,13 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
 
-
+            {
+                BoxCode != '' &&
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Icon name='box-open' size={30} color={add ? '#77D970' : '#CD4439'} />
+                    <Text style={{ fontWeight: 'bold', color: add ? '#77D970' : '#CD4439' }}> {BoxCode}</Text>
+                </View>
+            }
 
             <View style={{ width: '100%', marginBottom: 10 }}>
                 {
@@ -266,9 +341,9 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
             {
                 Lineas.length > 0 ?
                     <FlatList
-                        data={Lineas}
+                        data={LineasCajas}
                         keyExtractor={(item, index) => item.key}
-                        renderItem={({ item, index }) => renderItem(item, blue, false)}
+                        renderItem={({ item, index }) => renderItemCajas(item, index)}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={() => getData()} colors={['#069A8E']} />
                         }
@@ -280,6 +355,8 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                     </View>
             }
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => { setShowMensajeAlerta(false); textInputRef.current?.focus(); }} />
+            <Printers ShowImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} IMBoxCode={IMBoxCodeSelected} Tipo={false} peticion={`ImprimirEtiquetaTransferir/${WMSState.diario}/${IMBoxCodeSelected}`}/>
+        
         </View>
     )
 }

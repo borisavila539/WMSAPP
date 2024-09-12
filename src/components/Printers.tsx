@@ -41,7 +41,7 @@ const Printers = ({ ShowImpresoras, IMBoxCode, onPress, peticion, Tipo }: Printe
     const renderPrint = (item: PrinterInterface, index: number) => {
         return (
             <View style={styles.printItem}>
-                <TouchableOpacity onPress={() => onSelectPrint(item)} activeOpacity={0.5} style={{borderWidth:1}}>
+                <TouchableOpacity onPress={() => onSelectPrint(item)} activeOpacity={0.5} >
                     <Text style={styles.printText}>{item.iM_DESCRIPTION_PRINTER}</Text>
                 </TouchableOpacity>
             </View>
