@@ -5,7 +5,7 @@ import { RootStackParams } from '../../navigation/navigation'
 import { CajasLineasDiario, GrupoLineasDiariointerface, LineasDiariointerface } from '../../interfaces/LineasDiarioInterface'
 import { WmSApi } from '../../api/WMSApi'
 import { WMSContext } from '../../context/WMSContext'
-import { black, blue, grey, navy, orange } from '../../constants/Colors'
+import { black, blue, green, grey, navy, orange } from '../../constants/Colors'
 import SoundPlayer from 'react-native-sound-player'
 import MyAlert from '../../components/MyAlert'
 import Header from '../../components/Header'
@@ -33,6 +33,7 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
     const [LineasCajas, setLineasCajas] = useState<CajasLineasDiario[]>([])
     const [IMBoxCodeSelected, setIMBoxCodeSelected] = useState<string>('');
     const [ShowImpresoras, setShowImpresoras] = useState<boolean>(false);
+    const [multiplo, setMultiplo] = useState<number>(1);
 
     const getData = async () => {
 
@@ -112,35 +113,55 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
             setTipoMensaje(false);
             setShowMensajeAlerta(true);
         } else {
-            try {
-                await WmSApi.get<string>(`TransferirMovimiento/${WMSState.diario}/${barCode}/${PROCESO}/${BoxCode}`).then(x => {
-                    
-                    if (x.data == 'OK') {
-                        getData();
-                    } else {
-                        setbarcode('')
-                        setMensajeAlerta(x.data.slice(0, 120))
-                        setTipoMensaje(false);
-                        setShowMensajeAlerta(true);
-                        try {
-                            SoundPlayer.playSoundFile('error', 'mp3')
-                        } catch (err) {
-                            console.log('Sin sonido')
-                            console.log(err)
+            let cont: number = 1;
+            let enviado: number = 0
+
+            do {
+                try {
+                    await WmSApi.get<string>(`TransferirMovimiento/${WMSState.diario}/${barCode}/${PROCESO}/${BoxCode}`).then(x => {
+                        if (x.data == 'OK') {
+                            enviado++;
+                            setbarcode('')
+
+                        } else {
+                            setbarcode('')
+                            setMensajeAlerta(x.data.slice(0, 120))
+                            setTipoMensaje(false);
+                            setShowMensajeAlerta(true);
+                            try {
+                                SoundPlayer.playSoundFile('error', 'mp3')
+                            } catch (err) {
+
+                            }
                         }
-                    }
-                })
-                setTimeout(() => {
-                    textInputRef.current?.focus()
-                }, 0);
-            } catch (err) {
+                    })
+                    /*setTimeout(() => {
+                        textInputRef.current?.focus()
+                    }, 0);*/
+                } catch (err) {
+                    setbarcode('')
+                    setMensajeAlerta('Error de envio')
+                    setTipoMensaje(false);
+                    setShowMensajeAlerta(true);
+                }
+
+                cont++;
+            }
+            while (cont <= multiplo)
+
+            if (enviado == multiplo) {
                 setbarcode('')
-                setMensajeAlerta('Error de envio')
-                setTipoMensaje(false);
-                setShowMensajeAlerta(true);
+                try {
+                    SoundPlayer.playSoundFile('success', 'mp3')
+                } catch (err) {
+
+                }
+                getData();
             }
         }
     }
+
+
 
     const renderItemCajas = (item: CajasLineasDiario, index: number) => {
 
@@ -232,7 +253,7 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
             setEnviando(true)
             try {
                 await WmSApi.get<EnviarCorreoTransferirInterface>(`EnviarCorreotransferir/${WMSState.diario}/${WMSState.usuario}`).then(resp => {
-                    console.log(resp.data)
+                    //console.log(resp.data)
                     if (resp.data.journalID != '') {
                         navigation.goBack()
                         navigation.goBack()
@@ -253,18 +274,6 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
 
     }, [])
 
-    useEffect(() => {
-        if (barCode.length > 0) {
-            setLinea(Lineas.find(x => x.items.find(x => x.itembarcode == barCode)))
-            setbarcode('')
-            try {
-                SoundPlayer.playSoundFile('success', 'mp3')
-            } catch (err) {
-                console.log('Sin sonido')
-                console.log(err)
-            }
-        }
-    }, [Lineas])
 
     useEffect(() => {
         if (!textInputRef.current?.isFocused()) {
@@ -278,9 +287,9 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
             setBoxCode(barCode)
             setbarcode('')
         } else {
-            if (barCode.length >= 10 && !cargando && add) {
+            if (barCode.length >= 10 && add) {
                 AgregarEliminarArticulo('ADD')
-            } else if (barCode.length == 13 && !cargando && !add) {
+            } else if (barCode.length >= 10 && !add) {
                 AgregarEliminarArticulo('REMOVE')
             }
         }
@@ -323,6 +332,23 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                     }
                 </TouchableOpacity>
             </View>
+            <View style={{ flexDirection: 'row', width: '100%', alignContent: 'space-between', justifyContent: 'space-between' }}>
+                <TouchableOpacity style={{ borderWidth: 1, borderRadius: 5, margin: 1, width: '30%', alignItems: 'center', padding: 5, backgroundColor: (multiplo == 1 ? green : grey) }}
+                    onPress={() => setMultiplo(1)}
+                >
+                    <Text style={{ fontWeight: 'bold' }}>1</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ borderWidth: 1, borderRadius: 5, margin: 1, width: '30%', alignItems: 'center', padding: 5, backgroundColor: (multiplo == 3 ? green : grey) }}
+                    onPress={() => setMultiplo(3)}
+                >
+                    <Text style={{ fontWeight: 'bold' }}>3</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ borderWidth: 1, borderRadius: 5, margin: 1, width: '30%', alignItems: 'center', padding: 5, backgroundColor: (multiplo == 6 ? green : grey) }}
+                    onPress={() => setMultiplo(6)}
+                >
+                    <Text style={{ fontWeight: 'bold' }}>6</Text>
+                </TouchableOpacity>
+            </View>
 
             {
                 BoxCode != '' &&
@@ -355,8 +381,8 @@ export const IngresarLineasDiarioTransferir: FC<props> = ({ navigation }) => {
                     </View>
             }
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => { setShowMensajeAlerta(false); textInputRef.current?.focus(); }} />
-            <Printers ShowImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} IMBoxCode={IMBoxCodeSelected} Tipo={false} peticion={`ImprimirEtiquetaTransferir/${WMSState.diario}/${IMBoxCodeSelected}`}/>
-        
+            <Printers ShowImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} IMBoxCode={IMBoxCodeSelected} Tipo={false} peticion={`ImprimirEtiquetaTransferir/${WMSState.diario}/${IMBoxCodeSelected}`} />
+
         </View>
     )
 }
