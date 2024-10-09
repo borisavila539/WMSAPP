@@ -10,6 +10,9 @@ import { WMSContext } from '../../context/WMSContext'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import SoundPlayer from 'react-native-sound-player'
+import { EtiquetaRolloInterface } from '../../interfaces/EtiquetaRolloInterface'
+import PrintEtiquetaRollo from '../../components/PrintEtiquetaRollo'
+import PrintEtiquetaRollo2 from '../../components/PrintEtiquetaRollo2'
 
 
 type props = StackScreenProps<RootStackParams, "DetalleInventarioCliclicoTelaScreen">
@@ -28,9 +31,10 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
     const [enviar, setEnviar] = useState<boolean>(false)
     const [MensajeEnviado, setMensajeEnviado] = useState<string>('')
     const [qty, setQty] = useState<string>('')
-    const [modalVisible, setModalVisible] = useState<boolean>(false)
     const [edit, setEdit] = useState<boolean>(false)
     const [rollo, setRollo] = useState<string>('')
+    const [DetalleRollo, setDetalleRollo] = useState<EtiquetaRolloInterface>({ inventserialid: '', apvendroll: '', qtytransfer: '', itemid: '', color: '', inventbatchid: '', configid: '', print: '' })
+    const [ShowImpresoras, setShowImpresoras] = useState<boolean>(false);
 
     const getData = async () => {
         setCargando(true)
@@ -64,15 +68,34 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
     }
 
     const renderItem = (item: DetalleInventarioCliclicoTelainterface) => {
+        const onPressPrint = () => {
+            setDetalleRollo(
+                {
+                    itemid: item.itemID,
+                    apvendroll: item.apvendRoll,
+                    color: item.colorName,
+                    configid: item.configID,
+                    inventbatchid: item.inventBatchID,
+                    inventserialid: item.inventSerialID,
+                    print: '',
+                    qtytransfer: item.inventOnHand.toString()
+                }
+            )
+            setShowImpresoras(true)
+
+        }
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <View style={{ width: '95%', backgroundColor: !item.exist ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
                     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventSerialID}</Text>
-
                         <TouchableOpacity onPress={() => { setEdit(true); setRollo(item.inventSerialID) }}>
                             <Icon name='edit' size={20} color={grey} />
                         </TouchableOpacity>
+                        <Text style={[style.textRender, { textAlign: 'center', fontWeight: 'bold' }]}>{item.inventSerialID}</Text>
+                        <TouchableOpacity onPress={onPressPrint}>
+                            <Icon name={'print'} size={25} color={grey} />
+                        </TouchableOpacity>
+
 
                     </View>
                     <Text style={style.textRender}>PR: {item.apvendRoll}</Text>
@@ -98,17 +121,23 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
     const VerificarRollo = async () => {
         try {
             let item: DetalleInventarioCliclicoTelainterface | undefined = data.find(x => x.inventSerialID == InventSerialID)
-            await WmSApi.get<DetalleInventarioCliclicoTelainterface>(`InventarioCiclicoTelaExist/${WMSState.diario}/${InventSerialID}/${WMSState.usuario}/${item?.inventOnHand ? item?.inventOnHand : 0}`)
-                .then(resp => {
-                    if (resp.data.exist) {
-                        setinventSerialID('')
-                        PlaySound('success')
-                        getData()
-                    } else {
-                        PlaySound('error')
-                        setinventSerialID('')
-                    }
-                })
+            if (item?.exist == true) {
+                PlaySound('repeat')
+                setinventSerialID('')
+
+            } else {
+                await WmSApi.get<DetalleInventarioCliclicoTelainterface>(`InventarioCiclicoTelaExist/${WMSState.diario}/${InventSerialID}/${WMSState.usuario}/${item?.inventOnHand ? item?.inventOnHand : 0}`)
+                    .then(resp => {
+                        if (resp.data.exist) {
+                            setinventSerialID('')
+                            PlaySound('success')
+                            getData()
+                        } else {
+                            PlaySound('error')
+                            setinventSerialID('')
+                        }
+                    })
+            }
         } catch (err) {
             PlaySound('error')
             setinventSerialID('')
@@ -149,130 +178,124 @@ export const DetalleInventarioCliclicoTelaScreen: FC<props> = ({ navigation }) =
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
             <Header texto1='Ciclico Tela' texto2={WMSState.diario} texto3={dataExist.length + '/' + data.length + ''} />
-            <View style={[style.textInput, { borderColor: '#77D970' }]}>
-                <TextInput
-                    ref={textInputRef}
-                    onChangeText={(value) => { setinventSerialID(value) }}
-                    value={InventSerialID}
-                    style={style.input}
-                    placeholder='Escanear Ingreso...'
-                    autoFocus
-                    onBlur={() => textInputRef2.current?.isFocused() ? null : textInputRef.current?.focus()}
-
-                />
-                {!cargando ?
-                    <TouchableOpacity onPress={() => setinventSerialID('')}>
-                        <Icon name='times' size={15} color={black} />
-                    </TouchableOpacity>
-                    :
-                    <ActivityIndicator size={20} />
-                }
-
-            </View>
             {
-                edit &&
-                <View style={[style.textInput, { borderColor: '#77D970' }]}>
-                    <TextInput
-                        ref={textInputRef2}
-                        onChangeText={(value) => { setQty(value) }}
-                        value={qty}
-                        style={style.input}
-                        keyboardType='decimal-pad'
-                        placeholder={'Actualizar QTY ' + rollo}
+                !ShowImpresoras &&
+                <>
+                    <View style={[style.textInput, { borderColor: '#77D970' }]}>
+                        <TextInput
+                            ref={textInputRef}
+                            onChangeText={(value) => { setinventSerialID(value) }}
+                            value={InventSerialID}
+                            style={style.input}
+                            placeholder='Escanear Ingreso...'
+                            autoFocus
+                            onBlur={() => textInputRef2.current?.isFocused() ? null : textInputRef.current?.focus()}
 
-                    />
-                    {!actualizando ?
-                        <TouchableOpacity onPress={() => ActualizarCantidad()}>
-                            <Icon name='check' size={15} color={black} />
-                        </TouchableOpacity>
-                        :
-                        <ActivityIndicator size={20} />
-                    }
-
-                </View>
-            }
-
-            <View style={{ width: '100%', flexDirection: 'row' }}>
-                <View style={{ width: '50%' }}>
-                    <TouchableOpacity
-                        style={{ backgroundColor: green, width: '98%', alignItems: 'center', borderRadius: 10, paddingVertical: 7 }}
-                        onPress={() => navigation.navigate('AgregarInventarioCiclicoTelaScreen')}>
-                        <Icon name='plus' size={15} color={black} />
-                        <Text style={[style.textRender, { color: black }]}>Agregar</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={{ width: '50%' }}>
-                    <TouchableOpacity style={{ backgroundColor: green, width: '98%', alignItems: 'center', borderRadius: 10, paddingVertical: 7 }} onPress={EnviarDiarioAX}>
-                        {
-                            enviar ?
-                                <ActivityIndicator size={20} color={black} />
-                                :
-                                <Icon name='check' size={15} color={black} />
-
+                        />
+                        {!cargando ?
+                            <TouchableOpacity onPress={() => setinventSerialID('')}>
+                                <Icon name='times' size={15} color={black} />
+                            </TouchableOpacity>
+                            :
+                            <ActivityIndicator size={20} />
                         }
-                        <Text style={[style.textRender, { color: black }]}>Enviar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-            {
-                MensajeEnviado != '' &&
-                <TouchableOpacity onPress={() => setMensajeEnviado('')} style={{ width: '90%', borderRadius: 10, borderWidth: 1, marginTop: 2, padding: 3, borderColor: blue }}>
-                    <Text style={{ color: orange }}>
-                        {MensajeEnviado}
-                    </Text>
-                </TouchableOpacity>
-            }
-            <View style={{ flexDirection: 'row', flex: 1, width: '100%' }}>
 
-                <View style={{ flex: 1, width: '100%' }}>
-                    <Text style={{ textAlign: 'center', fontWeight: 'bold', color: navy }}>PENDIENTE</Text>
+                    </View>
                     {
-                        dataNoexist.length > 0 &&
-                        <FlatList
-                            data={dataNoexist}
-                            keyExtractor={(item) => item.inventSerialID}
-                            renderItem={({ item, index }) => renderItem(item)}
-                            showsVerticalScrollIndicator={false}
-                            refreshControl={
-                                <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
-                            }
-                        />
-                    }
-                </View>
-                <View style={{ flex: 1, width: '100%' }}>
-
-                    <Text style={{ textAlign: 'center', fontWeight: 'bold', color: navy }}>REVISADO</Text>
-                    {
-                        dataExist.length > 0 &&
-                        <FlatList
-                            data={dataExist}
-                            keyExtractor={(item) => item.inventSerialID}
-                            renderItem={({ item, index }) => renderItem(item)}
-                            showsVerticalScrollIndicator={false}
-                            refreshControl={
-                                <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
-                            }
-                        />
-                    }
-                </View>
-                <Modal visible={modalVisible} transparent={true}>
-                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1, backgroundColor: '#00000099' }}>
-                        <Text style={{ fontWeight: 'bold', marginTop: 10, color: navy }}>
-                            Nueva Cantidad
-                        </Text>
+                        edit &&
                         <View style={[style.textInput, { borderColor: '#77D970' }]}>
                             <TextInput
-                                ref={textInputRef}
+                                ref={textInputRef2}
                                 onChangeText={(value) => { setQty(value) }}
                                 value={qty}
                                 style={style.input}
-                                placeholder='Escanear Ingreso...'
+                                keyboardType='decimal-pad'
+                                placeholder={'Actualizar QTY ' + rollo}
+
                             />
+                            {!actualizando ?
+                                <TouchableOpacity onPress={() => ActualizarCantidad()}>
+                                    <Icon name='check' size={15} color={black} />
+                                </TouchableOpacity>
+                                :
+                                <ActivityIndicator size={20} />
+                            }
+
+                        </View>
+                    }
+
+                    <View style={{ width: '100%', flexDirection: 'row' }}>
+                        <View style={{ width: '50%' }}>
+                            <TouchableOpacity
+                                style={{ backgroundColor: green, width: '98%', alignItems: 'center', borderRadius: 10, paddingVertical: 7 }}
+                                onPress={() => navigation.navigate('AgregarInventarioCiclicoTelaScreen')}>
+                                <Icon name='plus' size={15} color={black} />
+                                <Text style={[style.textRender, { color: black }]}>Agregar</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={{ width: '50%' }}>
+                            <TouchableOpacity style={{ backgroundColor: green, width: '98%', alignItems: 'center', borderRadius: 10, paddingVertical: 7 }} onPress={EnviarDiarioAX}>
+                                {
+                                    enviar ?
+                                        <ActivityIndicator size={20} color={black} />
+                                        :
+                                        <Icon name='check' size={15} color={black} />
+
+                                }
+                                <Text style={[style.textRender, { color: black }]}>Enviar</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
-                </Modal>
+                    {
+                        MensajeEnviado != '' &&
+                        <TouchableOpacity onPress={() => setMensajeEnviado('')} style={{ width: '90%', borderRadius: 10, borderWidth: 1, marginTop: 2, padding: 3, borderColor: blue }}>
+                            <Text style={{ color: orange }}>
+                                {MensajeEnviado}
+                            </Text>
+                        </TouchableOpacity>
+                    }
+                    <View style={{ flexDirection: 'row', flex: 1, width: '100%' }}>
 
-            </View>
+                        <View style={{ flex: 1, width: '100%' }}>
+                            <Text style={{ textAlign: 'center', fontWeight: 'bold', color: navy }}>PENDIENTE</Text>
+                            {
+                                dataNoexist.length > 0 &&
+                                <FlatList
+                                    data={dataNoexist}
+                                    keyExtractor={(item) => item.inventSerialID}
+                                    renderItem={({ item, index }) => renderItem(item)}
+                                    showsVerticalScrollIndicator={false}
+                                    refreshControl={
+                                        <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                                    }
+                                />
+                            }
+                        </View>
+                        <View style={{ flex: 1, width: '100%' }}>
+
+                            <Text style={{ textAlign: 'center', fontWeight: 'bold', color: navy }}>REVISADO</Text>
+                            {
+                                dataExist.length > 0 &&
+                                <FlatList
+                                    data={dataExist}
+                                    keyExtractor={(item) => item.inventSerialID}
+                                    renderItem={({ item, index }) => renderItem(item)}
+                                    showsVerticalScrollIndicator={false}
+                                    refreshControl={
+                                        <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                                    }
+                                />
+                            }
+                        </View>
+
+                    </View>
+                </>
+            }
+            {
+                ShowImpresoras &&
+                <PrintEtiquetaRollo2 showImpresoras={ShowImpresoras} onPress={() => setShowImpresoras(false)} data={DetalleRollo} />
+            }
+            
         </View>
 
     )

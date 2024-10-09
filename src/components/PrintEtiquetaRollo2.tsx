@@ -8,7 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 import { PinterEtiquetaRolloInterface } from '../interfaces/PrinterEtiquetaRollo';
 import { EtiquetaRolloInterface } from '../interfaces/EtiquetaRolloInterface';
 
-function PrintEtiquetaRollo ({showImpresoras,data,onPress}:PinterEtiquetaRolloInterface){
+function PrintEtiquetaRollo2 ({showImpresoras,data,onPress}:PinterEtiquetaRolloInterface){
     const [Impresoras, setImpresoras] = useState<PrinterInterface[]>([]);
 
     const getImpresoras = async () => {
@@ -52,7 +52,7 @@ function PrintEtiquetaRollo ({showImpresoras,data,onPress}:PinterEtiquetaRolloIn
         getImpresoras();
     }, [])
     return (
-        <Modal visible={showImpresoras} transparent={true}>
+       /* <Modal visible={showImpresoras} transparent={true}>*/
             <View style={style.modal}>
                 <View style={style.constainerModal}>
                     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between',marginBottom: 3 }}>
@@ -78,7 +78,7 @@ function PrintEtiquetaRollo ({showImpresoras,data,onPress}:PinterEtiquetaRolloIn
                     />
                 </View>
             </View>
-        </Modal>
+        /*</Modal>*/
 
     )
 }
@@ -108,4 +108,4 @@ const style = StyleSheet.create({
     },
 })
 
-export default PrintEtiquetaRollo
+export default PrintEtiquetaRollo2

@@ -41,6 +41,7 @@ import { AgregarInventarioCiclicoTelaScreen } from '../screens/InventarioCiclico
 import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCajas/RecepcionUbicacionCajasScreen';
 import { DeclaracionEnvioScreen } from '../screens/DeclaracionEnvio/DeclaracionEnvioScreen';
 import { ControlCajaEtiquetasScreen } from '../screens/ControlCajasEtiqueta/ControlCajaEtiquetasScreen';
+import { AuditoriaCajaDenimScreen } from '../screens/AuditoriaCajaDenim/AuditoriaCajaDenimScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -83,7 +84,8 @@ export type RootStackParams = {
     AgregarInventarioCiclicoTelaScreen: undefined,
     RecepcionUbicacionCajasScreen: undefined,
     DeclaracionEnvioScreen: undefined,
-    ControlCajaEtiquetasScreen: undefined
+    ControlCajaEtiquetasScreen: undefined,
+    AuditoriaCajaDenimScreen: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -148,6 +150,8 @@ export const Navigation = () => {
             <Stack.Screen name='DeclaracionEnvioScreen' options={{ title: 'DeclaracionEnvioScreen' }} component={DeclaracionEnvioScreen} />
             {/*ControlCajaEtiquetasScreen */}
             <Stack.Screen name='ControlCajaEtiquetasScreen' options={{ title: 'ControlCajaEtiquetasScreen' }} component={ControlCajaEtiquetasScreen} />
+            {/*Auditoria Cajas Denim */}
+            <Stack.Screen name='AuditoriaCajaDenimScreen' options={{ title: 'AuditoriaCajaDenimScreen' }} component={AuditoriaCajaDenimScreen} />
 
         </Stack.Navigator>
     )
