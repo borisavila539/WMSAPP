@@ -1,7 +1,7 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { RootStackParams } from '../../navigation/navigation'
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Header from '../../components/Header'
 import { black, green, grey, navy, orange, yellow } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
@@ -217,7 +217,9 @@ export const AuditoriaCajaDenimScreen: FC<props> = ({ navigation }) => {
                     data={data}
                     keyExtractor={(item) => item.op + item.numeroCaja}
                     renderItem={({ item, index }) => renderItem(item)}
-
+                    refreshControl={
+                        <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                    }
                 />
             </View>
         </View >
