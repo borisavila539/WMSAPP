@@ -8,6 +8,8 @@ import { WMSContext } from '../../../context/WMSContext'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { DespachoPTDetalleAuditoriaCajaInterface } from '../../../interfaces/DespachoPT/Auditar/DespachoPTCajasAuditarInterface'
 import { WmSApi } from '../../../api/WMSApi'
+import SoundPlayer from 'react-native-sound-player'
+import { AuditoriaCajaDenimInsertInterface } from '../../../interfaces/AuditoriaCajaDenim/AuditoriaCajaDenimInterface'
 
 type props = StackScreenProps<RootStackParams, "DespachoPTAuditoriaCajasLineas">
 
@@ -17,10 +19,42 @@ export const DespachoPTAuditoriaCajasLineas: FC<props> = ({ navigation }) => {
     const textInputRef = useRef<TextInput>(null);
     const [cargando, setCargando] = useState<boolean>(false);
     const [data, setData] = useState<DespachoPTDetalleAuditoriaCajaInterface[]>([])
+    const [multiplo, setMultiplo] = useState<string>('3');
 
-    const articuloAuditado = () => {
-        let data = QR.split(',')
+    const articuloAuditado = async () => {
+        let texto = QR.split(',')
+        if (data[0].itemID == texto[0] && data[0].size == texto[1] && data[0].color == texto[2] && multiplo == texto[6]) {
+            try {
+                await WmSApi.get<AuditoriaCajaDenimInsertInterface>(`InsertAuditoriaCajaTP/${WMSState.ProdID}/${WMSState.Box}/${texto[7]}/${texto[6]}`).then(resp => {
+                    console.log(resp.data)
+                    if (resp.data.response == "OK") {
+                        PlaySound('success')
+                    } else {
+                        PlaySound('repeat')
+
+                    }
+                })
+            } catch (err) {
+                PlaySound('error')
+                console.log(err)
+
+            }
+        } else {
+            PlaySound('error')
+        }
+        setQR('')
+        getData()
     }
+
+    const PlaySound = (estado: string) => {
+        try {
+            SoundPlayer.playSoundFile(estado, 'mp3')
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+
 
     const getData = async () => {
         try {
@@ -45,8 +79,8 @@ export const DespachoPTAuditoriaCajasLineas: FC<props> = ({ navigation }) => {
             }
         }
         return (
-            <View style={{ width: '100%',alignItems: 'center' }}>
-                <View style={{ width: '95%', borderRadius: 10,backgroundColor: getColor(), marginBottom: 5, padding: 5, borderWidth: 1 }}>
+            <View style={{ width: '100%', alignItems: 'center' }}>
+                <View style={{ width: '95%', borderRadius: 10, backgroundColor: getColor(), marginBottom: 5, padding: 5, borderWidth: 1 }}>
                     <Text style={style.textRender}>{item.itemID} {item.color}</Text>
                     <Text style={style.textRender}>Talla: {item.size}</Text>
                     <Text style={style.textRender}>QTY: {item.qty}</Text>
@@ -72,7 +106,7 @@ export const DespachoPTAuditoriaCajasLineas: FC<props> = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
-            <Header texto1='' texto2={WMSState.ProdID + ' ' + WMSState.Box} texto3='' />
+            <Header texto1='' texto2={WMSState.ProdID + ', ' + WMSState.Box} texto3='' />
             <View style={[style.textInput, { borderColor: '#77D970' }]}>
                 <TextInput
                     ref={textInputRef}
@@ -91,7 +125,23 @@ export const DespachoPTAuditoriaCajasLineas: FC<props> = ({ navigation }) => {
                     :
                     <ActivityIndicator size={20} />
                 }
-
+            </View>
+            <View style={{ flexDirection: 'row', width: '100%', alignContent: 'space-between', justifyContent: 'space-between' }}>
+                <TouchableOpacity style={{ borderWidth: 1, borderRadius: 5, margin: 1, width: '30%', alignItems: 'center', padding: 5, backgroundColor: (multiplo == '1' ? green : grey) }}
+                    onPress={() => setMultiplo('1')}
+                >
+                    <Text style={{ fontWeight: 'bold' }}>1</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ borderWidth: 1, borderRadius: 5, margin: 1, width: '30%', alignItems: 'center', padding: 5, backgroundColor: (multiplo == '3' ? green : grey) }}
+                    onPress={() => setMultiplo('3')}
+                >
+                    <Text style={{ fontWeight: 'bold' }}>3</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ borderWidth: 1, borderRadius: 5, margin: 1, width: '30%', alignItems: 'center', padding: 5, backgroundColor: (multiplo == '6' ? green : grey) }}
+                    onPress={() => setMultiplo('6')}
+                >
+                    <Text style={{ fontWeight: 'bold' }}>6</Text>
+                </TouchableOpacity>
             </View>
             <View style={{ flex: 1, width: '100%' }}>
                 <FlatList

@@ -13,11 +13,12 @@ import SoundPlayer from 'react-native-sound-player'
 type props = StackScreenProps<RootStackParams, "DespachoPTAuditoriaCajas">
 
 export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
-    const { WMSState,changeBox,changeProdID } = useContext(WMSContext)
+    const { WMSState, changeBox, changeProdID } = useContext(WMSContext)
     const textInputRef = useRef<TextInput>(null);
     const [cajas, setCajas] = useState<DespachoPTCajasAuditarInterface[]>([])
     const [ProdIDBox, setProdIDBox] = useState<string>('')
     const [cargando, setCargando] = useState<boolean>(false);
+    const [enviarCorreo, setEnviarCorreo] = useState<boolean>(false);
 
     const getCajasAuditar = async () => {
         try {
@@ -27,6 +28,22 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
         } catch (err) {
 
         }
+    }
+    const EnviarCorreo = async () => {
+        setEnviarCorreo(true)
+        try {
+            await WmSApi.get<string>(`EnviarAuditoriaTP/${WMSState.DespachoID}/${WMSState.usuario}`).then(resp => {
+                if (resp.data == "OK") {
+                    PlaySound('success')
+                    navigation.goBack()
+                } else {
+                    PlaySound('error')
+                }
+            })
+        } catch (err) {
+            PlaySound('error')
+        }
+        setEnviarCorreo(false)
     }
 
     const renderItem = (item: DespachoPTCajasAuditarInterface) => {
@@ -46,6 +63,8 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
             <View style={{ width: '50%', alignItems: 'center' }}>
                 <View style={{ width: '95%', backgroundColor: getColor(), borderRadius: 10, marginBottom: 5, padding: 5, borderWidth: 1 }}>
                     <Text style={style.textRender}>{item.prodID}</Text>
+                    <Text style={style.textRender}>{item.itemID}</Text>
+
                     <Text style={style.textRender}>Talla: {item.size}</Text>
                     <Text style={style.textRender}>Color {item.color}</Text>
                     <Text style={style.textRender}>Caja: {item.box}</Text>
@@ -64,56 +83,70 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
         }
     }
 
-    const validarCaja = () =>{
+    const validarCaja = () => {
         let Prod = ProdIDBox.split(',');
-        let qty: number|undefined = cajas.find(x => x.prodID == Prod[0] && x.box == parseInt(Prod[1]))?.qty 
-        if(qty){
+        let qty: number | undefined = cajas.find(x => x.prodID == Prod[0] && x.box == parseInt(Prod[1]))?.qty
+        if (qty) {
             PlaySound('success')
             setProdIDBox('')
             changeProdID(Prod[0])
             changeBox(parseInt(Prod[1]))
             navigation.navigate('DespachoPTAuditoriaCajasLineas')
 
-        }else{
+        } else {
             PlaySound('error')
             setProdIDBox('')
         }
-        
+
     }
 
     useEffect(() => {
         getCajasAuditar()
     }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         if (ProdIDBox.length > 0) {
             validarCaja()
             textInputRef.current?.blur()
         }
-    },[ProdIDBox])
+    }, [ProdIDBox])
 
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
             <Header texto1='' texto2={'Auditoria Despacho:' + WMSState.DespachoID} texto3='' />
-            <View style={[style.textInput, { borderColor: '#77D970' }]}>
-                <TextInput
-                    ref={textInputRef}
-                    onChangeText={(value) => { setProdIDBox(value) }}
-                    value={ProdIDBox}
-                    style={style.input}
-                    placeholder='Escanear Caja...'
-                    autoFocus
-                    onBlur={() => textInputRef.current?.isFocused() ? null : textInputRef.current?.focus()}
+            <View style={{ flexDirection: 'row' }}>
+                <TouchableOpacity onPress={() => EnviarCorreo()}
+                    style={{ backgroundColor: green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
+                    disabled={enviarCorreo }
+                >
+                    {
+                        enviarCorreo ?
+                            <ActivityIndicator />
+                            :
+                            <Icon name='check' size={15} color={black} />
+                    }
 
-                />
-                {!cargando ?
-                    <TouchableOpacity onPress={() => setProdIDBox('')}>
-                        <Icon name='times' size={15} color={black} />
-                    </TouchableOpacity>
-                    :
-                    <ActivityIndicator size={20} />
-                }
+                </TouchableOpacity>
+                <View style={[style.textInput, { borderColor: '#77D970' }]}>
+                    <TextInput
+                        ref={textInputRef}
+                        onChangeText={(value) => { setProdIDBox(value) }}
+                        value={ProdIDBox}
+                        style={style.input}
+                        placeholder='Escanear Caja...'
+                        autoFocus
+                        onBlur={() => textInputRef.current?.isFocused() ? null : textInputRef.current?.focus()}
 
+                    />
+                    {!cargando ?
+                        <TouchableOpacity onPress={() => setProdIDBox('')}>
+                            <Icon name='times' size={15} color={black} />
+                        </TouchableOpacity>
+                        :
+                        <ActivityIndicator size={20} />
+                    }
+
+                </View>
             </View>
             <FlatList
                 data={cajas}
@@ -133,7 +166,7 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
 const style = StyleSheet.create({
     textInput: {
         maxWidth: 450,
-        width: '95%',
+        width: '85%',
         backgroundColor: grey,
         borderRadius: 10,
         flexDirection: 'row',
