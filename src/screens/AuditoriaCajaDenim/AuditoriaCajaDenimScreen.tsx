@@ -1,7 +1,7 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { RootStackParams } from '../../navigation/navigation'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Header from '../../components/Header'
 import { black, green, grey, navy, orange, yellow } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
@@ -20,8 +20,9 @@ export const AuditoriaCajaDenimScreen: FC<props> = ({ navigation }) => {
 
     const [data, setData] = useState<AuditoriaCajaDenimInterface[]>([]);
 
-    const [cargando,setCargando] = useState<boolean>(false)
+    const [cargando, setCargando] = useState<boolean>(false)
     const [enviarCorreo, setEnviarCorreo] = useState<boolean>(false);
+    const [visible, setVisible] = useState<boolean>(false)
 
     const textInputRef3 = useRef<TextInput>(null);
     const textInputRef2 = useRef<TextInput>(null);
@@ -52,14 +53,13 @@ export const AuditoriaCajaDenimScreen: FC<props> = ({ navigation }) => {
     const insertArticulo = async () => {
         try {
             let texto: string[] = articulo.split(',');
-          
+
             if (texto[0] == data[0].articulo && texto[1] == data[0].talla) {
                 await WmSApi.get<AuditoriaCajaDenimInsertInterface>(`AuditoriaInsertCajasDenim/${texto[7]}/${data[0].id}`).then(resp => {
                     console.log(resp.data)
-                    if(resp.data.response == "OK")
-                    {
+                    if (resp.data.response == "OK") {
                         PlaySound('success')
-                    }else{
+                    } else {
                         PlaySound('repeat')
 
                     }
@@ -80,18 +80,19 @@ export const AuditoriaCajaDenimScreen: FC<props> = ({ navigation }) => {
     const EnviarCorreo = async () => {
         setEnviarCorreo(true)
         try {
-            await WmSApi.get<string>(`EnviarAuditoriaInsertCajasDenim/${ubicacion != '' ? ubicacion : '-'}/${WMSState.usuario}`).then(resp=>{
-                if(resp.data=="OK"){
+            await WmSApi.get<string>(`EnviarAuditoriaInsertCajasDenim/${ubicacion != '' ? ubicacion : '-'}/${WMSState.usuario}`).then(resp => {
+                if (resp.data == "OK") {
                     PlaySound('success')
                     setOpBoxNum('')
                     setUbicacion('')
-                }else{
+                } else {
                     PlaySound('error')
                 }
             })
         } catch (err) {
 
         }
+        setVisible(false)
         setEnviarCorreo(false)
     }
 
@@ -151,9 +152,9 @@ export const AuditoriaCajaDenimScreen: FC<props> = ({ navigation }) => {
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1='' texto2='Auditoria Caja Denim' texto3='' />
             <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity onPress={() => EnviarCorreo()}
+                <TouchableOpacity onPress={() => setVisible(true)}
                     style={{ backgroundColor: green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
-                    disabled={enviarCorreo || ubicacion.length==0}
+                    disabled={enviarCorreo || ubicacion.length == 0}
                 >
                     {
                         enviarCorreo ?
@@ -222,6 +223,29 @@ export const AuditoriaCajaDenimScreen: FC<props> = ({ navigation }) => {
                     }
                 />
             </View>
+            <Modal visible={visible} transparent={true}>
+                <View style={styles.modal}>
+                    <View style={styles.constainer}>
+                        <Text>
+                            <Icon name={'exclamation-triangle'} size={80} color={'#E14D2A'} />
+                        </Text>
+                        <Text style={styles.text2}>
+                            ¿Esta seguro de Enviar?
+                        </Text>
+                        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-around' }}>
+                            <Pressable onPress={() => {
+                                setVisible(false)
+                                EnviarCorreo()
+                            }} style={styles.pressable}>
+                                <Text style={[styles.text2, { color: grey, marginTop: 0 }]}>SI</Text>
+                            </Pressable>
+                            <Pressable onPress={() => setVisible(false)} style={styles.pressable}>
+                                <Text style={[styles.text2, { color: grey, marginTop: 0 }]}>No</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View >
     )
 }
@@ -238,6 +262,35 @@ const styles = StyleSheet.create({
     text: {
         color: navy,
         fontWeight: 'bold'
+    },
+    modal: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        backgroundColor: '#00000099',
+
+    },
+    constainer: {
+        width: '80%',
+        backgroundColor: grey,
+        alignItems: 'center',
+        borderRadius: 10,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        maxHeight: 300
+    },
+    text2: {
+        fontWeight: 'bold',
+        marginTop: 10,
+        color: navy
+    },
+    pressable: {
+        backgroundColor: '#0078AA',
+        paddingVertical: 7,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginTop: 15
     }
 })
 

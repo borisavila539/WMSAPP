@@ -1,9 +1,9 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { RootStackParams } from '../../../navigation/navigation'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Header from '../../../components/Header'
-import { black, green, grey, orange, yellow } from '../../../constants/Colors'
+import { black, green, grey, navy, orange, yellow } from '../../../constants/Colors'
 import { WMSContext } from '../../../context/WMSContext'
 import { DespachoPTCajasAuditarInterface } from '../../../interfaces/DespachoPT/Auditar/DespachoPTCajasAuditarInterface'
 import { WmSApi } from '../../../api/WMSApi'
@@ -19,6 +19,7 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
     const [ProdIDBox, setProdIDBox] = useState<string>('')
     const [cargando, setCargando] = useState<boolean>(false);
     const [enviarCorreo, setEnviarCorreo] = useState<boolean>(false);
+    const [visible,setVisible] = useState<boolean>(false)
 
     const getCajasAuditar = async () => {
         try {
@@ -43,6 +44,7 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
         } catch (err) {
             PlaySound('error')
         }
+        setVisible(false)
         setEnviarCorreo(false)
     }
 
@@ -115,7 +117,7 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
             <Header texto1='' texto2={'Auditoria Despacho:' + WMSState.DespachoID} texto3='' />
             <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity onPress={() => EnviarCorreo()}
+                <TouchableOpacity onPress={() => setVisible(true)}
                     style={{ backgroundColor: green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
                     disabled={enviarCorreo }
                 >
@@ -158,6 +160,29 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
                     <RefreshControl refreshing={false} onRefresh={() => getCajasAuditar()} colors={['#069A8E']} />
                 }
             />
+            <Modal visible={visible} transparent={true}>
+            <View style={style.modal}>
+                <View style={style.constainer}>
+                    <Text>
+                        <Icon name={'exclamation-triangle'} size={80} color={'#E14D2A'} />
+                    </Text>
+                    <Text style={style.text}>
+                        ¿Esta seguro de Enviar?
+                    </Text>
+                    <View style={{width:'100%', flexDirection:'row',justifyContent:'space-around'}}>
+                    <Pressable onPress={() => {
+                                setVisible(false)
+                                EnviarCorreo()
+                            }} style={style.pressable}>
+                        <Text style={[style.text, { color: grey, marginTop: 0 }]}>SI</Text>
+                    </Pressable>
+                    <Pressable onPress={()=>setVisible(false)} style={style.pressable}>
+                        <Text style={[style.text, { color: grey, marginTop: 0 }]}>No</Text>
+                    </Pressable>
+                    </View>
+                </View>
+            </View>
+        </Modal>
 
         </View>
     )
@@ -181,5 +206,34 @@ const style = StyleSheet.create({
     },
     textRender: {
         color: black
+    },
+    modal: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        backgroundColor: '#00000099',
+       
+    },
+    constainer: {
+        width: '80%',
+        backgroundColor: grey,
+        alignItems: 'center',
+        borderRadius: 10,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        maxHeight: 300
+    },
+    text: {
+        fontWeight: 'bold',
+        marginTop: 10,
+        color: navy
+    },
+    pressable: {
+        backgroundColor: '#0078AA',
+        paddingVertical: 7,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginTop: 15
     }
 })
