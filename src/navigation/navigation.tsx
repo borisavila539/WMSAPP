@@ -42,6 +42,9 @@ import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCaja
 import { DeclaracionEnvioScreen } from '../screens/DeclaracionEnvio/DeclaracionEnvioScreen';
 import { ControlCajaEtiquetasScreen } from '../screens/ControlCajasEtiqueta/ControlCajaEtiquetasScreen';
 import { AuditoriaCajaDenimScreen } from '../screens/AuditoriaCajaDenim/AuditoriaCajaDenimScreen';
+import { ReciclajeCajasScreen } from '../screens/ReciclajeCajas/ReciclajeCajasScreen';
+import { EnviarReciclajeCajaScreen } from '../screens/ReciclajeCajas/EnviarReciclajeCajaScreen';
+import { RecibirReciclajeCajasScreen } from '../screens/ReciclajeCajas/RecibirReciclajeCajasScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -85,7 +88,10 @@ export type RootStackParams = {
     RecepcionUbicacionCajasScreen: undefined,
     DeclaracionEnvioScreen: undefined,
     ControlCajaEtiquetasScreen: undefined,
-    AuditoriaCajaDenimScreen: undefined
+    AuditoriaCajaDenimScreen: undefined,
+    ReciclajeCajasScreen: undefined,
+    EnviarReciclajeCajaScreen:undefined,
+    RecibirReciclajeCajasScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -152,6 +158,10 @@ export const Navigation = () => {
             <Stack.Screen name='ControlCajaEtiquetasScreen' options={{ title: 'ControlCajaEtiquetasScreen' }} component={ControlCajaEtiquetasScreen} />
             {/*Auditoria Cajas Denim */}
             <Stack.Screen name='AuditoriaCajaDenimScreen' options={{ title: 'AuditoriaCajaDenimScreen' }} component={AuditoriaCajaDenimScreen} />
+            {/*ReciclajeCajasScreen */}
+            <Stack.Screen name='ReciclajeCajasScreen' options={{ title: 'ReciclajeCajasScreen' }} component={ReciclajeCajasScreen} />
+            <Stack.Screen name='EnviarReciclajeCajaScreen' options={{ title: 'EnviarReciclajeCajaScreen' }} component={EnviarReciclajeCajaScreen} />
+            <Stack.Screen name='RecibirReciclajeCajasScreen' options={{ title: 'RecibirReciclajeCajasScreen' }} component={RecibirReciclajeCajasScreen} />
 
         </Stack.Navigator>
     )
