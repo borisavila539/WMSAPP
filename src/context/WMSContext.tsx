@@ -1,6 +1,7 @@
 import { createContext, useReducer } from "react";
 import { WMSReducer } from "./WMSReducer";
 import { UbicacionesInterface } from '../interfaces/RecepcionUbicacionCajas/RecepcionUbicacionCajasInterface';
+import { DevolucionesInterface } from "../interfaces/Devoluciones/Devoluciones";
 
 //Definir la informacion a grabar
 export interface WMSState {
@@ -15,9 +16,10 @@ export interface WMSState {
     recID: string,
     DespachoID: number,
     usuarioAlmacen: number,
-    ProdID:string,
+    ProdID: string,
     Box: number,
-    ubicaciones:UbicacionesInterface[]
+    ubicaciones: UbicacionesInterface[],
+    devolucion: DevolucionesInterface
 }
 
 //Estado inicial
@@ -33,9 +35,18 @@ export const WMSInitialState: WMSState = {
     recID: '',
     DespachoID: 0,
     usuarioAlmacen: 0,
-    ProdID :'',
-    Box:0,
-    ubicaciones:[]
+    ProdID: '',
+    Box: 0,
+    ubicaciones: [],
+    devolucion: {
+        id: 0,
+        numDevolucion: '',
+        fechaCrea: new Date,
+        numeroRMA: '',
+        fechaCreacionAX: new Date,
+        asesor: '',
+        descricpcion: ''
+    }
 }
 
 export interface WMSContextProps {
@@ -51,9 +62,10 @@ export interface WMSContextProps {
     changeRecId: (RecId: string) => void
     changeDespachoID: (DespachoID: number) => void
     changeUsuarioAlmacen: (UsuarioAlmacen: number) => void
-    changeProdID: (ProdID: string)=> void
-    changeBox: (Box:number)=> void
-    changeUbicaciones: (ubicaciones:UbicacionesInterface[]) => void
+    changeProdID: (ProdID: string) => void
+    changeBox: (Box: number) => void
+    changeUbicaciones: (ubicaciones: UbicacionesInterface[]) => void
+    changeDevolucion: (devolucion: DevolucionesInterface) => void
 }
 
 //crear el contexto
@@ -103,8 +115,11 @@ export const WMSProvider = ({ children }: any) => {
     const changeBox = (Box: number) => {
         dispatch({ type: 'changeBox', payload: Box })
     }
-    const changeUbicaciones = (ubicaciones:UbicacionesInterface[]) => {
+    const changeUbicaciones = (ubicaciones: UbicacionesInterface[]) => {
         dispatch({ type: 'changeUbicaciones', payload: ubicaciones })
+    }
+    const changeDevolucion = (devolucion: DevolucionesInterface) => {
+        dispatch({ type: 'changeDevolucion', payload: devolucion })
     }
 
     return (
@@ -124,7 +139,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeUsuarioAlmacen,
                 changeBox,
                 changeProdID,
-                changeUbicaciones
+                changeUbicaciones,
+                changeDevolucion
             }}
         >
             {children}

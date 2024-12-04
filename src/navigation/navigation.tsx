@@ -45,6 +45,11 @@ import { AuditoriaCajaDenimScreen } from '../screens/AuditoriaCajaDenim/Auditori
 import { ReciclajeCajasScreen } from '../screens/ReciclajeCajas/ReciclajeCajasScreen';
 import { EnviarReciclajeCajaScreen } from '../screens/ReciclajeCajas/EnviarReciclajeCajaScreen';
 import { RecibirReciclajeCajasScreen } from '../screens/ReciclajeCajas/RecibirReciclajeCajasScreen';
+import { MenuDevoluciones } from '../screens/Devoluciones/MenuDevoluciones';
+import { RecibirPlantaDevoluciones } from '../screens/Devoluciones/RecibirPlanta/RecibirPlantaDevoluciones';
+import { RecibirPlantaDevolucionesDetalle } from '../screens/Devoluciones/RecibirPlanta/RecibirPlantaDevolucionesDetalle';
+import { AuditoriaDevolucionesScreen } from '../screens/Devoluciones/Auditoria/AuditoriaDevolucionScreen';
+import { AuditoriaDevolucionDetalle } from '../screens/Devoluciones/Auditoria/AuditoriaDevolucionDetalle';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -90,8 +95,13 @@ export type RootStackParams = {
     ControlCajaEtiquetasScreen: undefined,
     AuditoriaCajaDenimScreen: undefined,
     ReciclajeCajasScreen: undefined,
-    EnviarReciclajeCajaScreen:undefined,
-    RecibirReciclajeCajasScreen:undefined
+    EnviarReciclajeCajaScreen: undefined,
+    RecibirReciclajeCajasScreen: undefined,
+    MenuDevoluciones: undefined,
+    RecibirPlantaDevoluciones:undefined,
+    RecibirPlantaDevolucionesDetalle:undefined,
+    AuditoriaDevolucionesScreen:undefined,
+    AuditoriaDevolucionDetalle:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -162,6 +172,13 @@ export const Navigation = () => {
             <Stack.Screen name='ReciclajeCajasScreen' options={{ title: 'ReciclajeCajasScreen' }} component={ReciclajeCajasScreen} />
             <Stack.Screen name='EnviarReciclajeCajaScreen' options={{ title: 'EnviarReciclajeCajaScreen' }} component={EnviarReciclajeCajaScreen} />
             <Stack.Screen name='RecibirReciclajeCajasScreen' options={{ title: 'RecibirReciclajeCajasScreen' }} component={RecibirReciclajeCajasScreen} />
+
+            {/* Devoluciones */}
+            <Stack.Screen name='MenuDevoluciones' options={{ title: 'MenuDevoluciones' }} component={MenuDevoluciones} />
+            <Stack.Screen name='RecibirPlantaDevoluciones' options={{ title: 'RecibirPlantaDevoluciones' }} component={RecibirPlantaDevoluciones} />
+            <Stack.Screen name='RecibirPlantaDevolucionesDetalle' options={{ title: 'RecibirPlantaDevolucionesDetalle' }} component={RecibirPlantaDevolucionesDetalle} />
+            <Stack.Screen name='AuditoriaDevolucionesScreen' options={{ title: 'AuditoriaDevolucionesScreen' }} component={AuditoriaDevolucionesScreen} />
+            <Stack.Screen name='AuditoriaDevolucionDetalle' options={{ title: 'AuditoriaDevolucionDetalle' }} component={AuditoriaDevolucionDetalle} />
 
         </Stack.Navigator>
     )
