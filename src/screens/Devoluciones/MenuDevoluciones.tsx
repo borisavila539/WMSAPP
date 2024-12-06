@@ -14,8 +14,8 @@ export const MenuDevoluciones: FC<props> = ({ navigation }) => {
         let tmp: ScreensInterface[] = [
             { Name: 'Recibir Planta', Screen: 'RecibirPlantaDevoluciones', image: require('../../assets/RecibirDevolucion.png') },
             { Name: 'Auditoria', Screen: 'AuditoriaDevolucionesScreen', image: require('../../assets/AuditoriaDevolucion.png') },
-            { Name: 'Enviar', Screen: 'Seleccionartraslados', image: require('../../assets/EnviarDevolucion.png') },
-            { Name: 'Tracking', Screen: 'BusquedaRolloAXScreen', image: require('../../assets/TrackingDevolucion.png') },
+            { Name: 'Enviar', Screen: 'EnviarDevolucion', image: require('../../assets/EnviarDevolucion.png') },
+            { Name: 'Tracking', Screen: 'TrackingDevolucion', image: require('../../assets/TrackingDevolucion.png') },
             { Name: 'Recibir CD', Screen: 'DiariosinventarioCiclicoTelaScreen', image: require('../../assets/RecibirDevolucion.png') },
         ]
         setData(tmp)

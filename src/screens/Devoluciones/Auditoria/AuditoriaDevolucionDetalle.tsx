@@ -1,8 +1,8 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { RootStackParams } from '../../../navigation/navigation'
-import { ActivityIndicator, Alert, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { black, green, grey } from '../../../constants/Colors'
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { black, green, grey, navy, orange } from '../../../constants/Colors'
 import Header from '../../../components/Header'
 import { WMSContext } from '../../../context/WMSContext'
 import { DevolucionDefectoDetalleINterface, DevolucionDetalleinterface, DevolucionesDefectosInterface, DevolucionesInterface } from '../../../interfaces/Devoluciones/Devoluciones';
@@ -28,9 +28,11 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
         ]
     )
     const [enviandoEstado, setEnviandoEstado] = useState<boolean>(false)
-
     const [itemBarcode, setItembarcode] = useState<string>('')
-
+    const [showModalPrint, setShowModalPrint] = useState<boolean>(false)
+    const [Cajasprimeras, setCajasPrimeras] = useState<string>('')
+    const [CajasIrregular, setCajasIrregular] = useState<string>('')
+    const [imprimiendo, setImprimiendo] = useState<boolean>(false)
 
     const getDefectos = async () => {
         try {
@@ -46,7 +48,6 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
         if (!cargando) {
             setCargando(true)
             try {
-                console.log(WMSState.devolucion.id)
                 await WmSApi.get<DevolucionDetalleinterface[]>(`DevolucionDetalle/auditoria/${WMSState.devolucion.id}`)
                     .then(resp => {
                         setData(resp.data)
@@ -71,7 +72,6 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
     }
 
     const actualizarDefectos = async (item: DevolucionDefectoDetalleINterface) => {
-        console.log(item)
         if (item.idDefecto != 0 && item.tipo != '') {
             try {
                 await WmSApi.get<DevolucionDefectoDetalleINterface>(`Devolucion/DefectosDetalle/${item.id}/${item.idDefecto}/${item.tipo}`).then(resp => {
@@ -221,6 +221,24 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
         )
     }
 
+    const imprimir = async () => {
+        if (!imprimiendo) {
+            setImprimiendo(true)
+            try {
+                await WmSApi.get<string>(`Devolucion/ImpresionEtiqueta/${WMSState.devolucion.id}/${WMSState.devolucion.numDevolucion}/${Cajasprimeras}/${CajasIrregular}`)
+                    .then(resp => {
+                        PlaySound('success')
+                        setShowModalPrint(false)
+                        setCajasIrregular('')
+                        setCajasPrimeras('')
+                    })
+            } catch (err) {
+
+            }
+            setImprimiendo(false)
+        }
+    }
+
 
     useEffect(() => {
         getData()
@@ -234,6 +252,7 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
                 <TextInput
                     style={style.textInput}
                     onChangeText={(value) => {
+                        setShowList(data.find(x => x.itembarcode == value)?.articulo ?? '')
                         setId(data.find(x => x.itembarcode == value)?.id ?? 0)
                     }}
                     value={itemBarcode}
@@ -249,6 +268,13 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
                     }
                 </TouchableOpacity>
             </View>
+
+            <View style={{ width: '100%', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => setShowModalPrint(true)} style={{ backgroundColor: orange, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
+                    <Text style={[style.textRender, { color: grey }]}>IMPRIMIR</Text>
+                </TouchableOpacity>
+            </View>
+
             {
                 cargando ?
                     <ActivityIndicator size={20} />
@@ -271,6 +297,56 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
                     <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
                 }
             />
+            <Modal visible={showModalPrint} transparent={true}>
+                <View style={style.modal}>
+                    <View style={style.constainer}>
+                        <Text style={style.text}>
+                            Cajas
+                        </Text>
+
+                        <Text>
+                            <Icon name={'exclamation-triangle'} size={80} color={'#FFB72B'} />
+                        </Text>
+                        <View style={{ width: '100%', justifyContent: 'space-between', flexDirection: 'row' }}>
+                            <View style={{ width: '50%', alignItems: 'center' }}>
+                                <Text style={style.text}>Primeras</Text>
+                                <TextInput
+                                    style={[style.textInput, { width: '90%' }]}
+                                    onChangeText={(value) => {
+                                        setCajasPrimeras(value)
+                                    }}
+                                    value={Cajasprimeras}
+                                    keyboardType='decimal-pad'
+                                />
+                            </View>
+                            <View style={{ width: '50%', alignItems: 'center' }}>
+                                <Text style={style.text}>Irregulares</Text>
+                                <TextInput
+                                    style={[style.textInput, { width: '90%' }]}
+                                    onChangeText={(value) => {
+                                        setCajasIrregular(value)
+                                    }}
+                                    value={CajasIrregular}
+                                    keyboardType='decimal-pad'
+                                />
+                            </View>
+                        </View>
+
+                        <View style={{ width: '100%', justifyContent: 'space-between', flexDirection: 'row' }}>
+                            <Pressable disabled={Cajasprimeras.length == 0 && CajasIrregular.length == 0} onPress={imprimir} style={[style.pressable, { backgroundColor: '#40A2E3' }]}>
+                                <Text style={[style.text, { color: grey, marginTop: 0 }]}>Imprimir</Text>
+                            </Pressable>
+                            <Pressable onPress={() => {
+                                setCajasPrimeras('')
+                                setCajasIrregular('')
+                                setShowModalPrint(false)
+                            }} style={[style.pressable, { backgroundColor: '#FF6600' }]}>
+                                <Text style={[style.text, { color: grey, marginTop: 0 }]}>Cancelar</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     )
 }
@@ -294,5 +370,34 @@ const style = StyleSheet.create({
     textRender: {
         fontWeight: 'bold'
 
+    },
+    modal: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        backgroundColor: '#00000099',
+
+    },
+    constainer: {
+        width: '80%',
+        backgroundColor: grey,
+        alignItems: 'center',
+        borderRadius: 10,
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        maxHeight: 400
+    },
+    text: {
+        fontWeight: 'bold',
+        marginTop: 10,
+        color: navy
+    },
+    pressable: {
+        backgroundColor: '#0078AA',
+        paddingVertical: 7,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginTop: 15
     }
 })

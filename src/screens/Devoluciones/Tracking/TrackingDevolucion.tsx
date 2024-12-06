@@ -1,29 +1,27 @@
 import { StackScreenProps } from '@react-navigation/stack'
-import React, { FC, useContext, useEffect, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import { RootStackParams } from '../../../navigation/navigation'
-import { Alert, Text, View, FlatList, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native'
-import { black, grey } from '../../../constants/Colors'
-import Header from '../../../components/Header'
 import { DevolucionesInterface } from '../../../interfaces/Devoluciones/Devoluciones'
 import { WmSApi } from '../../../api/WMSApi'
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { black, grey } from '../../../constants/Colors'
+import Header from '../../../components/Header'
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { WMSContext, WMSState } from '../../../context/WMSContext';
 
 
-type props = StackScreenProps<RootStackParams, "RecibirPlantaDevoluciones">
-export const RecibirPlantaDevoluciones: FC<props> = ({ navigation }) => {
+type props = StackScreenProps<RootStackParams, "TrackingDevolucion">
+export const TrackingDevolucion: FC<props> = ({ navigation }) => {
     const [data, setData] = useState<DevolucionesInterface[]>([])
     const [cargando, setCargando] = useState<boolean>(false)
     const [filtro, setFiltro] = useState<string>('')
     const [page, setpage] = useState<number>(1)
     const [loadMore, setLoadMore] = useState<boolean>(true)
-    const {changeDevolucion} = useContext(WMSContext)
 
     const getData = async (tipo: string) => {
         if (!cargando) {
             setCargando(true)
             try {
-                await WmSApi.get<DevolucionesInterface[]>(`Devolucion/${filtro == '' ? '-' : filtro}/${tipo == '+' ? page + 1 : 1}/30/1`).then(resp => {
+                await WmSApi.get<DevolucionesInterface[]>(`Devolucion/Tracking/${filtro == '' ? '-' : filtro}/${tipo == '+' ? page + 1 : 1}/30`).then(resp => {
                     if (tipo == '+') {
                         setData(data.concat(resp.data))
                         setpage(page + 1)
@@ -46,28 +44,32 @@ export const RecibirPlantaDevoluciones: FC<props> = ({ navigation }) => {
         }
     }
 
-    const onPress =(item:DevolucionesInterface)=>{
-        changeDevolucion(item)
-        navigation.navigate('RecibirPlantaDevolucionesDetalle')
-    }
-
     const renderItem = (item: DevolucionesInterface) => {
+        const getColor = (): string => {
+            switch (item.descricpcion) {
+                case 'Recibido en Planta':
+                    return '#FFE61B';
+                case 'Auditado':
+                    return '#FFB72B';
+                case 'Enviado a CD':
+                    return '#40A2E3';
+                case 'Recibido CD':
+                    return '#8FD14F';
+                case 'Rechazado':
+                    return '#FF6600';
+                default:
+                    return '#D9D9D9';
+            }
+        }
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => onPress(item)} style={{ width: '100%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
+                <View style={{ width: '100%', backgroundColor: getColor(), borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
                     <Text style={style.textRender}>Devolucion: {item.numDevolucion}</Text>
-                    <Text>Fecha Solicitud: {item.fechaCrea.toString()}</Text>
                     <Text>Asesor: {item.asesor}</Text>
-                    {
-                        item.numeroRMA &&
-                        <>
-                            <Text>RMA: {item.numeroRMA}</Text>
-                            <Text>Fecha AX: {item.fechaCreacionAX.toString()}</Text>
-                        </>
-                    }
+                    <Text>RMA: {item.numeroRMA}</Text>
+                    <Text>Estatus: {item.descricpcion}</Text>
                     <Text>Unidades: {item.totalUnidades}</Text>
-
-                </TouchableOpacity>
+                </View>
             </View>
         )
     }
@@ -75,12 +77,9 @@ export const RecibirPlantaDevoluciones: FC<props> = ({ navigation }) => {
     useEffect(() => {
         getData('=')
     }, [])
-
-
-
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
-            <Header texto1='Devoluciones' texto2='Recibir Planta' texto3='' />
+            <Header texto1='Devoluciones' texto2='Tracking' texto3='' />
             <View style={[style.textInput, { borderColor: '#77D970' }]}>
                 <TextInput
                     onChangeText={(value) => { setFiltro(value) }}

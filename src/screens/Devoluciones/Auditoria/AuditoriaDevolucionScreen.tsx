@@ -65,6 +65,7 @@ export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
                             <Text>Fecha AX: {item.fechaCreacionAX.toString()}</Text>
                         </>
                     }
+                    <Text>Unidades: {item.totalUnidades}</Text>
                 </TouchableOpacity>
             </View>
         )
