@@ -99,7 +99,7 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
             })
             if (cont == 0) {
                 try {
-                    await WmSApi.get<DevolucionesInterface>(`Devolucion/Estado/${WMSState.devolucion.id}/${tipo}/${WMSState.usuario}`)
+                    await WmSApi.get<DevolucionesInterface>(`Devolucion/Estado/${WMSState.devolucion.id}/${tipo}/${WMSState.usuario}/-`)
                         .then(resp => {
                             if (resp.data.descricpcion == tipo) {
                                 PlaySound('success')

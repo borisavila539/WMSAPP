@@ -52,6 +52,8 @@ import { AuditoriaDevolucionesScreen } from '../screens/Devoluciones/Auditoria/A
 import { AuditoriaDevolucionDetalle } from '../screens/Devoluciones/Auditoria/AuditoriaDevolucionDetalle';
 import { TrackingDevolucion } from '../screens/Devoluciones/Tracking/TrackingDevolucion';
 import { EnviarDevolucion } from '../screens/Devoluciones/Enviar/EnviarDevolucion';
+import { DevolucionesRecibirCD } from '../screens/Devoluciones/RecibirCD/DevolucionesRecibirCD';
+import { DevolucionRecibirCDDetalle } from '../screens/Devoluciones/RecibirCD/DevolucionRecibirCDDetalle';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -105,7 +107,9 @@ export type RootStackParams = {
     AuditoriaDevolucionesScreen:undefined,
     AuditoriaDevolucionDetalle:undefined,
     TrackingDevolucion:undefined,
-    EnviarDevolucion:undefined
+    EnviarDevolucion:undefined,
+    DevolucionesRecibirCD:undefined,
+    DevolucionRecibirCDDetalle:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -185,6 +189,8 @@ export const Navigation = () => {
             <Stack.Screen name='AuditoriaDevolucionDetalle' options={{ title: 'AuditoriaDevolucionDetalle' }} component={AuditoriaDevolucionDetalle} />
             <Stack.Screen name='TrackingDevolucion' options={{ title: 'TrackingDevolucion' }} component={TrackingDevolucion} />
             <Stack.Screen name='EnviarDevolucion' options={{ title: 'EnviarDevolucion' }} component={EnviarDevolucion} />
+            <Stack.Screen name='DevolucionesRecibirCD' options={{ title: 'DevolucionesRecibirCD' }} component={DevolucionesRecibirCD} />
+            <Stack.Screen name='DevolucionRecibirCDDetalle' options={{ title: 'DevolucionRecibirCDDetalle' }} component={DevolucionRecibirCDDetalle} />
 
         </Stack.Navigator>
     )

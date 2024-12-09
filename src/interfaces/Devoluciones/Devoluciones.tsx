@@ -6,7 +6,8 @@ export interface DevolucionesInterface{
     fechaCreacionAX: Date,
     asesor: string,
     descricpcion: string,
-    totalUnidades:number
+    totalUnidades:number,
+    camion:string
   }
 
   export interface DevolucionDetalleinterface {
@@ -42,12 +43,13 @@ export interface DevolucionesInterface{
   export interface EnviarDevolucionInterface {
     id: number;
     numDevolucion: string;
-    fechaCrea: Date; // Puede cambiar a Date si planeas convertirlo
+    fechaCrea: Date; 
     numeroRMA: string;
-    fechaCreacionAX: Date; // Puede cambiar a Date si planeas convertirlo
+    fechaCreacionAX: Date; 
     asesor: string;
     descricpcion: string;
     totalUnidades: number;
+    camion:string,
     cajas: Caja[];
   }
   

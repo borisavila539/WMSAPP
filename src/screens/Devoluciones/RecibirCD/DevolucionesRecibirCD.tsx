@@ -1,39 +1,30 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { RootStackParams } from '../../../navigation/navigation'
-import { Caja, DevolucionesInterface, EnviarDevolucionInterface } from '../../../interfaces/Devoluciones/Devoluciones'
-import { WmSApi } from '../../../api/WMSApi'
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { black, green, grey, orange } from '../../../constants/Colors'
-import Header from '../../../components/Header'
+import { Caja, DevolucionesInterface, EnviarDevolucionInterface } from '../../../interfaces/Devoluciones/Devoluciones';
+import { WMSContext } from '../../../context/WMSContext';
+import { WmSApi } from '../../../api/WMSApi';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Header from '../../../components/Header';
+import { black, green, grey, orange } from '../../../constants/Colors';
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { WMSContext, WMSState } from '../../../context/WMSContext';
-import SoundPlayer from 'react-native-sound-player'
-import { RefreshControl } from 'react-native-gesture-handler'
-import MyAlert from '../../../components/MyAlert'
+import SoundPlayer from 'react-native-sound-player';
 
-type props = StackScreenProps<RootStackParams, "EnviarDevolucion">
-export const EnviarDevolucion: FC<props> = ({ navigation }) => {
-
+type props = StackScreenProps<RootStackParams, "DevolucionesRecibirCD">
+export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
     const [data, setData] = useState<EnviarDevolucionInterface[]>([])
     const [cargando, setCargando] = useState<boolean>(false)
     const [escanenado, setEscaneando] = useState<boolean>(false)
-    const { WMSState } = useContext(WMSContext)
+    const { WMSState,changeDevolucion } = useContext(WMSContext)
     const textInputRef = useRef<TextInput>(null);
-    const textInputRef2 = useRef<TextInput>(null);
-
-    const [enviandoEstado, setEnviandoEstado] = useState<boolean>(false)
     const [CajaS, setCajaS] = useState<string>('')
-    const [camion, setCamion] = useState<string>('')
-    const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
-    const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
-    const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-    //const [enviados, setEnviados] = useState<DevolucionesInterface[]>([])
+    
+
     const getData = async () => {
         if (!cargando) {
             setCargando(true)
             try {
-                await WmSApi.get<EnviarDevolucionInterface[]>('Devolucion/packing')
+                await WmSApi.get<EnviarDevolucionInterface[]>('Devolucion/EnviadasCD')
                     .then(resp => {
                         setData(resp.data)
                         //console.log(resp.data)
@@ -44,11 +35,16 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
             setCargando(false)
         }
     }
+
+    const onPress = (item: EnviarDevolucionInterface) =>{
+        changeDevolucion(item)
+        navigation.navigate('DevolucionRecibirCDDetalle')
+    }
     const renderItem = (item: EnviarDevolucionInterface) => {
         const cantidad = (): number => {
             let cant = 0
             item.cajas.forEach(ele => {
-                if (ele.packing) {
+                if (ele.recibir) {
                     cant++;
                 }
             })
@@ -56,7 +52,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
         }
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>
-                <View style={{ width: '95%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
+                <TouchableOpacity disabled={cantidad() !=item.cajas.length} onPress={()=>onPress(item)} style={{ width: '95%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
                     <View style={{ width: '100%', justifyContent: 'space-between', flexDirection: 'row' }}>
                         <Text style={{ fontWeight: 'bold' }}>{item.numDevolucion}</Text>
                         <Text style={{ fontWeight: 'bold' }}>{cantidad()}/{item.cajas.length}</Text>
@@ -68,7 +64,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                         numColumns={6}
                     />
 
-                </View>
+                </TouchableOpacity>
             </View>
         )
     }
@@ -77,7 +73,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
         return (
 
             <View style={{ flex: 1, alignItems: 'center', borderRadius: 5, margin: 2 }}>
-                <Icon name='box-open' size={40} color={item.packing ? green : orange} />
+                <Icon name='box-open' size={40} color={item.recibir ? green : orange} />
                 <Text style={{ fontWeight: 'bold', position: 'absolute', top: 17, color: grey }}>{item.caja}</Text>
             </View>
 
@@ -88,7 +84,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
         setEscaneando(true)
         try {
             let texto: string[] = CajaS.split(',');
-            await WmSApi.get<Caja>(`Devolucion/IngresoCajasPacking/${texto[0]}/${WMSState.usuario}/${texto[1]}`)
+            await WmSApi.get<Caja>(`Devolucion/IngresoCajasRecibir/${texto[0]}/${WMSState.usuario}/${texto[1]}`)
                 .then(resp => {
                     if (resp.data.packing) {
                         PlaySound('success')
@@ -120,57 +116,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
         }
     }
 
-    const ActualizarEstado = async (tipo: string) => {
-
-        let enviados: DevolucionesInterface[] = []
-        if (!enviandoEstado) {
-            setEnviandoEstado(true)
-            let cont: number = 0
-
-            if (camion.length != 0) {
-
-                for (let index = 0; index < data.length; index++) {
-
-                    if (!data[index].cajas.find(x => x.packing == false)) {
-                        try {
-                            await WmSApi.get<DevolucionesInterface>(`Devolucion/Estado/${data[index].id}/${tipo}/${WMSState.usuario}/${camion}`)
-                                .then(resp => {
-                                    enviados.push(resp.data)
-                                })
-
-
-                        } catch (err) {
-                            Alert.alert('err1')
-                            PlaySound('error')
-                        }
-                    }
-                }
-
-
-                if (enviados.length > 0) {
-                    try {
-                        await WmSApi.post<string>('Devolucion/EnviarCorreoPacking', enviados)
-                    } catch (err) {
-
-                    }
-                    PlaySound('success')
-                    getData()
-                } else {
-                    Alert.alert('0')
-                    PlaySound('error')
-                }
-            } else {
-                setMensajeAlerta('El campo camion esta vacio')
-                setTipoMensaje(false);
-                setShowMensajeAlerta(true);
-            }
-
-
-
-            setEnviandoEstado(false)
-
-        }
-    }
+    
 
     useEffect(() => {
         textInputRef.current?.focus()
@@ -196,7 +142,6 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                         style={style.input}
                         placeholder='Devolucion'
                         autoFocus
-                        onBlur={() => textInputRef2.current?.isFocused() ? null : textInputRef.current?.focus()}
 
                     />
 
@@ -205,26 +150,9 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                         <ActivityIndicator size={20} />
                     }
                 </View>
-                <TouchableOpacity onPress={() => ActualizarEstado('Enviado a CD')} disabled={false} style={{ backgroundColor: green, paddingVertical: 5, paddingHorizontal: 5, borderRadius: 10, width: '15%', height: '85%', alignItems: 'center' }}>
-                    {
-                        !false ?
-                            <Icon name='check' size={35} color={black} />
-                            :
-                            <ActivityIndicator size={20} />
-                    }
-                </TouchableOpacity>
+                
             </View>
-            <View style={[style.textInput, { borderColor: camion.length > 0 ? '#77D970' : orange, width: '100%' }]}>
-
-                <TextInput
-                    ref={textInputRef2}
-                    onChangeText={(value) => { setCamion(value) }}
-                    value={camion}
-                    style={style.input}
-                    placeholder='Camion'
-                    autoFocus
-                />
-            </View>
+            
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.numDevolucion}
@@ -234,7 +162,6 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                     <RefreshControl refreshing={cargando} onRefresh={() => getData()} colors={['#069A8E']} />
                 }
             />
-            <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => { setShowMensajeAlerta(false); textInputRef.current?.focus(); }} />
 
         </View>
     )

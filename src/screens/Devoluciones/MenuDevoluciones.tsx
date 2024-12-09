@@ -16,7 +16,7 @@ export const MenuDevoluciones: FC<props> = ({ navigation }) => {
             { Name: 'Auditoria', Screen: 'AuditoriaDevolucionesScreen', image: require('../../assets/AuditoriaDevolucion.png') },
             { Name: 'Enviar', Screen: 'EnviarDevolucion', image: require('../../assets/EnviarDevolucion.png') },
             { Name: 'Tracking', Screen: 'TrackingDevolucion', image: require('../../assets/TrackingDevolucion.png') },
-            { Name: 'Recibir CD', Screen: 'DiariosinventarioCiclicoTelaScreen', image: require('../../assets/RecibirDevolucion.png') },
+            { Name: 'Recibir CD', Screen: 'DevolucionesRecibirCD', image: require('../../assets/RecibirDevolucion.png') },
         ]
         setData(tmp)
     }
