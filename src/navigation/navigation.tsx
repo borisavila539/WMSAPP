@@ -45,15 +45,18 @@ import { AuditoriaCajaDenimScreen } from '../screens/AuditoriaCajaDenim/Auditori
 import { ReciclajeCajasScreen } from '../screens/ReciclajeCajas/ReciclajeCajasScreen';
 import { EnviarReciclajeCajaScreen } from '../screens/ReciclajeCajas/EnviarReciclajeCajaScreen';
 import { RecibirReciclajeCajasScreen } from '../screens/ReciclajeCajas/RecibirReciclajeCajasScreen';
-import { MenuDevoluciones } from '../screens/Devoluciones/MenuDevoluciones';
-import { RecibirPlantaDevoluciones } from '../screens/Devoluciones/RecibirPlanta/RecibirPlantaDevoluciones';
-import { RecibirPlantaDevolucionesDetalle } from '../screens/Devoluciones/RecibirPlanta/RecibirPlantaDevolucionesDetalle';
-import { AuditoriaDevolucionesScreen } from '../screens/Devoluciones/Auditoria/AuditoriaDevolucionScreen';
-import { AuditoriaDevolucionDetalle } from '../screens/Devoluciones/Auditoria/AuditoriaDevolucionDetalle';
-import { TrackingDevolucion } from '../screens/Devoluciones/Tracking/TrackingDevolucion';
-import { EnviarDevolucion } from '../screens/Devoluciones/Enviar/EnviarDevolucion';
-import { DevolucionesRecibirCD } from '../screens/Devoluciones/RecibirCD/DevolucionesRecibirCD';
-import { DevolucionRecibirCDDetalle } from '../screens/Devoluciones/RecibirCD/DevolucionRecibirCDDetalle';
+import { MenuDevoluciones } from '../screens/Devoluciones/DevolucionCalidad/MenuDevoluciones';
+import { RecibirPlantaDevoluciones } from '../screens/Devoluciones/DevolucionCalidad/RecibirPlanta/RecibirPlantaDevoluciones';
+import { RecibirPlantaDevolucionesDetalle } from '../screens/Devoluciones/DevolucionCalidad/RecibirPlanta/RecibirPlantaDevolucionesDetalle';
+import { AuditoriaDevolucionesScreen } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionScreen';
+import { AuditoriaDevolucionDetalle } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionDetalle';
+import { TrackingDevolucion } from '../screens/Devoluciones/DevolucionCalidad/Tracking/TrackingDevolucion';
+import { EnviarDevolucion } from '../screens/Devoluciones/DevolucionCalidad/Enviar/EnviarDevolucion';
+import { DevolucionesRecibirCD } from '../screens/Devoluciones/DevolucionCalidad/RecibirCD/DevolucionesRecibirCD';
+import { DevolucionRecibirCDDetalle } from '../screens/Devoluciones/DevolucionCalidad/RecibirCD/DevolucionRecibirCDDetalle';
+import { MenuPrincipalDevolucion } from '../screens/Devoluciones/MenuPrincipalDevolucion';
+import { DevolucionesPrimera } from '../screens/Devoluciones/DevolucionPrimera/DevolucionesPrimera';
+import { DevolucionprimeraDetalle } from '../screens/Devoluciones/DevolucionPrimera/DevolucionprimeraDetalle';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -109,7 +112,10 @@ export type RootStackParams = {
     TrackingDevolucion:undefined,
     EnviarDevolucion:undefined,
     DevolucionesRecibirCD:undefined,
-    DevolucionRecibirCDDetalle:undefined
+    DevolucionRecibirCDDetalle:undefined,
+    MenuPrincipalDevolucion:undefined,
+    DevolucionesPrimera:undefined,
+    DevolucionprimeraDetalle:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -191,6 +197,9 @@ export const Navigation = () => {
             <Stack.Screen name='EnviarDevolucion' options={{ title: 'EnviarDevolucion' }} component={EnviarDevolucion} />
             <Stack.Screen name='DevolucionesRecibirCD' options={{ title: 'DevolucionesRecibirCD' }} component={DevolucionesRecibirCD} />
             <Stack.Screen name='DevolucionRecibirCDDetalle' options={{ title: 'DevolucionRecibirCDDetalle' }} component={DevolucionRecibirCDDetalle} />
+            <Stack.Screen name='MenuPrincipalDevolucion' options={{ title: 'MenuPrincipalDevolucion' }} component={MenuPrincipalDevolucion} />
+            <Stack.Screen name='DevolucionesPrimera' options={{ title: 'DevolucionesPrimera' }} component={DevolucionesPrimera} />
+            <Stack.Screen name='DevolucionprimeraDetalle' options={{ title: 'DevolucionprimeraDetalle' }} component={DevolucionprimeraDetalle} />
 
         </Stack.Navigator>
     )

@@ -1,10 +1,10 @@
 import React, { FC, useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
-import Header from '../../components/Header'
-import { grey, navy } from '../../constants/Colors'
+import Header from '../../../components/Header'
+import { grey, navy } from '../../../constants/Colors'
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from '../../navigation/navigation'
-import { ScreensInterface } from '../../interfaces/ScreeensInterface'
+import { RootStackParams } from '../../../navigation/navigation'
+import { ScreensInterface } from '../../../interfaces/ScreeensInterface'
 
 type props = StackScreenProps<RootStackParams, "MenuDevoluciones">
 export const MenuDevoluciones: FC<props> = ({ navigation }) => {
@@ -12,11 +12,10 @@ export const MenuDevoluciones: FC<props> = ({ navigation }) => {
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'Recibir Planta', Screen: 'RecibirPlantaDevoluciones', image: require('../../assets/RecibirDevolucion.png') },
-            { Name: 'Auditoria', Screen: 'AuditoriaDevolucionesScreen', image: require('../../assets/AuditoriaDevolucion.png') },
-            { Name: 'Enviar', Screen: 'EnviarDevolucion', image: require('../../assets/EnviarDevolucion.png') },
-            { Name: 'Tracking', Screen: 'TrackingDevolucion', image: require('../../assets/TrackingDevolucion.png') },
-            { Name: 'Recibir CD', Screen: 'DevolucionesRecibirCD', image: require('../../assets/RecibirDevolucion.png') },
+            { Name: 'Recibir Planta', Screen: 'RecibirPlantaDevoluciones', image: require('../../../assets/RecibirDevolucion.png') },
+            { Name: 'Auditoria', Screen: 'AuditoriaDevolucionesScreen', image: require('../../../assets/AuditoriaDevolucion.png') },
+            { Name: 'Enviar', Screen: 'EnviarDevolucion', image: require('../../../assets/EnviarDevolucion.png') },
+            { Name: 'Recibir CD', Screen: 'DevolucionesRecibirCD', image: require('../../../assets/RecibirDevolucion.png') },
         ]
         setData(tmp)
     }
@@ -42,7 +41,7 @@ export const MenuDevoluciones: FC<props> = ({ navigation }) => {
     }, [])
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey }}>
-            <Header texto1='' texto2='Menu' texto3='' />
+            <Header texto1='' texto2='Menu Devolucion Calidad' texto3='' />
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.Screen.toString()}

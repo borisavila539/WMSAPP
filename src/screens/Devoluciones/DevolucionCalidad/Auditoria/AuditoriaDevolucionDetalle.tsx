@@ -1,12 +1,12 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
-import { RootStackParams } from '../../../navigation/navigation'
+import { RootStackParams } from '../../../../navigation/navigation'
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { black, green, grey, navy, orange } from '../../../constants/Colors'
-import Header from '../../../components/Header'
-import { WMSContext } from '../../../context/WMSContext'
-import { DevolucionDefectoDetalleINterface, DevolucionDetalleinterface, DevolucionesDefectosInterface, DevolucionesInterface } from '../../../interfaces/Devoluciones/Devoluciones';
-import { WmSApi } from '../../../api/WMSApi'
+import { black, green, grey, navy, orange } from '../../../../constants/Colors'
+import Header from '../../../../components/Header'
+import { WMSContext } from '../../../../context/WMSContext'
+import { DevolucionDefectoDetalleINterface, DevolucionDetalleinterface, DevolucionesDefectosInterface, DevolucionesInterface } from '../../../../interfaces/Devoluciones/Devoluciones';
+import { WmSApi } from '../../../../api/WMSApi'
 import { SelectList } from 'react-native-dropdown-select-list'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import SoundPlayer from 'react-native-sound-player'
@@ -204,7 +204,7 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
                                                 placeholder='Tipo'
                                                 search={false}
                                                 dropdownShown={false}
-                                                defaultOption={tipo.find(x => x.key == element.tipo?.toString())}
+                                                defaultOption={tipo.find(x => x.key == element.tipo?element.tipo?.toString():1)}
                                                 boxStyles={{ backgroundColor: grey }}
                                                 dropdownStyles={{ backgroundColor: grey }}
                                             />
@@ -245,9 +245,24 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
         getDefectos()
     }, [])
 
+    const getTotalAuditado =():number =>{
+        let cont:number =0
+        data.forEach(element =>{
+            element.defecto?.forEach(ele =>{
+                if(ele.idDefecto && ele.tipo){
+                    cont++
+                }
+            })
+        })
+
+        return cont
+    }
+
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
-            <Header texto1='Auditoria' texto2={WMSState.devolucion.numDevolucion} texto3={data.length + ''} />
+            <Header texto1='Auditoria' texto2={WMSState.devolucion.numDevolucion} 
+            texto3={getTotalAuditado()+"/"+data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0) + ''} 
+            />
             <View style={{ width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly' }}>
                 <TextInput
                     style={style.textInput}
@@ -259,7 +274,7 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
                     autoFocus
 
                 />
-                <TouchableOpacity onPress={() => ActualizarEstado('Auditado')} disabled={enviandoEstado} style={{ backgroundColor: green, paddingVertical: 5, paddingHorizontal: 5, borderRadius: 10, width: '15%', height: '85%', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => ActualizarEstado('Auditado')} disabled={enviandoEstado || (Cajasprimeras.length ==0 && CajasIrregular.length == 0) } style={{ backgroundColor: green, paddingVertical: 5, paddingHorizontal: 5, borderRadius: 10, width: '15%', height: '85%', alignItems: 'center' }}>
                     {
                         !enviandoEstado ?
                             <Icon name='check' size={35} color={black} />
@@ -337,8 +352,7 @@ export const AuditoriaDevolucionDetalle: FC<props> = ({ navigation }) => {
                                 <Text style={[style.text, { color: grey, marginTop: 0 }]}>Imprimir</Text>
                             </Pressable>
                             <Pressable onPress={() => {
-                                setCajasPrimeras('')
-                                setCajasIrregular('')
+                               
                                 setShowModalPrint(false)
                             }} style={[style.pressable, { backgroundColor: '#FF6600' }]}>
                                 <Text style={[style.text, { color: grey, marginTop: 0 }]}>Cancelar</Text>

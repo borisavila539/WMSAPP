@@ -1,13 +1,13 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
-import { RootStackParams } from '../../../navigation/navigation'
+import { RootStackParams } from '../../../../navigation/navigation'
 import { Alert, Text, View, FlatList, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native'
-import { black, grey } from '../../../constants/Colors'
-import Header from '../../../components/Header'
-import { DevolucionesInterface } from '../../../interfaces/Devoluciones/Devoluciones'
-import { WmSApi } from '../../../api/WMSApi'
+import { black, grey } from '../../../../constants/Colors'
+import Header from '../../../../components/Header'
+import { DevolucionesInterface } from '../../../../interfaces/Devoluciones/Devoluciones'
+import { WmSApi } from '../../../../api/WMSApi'
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { WMSContext, WMSState } from '../../../context/WMSContext';
+import { WMSContext, WMSState } from '../../../../context/WMSContext';
 
 
 type props = StackScreenProps<RootStackParams, "RecibirPlantaDevoluciones">

@@ -1,17 +1,17 @@
-import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { RootStackParams } from '../../../navigation/navigation'
-import { WMSContext } from '../../../context/WMSContext'
-import { DevolucionDetalleinterface, DevolucionesInterface } from '../../../interfaces/Devoluciones/Devoluciones';
 import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { WmSApi } from '../../../api/WMSApi'
+import { blue, green, grey, orange, yellow } from '../../../../constants/Colors'
+import Header from '../../../../components/Header'
+import { RootStackParams } from '../../../../navigation/navigation'
+import { StackScreenProps } from '@react-navigation/stack'
+import { WMSContext } from '../../../../context/WMSContext'
+import { WmSApi } from '../../../../api/WMSApi'
+import { DevolucionDetalleinterface, DevolucionesInterface } from '../../../../interfaces/Devoluciones/Devoluciones'
+
 import SoundPlayer from 'react-native-sound-player'
-import { green, grey, orange } from '../../../constants/Colors'
-import Header from '../../../components/Header';
 
-type props = StackScreenProps<RootStackParams, "DevolucionRecibirCDDetalle">
-export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
-
+type props = StackScreenProps<RootStackParams, "RecibirPlantaDevolucionesDetalle">
+export const RecibirPlantaDevolucionesDetalle: FC<props> = ({ navigation }) => {
     const { WMSState } = useContext(WMSContext)
     const [cargando, setCargando] = useState<boolean>(false)
     const [data, setData] = useState<DevolucionDetalleinterface[]>([])
@@ -20,7 +20,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
     const [itemBarcode, setItembarcode] = useState<string>('')
     const textInputRefBarra = useRef<TextInput>(null);
     const textInputRefSuma = useRef<TextInput>(null);
-    const [mantener, setmantener] = useState<boolean>(true)
+    const [mantener, setmantener] = useState<boolean>(false)
     const [enviandoEstado, setEnviandoEstado] = useState<boolean>(false)
 
 
@@ -28,28 +28,32 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
         try {
             let select: DevolucionDetalleinterface | undefined = data.find(x => x.itembarcode == itemBarcode);
             if (select != undefined) {
-                await WmSApi.get<DevolucionDetalleinterface>(`DevolucionDetalleQTY/${select.id}/1/CD`).then(resp => {
-                    if (resp.data.recibidaCD != select.recibidaCD) {
+                await WmSApi.get<DevolucionDetalleinterface>(`DevolucionDetalleQTY/${select.id}/1/Planta`).then(resp => {
+                    if (resp.data.recibidaPlanta != select.recibidaPlanta) {
                         PlaySound('success')
-                        setItembarcode('')
+                        setSelected(select)
                         getData()
+                        setItembarcode('')
                     }
                 })
             } else {
                 setItembarcode('')
+
                 PlaySound('error')
             }
 
         } catch (err) {
             Alert.alert('error')
         }
+        textInputRefBarra.current?.focus()
+
     }
 
     const agregarManual = async (select: DevolucionDetalleinterface) => {
         try {
             if (sumar != '' && sumar != '0') {
-                await WmSApi.get<DevolucionDetalleinterface>(`DevolucionDetalleQTY/${select.id}/${sumar}/CD`).then(resp => {
-                    if (resp.data.recibidaCD != select.recibidaCD) {
+                await WmSApi.get<DevolucionDetalleinterface>(`DevolucionDetalleQTY/${select.id}/${sumar}/Planta`).then(resp => {
+                    if (resp.data.recibidaPlanta != select.recibidaPlanta) {
                         PlaySound('success')
                         getData()
                         setSumar('')
@@ -80,7 +84,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
                 await WmSApi.get<DevolucionDetalleinterface[]>(`DevolucionDetalle/${WMSState.devolucion.id}`)
                     .then(resp => {
                         setData(resp.data)
-                        let select: DevolucionDetalleinterface | undefined = resp.data.find(x => x.itembarcode == selected?.itembarcode || x.itembarcode == itemBarcode);
+                        let select: DevolucionDetalleinterface | undefined = resp.data.find(x => x.itembarcode == (itemBarcode.length > 0 ? itemBarcode : selected?.itembarcode));
                         if (select != undefined) {
                             setSelected(select)
                         }
@@ -98,9 +102,9 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
 
     const renderItem = (item: DevolucionDetalleinterface, isSelected: boolean) => {
         const getColor = (): string => {
-            if ((item.recibidaCD / item.cantidad) == 0) {
+            if ((item.recibidaPlanta / item.cantidad) == 0) {
                 return '#FFE61B'
-            } else if ((item.recibidaCD / item.cantidad) == 1) {
+            } else if ((item.recibidaPlanta / item.cantidad) == 1) {
 
                 return '#40A2E3'
             } else {
@@ -116,7 +120,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
                 >
                     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={style.textRender}>Articulo: {item.articulo}</Text>
-                        <Text style={style.textRender}>{item.recibidaCD}/{item.cantidad}</Text>
+                        <Text style={style.textRender}>{item.recibidaPlanta}/{item.cantidad}</Text>
                     </View>
                     <Text style={style.textRender}>Cod. Barra: {item.itembarcode}</Text>
                     <Text style={style.textRender}>Talla: {item.talla}</Text>
@@ -151,12 +155,12 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
             try {
                 await WmSApi.get<DevolucionesInterface>(`Devolucion/Estado/${WMSState.devolucion.id}/${tipo}/${WMSState.usuario}/-`)
                     .then(resp => {
-                        if(resp.data.descricpcion == tipo){
+                        if (resp.data.descricpcion == tipo) {
                             PlaySound('success')
                             navigation.goBack()
                             navigation.goBack()
 
-                        }else {
+                        } else {
                             PlaySound('error')
                         }
                     })
@@ -176,7 +180,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
     useEffect(() => {
         if (itemBarcode.length > 0) {
             agregarBarra()
-            textInputRefBarra.current?.focus
+            //textInputRefBarra.current?.focus()
         }
         setmantener(true)
     }, [itemBarcode])
@@ -184,9 +188,9 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, }}>
             <Header
-                texto1='Recibir CD'
+                texto1='Recibir Planta'
                 texto2={WMSState.devolucion.numDevolucion}
-                texto3={data.reduce((suma, devolucion) => suma + devolucion.recibidaCD, 0) + '/' + data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0)} />
+                texto3={data.reduce((suma, devolucion) => suma + devolucion.recibidaPlanta, 0) + '/' + data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0)} />
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <TextInput
                     ref={textInputRefBarra}
@@ -194,21 +198,21 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
                     onChangeText={(value) => setItembarcode(value)}
                     value={itemBarcode}
                     autoFocus
-                    onBlur={() => mantener ? textInputRefBarra.current?.focus() : null}
+                //onBlur={() => mantener ? textInputRefBarra.current?.focus() : null}
 
                 />
             </View>
             {
-                data.reduce((suma, devolucion) => suma + devolucion.recibidaCD, 0) == data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0)
+                data.reduce((suma, devolucion) => suma + devolucion.recibidaPlanta, 0) == data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0)
                     ?
                     <View style={{ width: '100%', alignItems: 'center' }}>
-                        <TouchableOpacity onPress={()=>ActualizarEstado('Recibido CD')} style={{ backgroundColor: green, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => ActualizarEstado('Recibido en Planta')} style={{ backgroundColor: green, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
                             <Text style={style.textRender}>RECIBIR</Text>
                         </TouchableOpacity>
                     </View>
                     :
                     <View style={{ width: '100%', alignItems: 'center' }}>
-                        <TouchableOpacity onPress={()=>ActualizarEstado('Rechazado')} style={{ backgroundColor: orange, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => ActualizarEstado('Rechazado')} style={{ backgroundColor: orange, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
                             <Text style={[style.textRender, { color: grey }]}>RECHAZAR</Text>
                         </TouchableOpacity>
                     </View>
@@ -221,16 +225,19 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
                 cargando ?
                     <ActivityIndicator size={20} />
                     :
-                    <FlatList
-                        data={data}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item, index }) => renderItem(item, false)}
-                        showsVerticalScrollIndicator={false}
-                        refreshControl={
-                            <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
-                        }
-                    />
+                    null
             }
+
+            <FlatList
+                data={data}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item, index }) => renderItem(item, false)}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                }
+            />
+
 
         </View>
 

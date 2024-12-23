@@ -1,17 +1,16 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { RootStackParams } from '../../../navigation/navigation'
-import { Alert, Text, View, FlatList, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native'
-import { black, grey } from '../../../constants/Colors'
-import Header from '../../../components/Header'
 import { DevolucionesInterface } from '../../../interfaces/Devoluciones/Devoluciones'
+import { WMSContext } from '../../../context/WMSContext'
 import { WmSApi } from '../../../api/WMSApi'
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import Header from '../../../components/Header'
+import { black, grey } from '../../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { WMSContext, WMSState } from '../../../context/WMSContext';
 
-
-type props = StackScreenProps<RootStackParams, "AuditoriaDevolucionesScreen">
-export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
+type props = StackScreenProps<RootStackParams, "DevolucionesPrimera">
+export const DevolucionesPrimera: FC<props> = ({ navigation }) => {
     const [data, setData] = useState<DevolucionesInterface[]>([])
     const [cargando, setCargando] = useState<boolean>(false)
     const [filtro, setFiltro] = useState<string>('')
@@ -23,7 +22,7 @@ export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
         if (!cargando) {
             setCargando(true)
             try {
-                await WmSApi.get<DevolucionesInterface[]>(`Devolucion/${filtro == '' ? '-' : filtro}/${tipo == '+' ? page + 1 : 1}/30/2`).then(resp => {
+                await WmSApi.get<DevolucionesInterface[]>(`Devolucion/${filtro == '' ? '-' : filtro}/${tipo == '+' ? page + 1 : 1}/30/1`).then(resp => {
                     if (tipo == '+') {
                         setData(data.concat(resp.data))
                         setpage(page + 1)
@@ -48,7 +47,7 @@ export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
 
     const onPress =(item:DevolucionesInterface)=>{
         changeDevolucion(item)
-        navigation.navigate('AuditoriaDevolucionDetalle')
+        navigation.navigate('DevolucionprimeraDetalle')
     }
 
     const renderItem = (item: DevolucionesInterface) => {
@@ -66,6 +65,7 @@ export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
                         </>
                     }
                     <Text>Unidades: {item.totalUnidades}</Text>
+
                 </TouchableOpacity>
             </View>
         )
@@ -79,7 +79,7 @@ export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
-            <Header texto1='Devoluciones' texto2='Auditoria' texto3='' />
+            <Header texto1='Devolucion Primera' texto2='' texto3='' />
             <View style={[style.textInput, { borderColor: '#77D970' }]}>
                 <TextInput
                     onChangeText={(value) => { setFiltro(value) }}
