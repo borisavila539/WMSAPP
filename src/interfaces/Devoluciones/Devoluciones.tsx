@@ -7,7 +7,8 @@ export interface DevolucionesInterface{
     asesor: string,
     descricpcion: string,
     totalUnidades:number,
-    camion:string
+    camion:string,
+
   }
 
   export interface DevolucionDetalleinterface {
@@ -29,8 +30,11 @@ export interface DevolucionesInterface{
   export interface DevolucionDefectoDetalleINterface{
     id:number,
     idDevolucionDetalle:number,
-    idDefecto?:number,
-    tipo?:string
+    defecto?:string,
+    tipo?:string,
+    reparacion?:boolean
+    area:string,
+    operacion:String
   }
 
   export interface DevolucionesDefectosInterface{
@@ -62,5 +66,10 @@ export interface DevolucionesInterface{
     userPacking: string;
     recibir: boolean;
     userRecibir: string;
+  }
+
+  export interface ConsolidacionCajas{
+    usuario:string,
+    numDevolucion:string
   }
   

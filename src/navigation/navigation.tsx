@@ -57,6 +57,9 @@ import { DevolucionRecibirCDDetalle } from '../screens/Devoluciones/DevolucionCa
 import { MenuPrincipalDevolucion } from '../screens/Devoluciones/MenuPrincipalDevolucion';
 import { DevolucionesPrimera } from '../screens/Devoluciones/DevolucionPrimera/DevolucionesPrimera';
 import { DevolucionprimeraDetalle } from '../screens/Devoluciones/DevolucionPrimera/DevolucionprimeraDetalle';
+import { ConsolidacionAuditoriaScreen } from '../screens/Devoluciones/DevolucionCalidad/ConsolidacionAuditoria/ConsolidacionAuditoriaScreen';
+import { AuditoriaDevolucion_Detalle } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucion_Detalle';
+import { AuditoriaDevolucionDefecto } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionDefecto';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -115,7 +118,10 @@ export type RootStackParams = {
     DevolucionRecibirCDDetalle:undefined,
     MenuPrincipalDevolucion:undefined,
     DevolucionesPrimera:undefined,
-    DevolucionprimeraDetalle:undefined
+    DevolucionprimeraDetalle:undefined,
+    ConsolidacionAuditoriaScreen:undefined,
+    AuditoriaDevolucion_Detalle:undefined,
+    AuditoriaDevolucionDefecto:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -193,6 +199,9 @@ export const Navigation = () => {
             <Stack.Screen name='RecibirPlantaDevolucionesDetalle' options={{ title: 'RecibirPlantaDevolucionesDetalle' }} component={RecibirPlantaDevolucionesDetalle} />
             <Stack.Screen name='AuditoriaDevolucionesScreen' options={{ title: 'AuditoriaDevolucionesScreen' }} component={AuditoriaDevolucionesScreen} />
             <Stack.Screen name='AuditoriaDevolucionDetalle' options={{ title: 'AuditoriaDevolucionDetalle' }} component={AuditoriaDevolucionDetalle} />
+            <Stack.Screen name='AuditoriaDevolucion_Detalle' options={{ title: 'AuditoriaDevolucion_Detalle' }} component={AuditoriaDevolucion_Detalle} />
+            <Stack.Screen name='AuditoriaDevolucionDefecto' options={{ title: 'AuditoriaDevolucionDefecto' }} component={AuditoriaDevolucionDefecto} />
+            
             <Stack.Screen name='TrackingDevolucion' options={{ title: 'TrackingDevolucion' }} component={TrackingDevolucion} />
             <Stack.Screen name='EnviarDevolucion' options={{ title: 'EnviarDevolucion' }} component={EnviarDevolucion} />
             <Stack.Screen name='DevolucionesRecibirCD' options={{ title: 'DevolucionesRecibirCD' }} component={DevolucionesRecibirCD} />
@@ -200,6 +209,7 @@ export const Navigation = () => {
             <Stack.Screen name='MenuPrincipalDevolucion' options={{ title: 'MenuPrincipalDevolucion' }} component={MenuPrincipalDevolucion} />
             <Stack.Screen name='DevolucionesPrimera' options={{ title: 'DevolucionesPrimera' }} component={DevolucionesPrimera} />
             <Stack.Screen name='DevolucionprimeraDetalle' options={{ title: 'DevolucionprimeraDetalle' }} component={DevolucionprimeraDetalle} />
+            <Stack.Screen name='ConsolidacionAuditoriaScreen' options={{ title: 'ConsolidacionAuditoriaScreen' }} component={ConsolidacionAuditoriaScreen} />
 
         </Stack.Navigator>
     )

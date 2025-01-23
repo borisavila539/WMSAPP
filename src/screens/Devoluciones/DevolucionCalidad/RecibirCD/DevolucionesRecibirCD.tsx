@@ -15,10 +15,10 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
     const [data, setData] = useState<EnviarDevolucionInterface[]>([])
     const [cargando, setCargando] = useState<boolean>(false)
     const [escanenado, setEscaneando] = useState<boolean>(false)
-    const { WMSState,changeDevolucion } = useContext(WMSContext)
+    const { WMSState, changeDevolucion } = useContext(WMSContext)
     const textInputRef = useRef<TextInput>(null);
     const [CajaS, setCajaS] = useState<string>('')
-    
+
 
     const getData = async () => {
         if (!cargando) {
@@ -36,7 +36,7 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
         }
     }
 
-    const onPress = (item: EnviarDevolucionInterface) =>{
+    const onPress = (item: EnviarDevolucionInterface) => {
         changeDevolucion(item)
         navigation.navigate('DevolucionRecibirCDDetalle')
     }
@@ -52,7 +52,7 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
         }
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>
-                <TouchableOpacity disabled={cantidad() !=item.cajas.length} onPress={()=>onPress(item)} style={{ width: '95%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
+                <TouchableOpacity disabled={cantidad() != item.cajas.length} onPress={() => onPress(item)} style={{ width: '95%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
                     <View style={{ width: '100%', justifyContent: 'space-between', flexDirection: 'row' }}>
                         <Text style={{ fontWeight: 'bold' }}>{item.numDevolucion}</Text>
                         <Text style={{ fontWeight: 'bold' }}>{cantidad()}/{item.cajas.length}</Text>
@@ -84,17 +84,31 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
         setEscaneando(true)
         try {
             let texto: string[] = CajaS.split(',');
-            await WmSApi.get<Caja>(`Devolucion/IngresoCajasRecibir/${texto[0]}/${WMSState.usuario}/${texto[1]}`)
-                .then(resp => {
-                    if (resp.data.packing) {
-                        PlaySound('success')
+            if (texto[0] == "CONSOLIDADO") {
+                await WmSApi.get<Caja[]>(`Devolucion/PackingRecibirCajaConsolidada/${texto[1]}/${WMSState.usuario}/Recibir`)
+                    .then(resp => {
+                        if (resp.data[0].packing) {
+                            PlaySound('success')
 
-                    } else {
-                        PlaySound('error')
+                        } else {
+                            PlaySound('error')
 
-                    }
-                    getData()
-                })
+                        }
+                        getData()
+                    })
+            } else {
+                await WmSApi.get<Caja>(`Devolucion/IngresoCajasRecibir/${texto[0]}/${WMSState.usuario}/${texto[1]}`)
+                    .then(resp => {
+                        if (resp.data.packing) {
+                            PlaySound('success')
+
+                        } else {
+                            PlaySound('error')
+
+                        }
+                        getData()
+                    })
+            }
 
 
         } catch (err) {
@@ -116,7 +130,7 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
         }
     }
 
-    
+
 
     useEffect(() => {
         textInputRef.current?.focus()
@@ -150,9 +164,9 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
                         <ActivityIndicator size={20} />
                     }
                 </View>
-                
+
             </View>
-            
+
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.numDevolucion}

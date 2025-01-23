@@ -48,7 +48,7 @@ export const AuditoriaDevolucionesScreen: FC<props> = ({ navigation }) => {
 
     const onPress =(item:DevolucionesInterface)=>{
         changeDevolucion(item)
-        navigation.navigate('AuditoriaDevolucionDetalle')
+        navigation.navigate('AuditoriaDevolucion_Detalle')
     }
 
     const renderItem = (item: DevolucionesInterface) => {

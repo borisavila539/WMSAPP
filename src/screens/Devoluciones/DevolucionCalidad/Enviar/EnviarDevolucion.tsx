@@ -88,9 +88,10 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
         setEscaneando(true)
         try {
             let texto: string[] = CajaS.split(',');
-            await WmSApi.get<Caja>(`Devolucion/IngresoCajasPacking/${texto[0]}/${WMSState.usuario}/${texto[1]}`)
+            if (texto[0] == "CONSOLIDADO") {
+                await WmSApi.get<Caja[]>(`Devolucion/PackingRecibirCajaConsolidada/${texto[1]}/${WMSState.usuario}/Packing`)
                 .then(resp => {
-                    if (resp.data.packing) {
+                    if (resp.data[0].packing) {
                         PlaySound('success')
 
                     } else {
@@ -99,6 +100,20 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                     }
                     getData()
                 })
+            } else {
+                await WmSApi.get<Caja>(`Devolucion/IngresoCajasPacking/${texto[0]}/${WMSState.usuario}/${texto[1]}`)
+                    .then(resp => {
+                        if (resp.data.packing) {
+                            PlaySound('success')
+
+                        } else {
+                            PlaySound('error')
+
+                        }
+                        getData()
+                    })
+            }
+
 
 
         } catch (err) {
