@@ -144,13 +144,20 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
 
 
 
+
                                         <View style={{ width: '85%', padding: 2, borderLeftWidth: 1 }}>
-                                            <Text>Area:{element.area}</Text>
-                                            <Text>Operacion:{element.operacion}</Text>
-                                            <Text>Defecto:{element.defecto}</Text>
-                                            <Text>Tipo:{element.tipo}</Text>
-                                            <Text>{element.reparacion ? 'Reparado' : 'No Reparado'}</Text>
+                                            {
+                                                element.tipo &&
+                                                <>
+                                                    <Text> Area:{element.area}</Text>
+                                                    <Text>Operacion:{element.operacion}</Text>
+                                                    <Text>Defecto:{element.defecto}</Text>
+                                                    <Text>Tipo:{element.tipo}</Text>
+                                                    <Text>{element.reparacion ? 'Reparado' : 'No Reparado'}</Text>
+                                                </>
+                                            }
                                         </View>
+
                                         <TouchableOpacity onPress={() => {
                                             changeRecId(element.id.toString());
                                             navigation.navigate('AuditoriaDevolucionDefecto');

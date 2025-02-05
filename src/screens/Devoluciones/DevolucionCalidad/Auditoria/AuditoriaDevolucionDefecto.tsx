@@ -77,7 +77,7 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                 let defetoID: number = tmp.defecto.find(x => x.key == defecto)?.id
                 console.log(defetoID)
                 try {
-                    WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/${defetoID?defetoID:0}/${tiposelected}/${reparacion}/${operacionid?operacionid:0}`)
+                    WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/${defetoID ? defetoID : 0}/${tiposelected}/${reparacion}/${operacionid ? operacionid : 0}`)
                         .then(resp => {
                             if (resp.data.id != 0) {
                                 navigation.goBack()
@@ -86,7 +86,7 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                 } catch (err) {
                     console.log(err)
                 }
-            }else{
+            } else {
                 try {
                     WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/0/${tiposelected}/${reparacion}/0`)
                         .then(resp => {
@@ -130,13 +130,10 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                 <SelectList
                     setSelected={(val: string) => {
                         settiposelected(val)
-                        if(val != 'Irregular')
-                        {
-                            setArea('')
-                            setOperacion('')
-                            setDefecto('')
-                            setReparacion(false)
-                        }
+                        setArea('')
+                        setOperacion('')
+                        setDefecto('')
+                        setReparacion(false)
                     }}
                     data={tipo}
                     save='key'
@@ -147,27 +144,23 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                     boxStyles={{ backgroundColor: grey, borderColor: tiposelected ? black : orange }}
                     dropdownStyles={{ backgroundColor: grey }}
                 />
-
             </View>
 
-            {
-                tiposelected == 'Irregular' &&
-                <View style={{ width: '80%', padding: 2 }}>
-                    <SelectList
-                        setSelected={(val: string) => {
-                            setArea(val)
-                        }}
-                        data={areas}
-                        save='key'
-                        placeholder='Seleccione Area'
-                        search={true}
-                        dropdownShown={false}
-                        boxStyles={{ backgroundColor: grey, borderColor: area ? black : orange }}
-                        dropdownStyles={{ backgroundColor: grey }}
-                    />
+            <View style={{ width: '80%', padding: 2 }}>
+                <SelectList
+                    setSelected={(val: string) => {
+                        setArea(val)
+                    }}
+                    data={areas}
+                    save='key'
+                    placeholder='Seleccione Area'
+                    search={true}
+                    dropdownShown={false}
+                    boxStyles={{ backgroundColor: grey, borderColor: area ? black : orange }}
+                    dropdownStyles={{ backgroundColor: grey }}
+                />
+            </View>
 
-                </View>
-            }
             {
                 operaciones.length > 0 &&
                 <View style={{ width: '80%', padding: 2 }}>
@@ -184,7 +177,6 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                         boxStyles={{ backgroundColor: grey, borderColor: operacion ? black : orange }}
                         dropdownStyles={{ backgroundColor: grey }}
                     />
-
                 </View>
             }
 
@@ -204,31 +196,25 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                         boxStyles={{ backgroundColor: grey, borderColor: defecto ? black : orange }}
                         dropdownStyles={{ backgroundColor: grey, }}
                     />
-
                 </View>
             }
 
+            <View style={{ width: '80%', flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity onPress={() => {
+                    setReparacion(!reparacion)
+                }} style={{ alignItems: 'center' }} >
+                    {
+                        reparacion ?
+                            <Icon name='check-square' size={30} color={black} />
+                            :
+                            <Icon name='square' size={30} color={black} />
+                    }
+                </TouchableOpacity>
+                <Text style={{ fontWeight: 'bold', color: black }}>Reparado</Text>
+            </View>
 
             {
-                tiposelected == 'Irregular' &&
-                <View style={{ width: '80%', flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => {
-                        setReparacion(!reparacion)
-                    }} style={{ alignItems: 'center' }} >
-                        {
-                            reparacion ?
-                                <Icon name='check-square' size={30} color={black} />
-                                :
-                                <Icon name='square' size={30} color={black} />
-                        }
-
-                    </TouchableOpacity>
-                    <Text style={{ fontWeight: 'bold', color: black }}>Reparado</Text>
-                </View>
-            }
-
-            {
-                ((area && operacion && defecto && tiposelected) || (tiposelected != 'Irregular' && tiposelected !='') ) &&
+                (area && operacion && defecto && tiposelected) &&
                 <View style={{ width: '100%', alignItems: 'center' }}>
                     <TouchableOpacity disabled={actualizando} onPress={() => actualizarDefecto()} style={{ backgroundColor: orange, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
                         <Text style={{ fontWeight: 'bold', color: grey }}>Guardar</Text>

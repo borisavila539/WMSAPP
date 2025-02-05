@@ -60,6 +60,7 @@ import { DevolucionprimeraDetalle } from '../screens/Devoluciones/DevolucionPrim
 import { ConsolidacionAuditoriaScreen } from '../screens/Devoluciones/DevolucionCalidad/ConsolidacionAuditoria/ConsolidacionAuditoriaScreen';
 import { AuditoriaDevolucion_Detalle } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucion_Detalle';
 import { AuditoriaDevolucionDefecto } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionDefecto';
+import { CAEXCrearGuiaScreen } from '../screens/CAEX/CAEXCrearGuiaScreen';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -121,7 +122,8 @@ export type RootStackParams = {
     DevolucionprimeraDetalle:undefined,
     ConsolidacionAuditoriaScreen:undefined,
     AuditoriaDevolucion_Detalle:undefined,
-    AuditoriaDevolucionDefecto:undefined
+    AuditoriaDevolucionDefecto:undefined,
+    CAEXCrearGuiaScreen:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -210,7 +212,9 @@ export const Navigation = () => {
             <Stack.Screen name='DevolucionesPrimera' options={{ title: 'DevolucionesPrimera' }} component={DevolucionesPrimera} />
             <Stack.Screen name='DevolucionprimeraDetalle' options={{ title: 'DevolucionprimeraDetalle' }} component={DevolucionprimeraDetalle} />
             <Stack.Screen name='ConsolidacionAuditoriaScreen' options={{ title: 'ConsolidacionAuditoriaScreen' }} component={ConsolidacionAuditoriaScreen} />
-
+            {/* Caex */}
+            <Stack.Screen name='CAEXCrearGuiaScreen' options={{ title: 'CAEXCrearGuiaScreen' }} component={CAEXCrearGuiaScreen} />
+            
         </Stack.Navigator>
     )
 }
