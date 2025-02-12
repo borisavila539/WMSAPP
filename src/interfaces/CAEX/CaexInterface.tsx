@@ -1,11 +1,15 @@
-export interface DetallePickingRouteID{
-    salesID: string;
-    pickingRouteID: string;
-    cuentaCliente: string;
-    cliente: string;
-    empacador: string;
-    cajas: number;
-    embarque: string;
+export interface DetallePickingRouteID {
+    salesID: string,
+    pickingRouteID: string,
+    cuentaCliente: string,
+    cliente: string,
+    telefono: string,
+    county: string,
+    codigo: string,
+    empacador: string,
+    cajas: number,
+    embarque: string,
+    address: string
 }
 
 export interface ResultadoOperacion {
@@ -33,3 +37,18 @@ export interface GenerarGuiaCaex {
     resultadoOperacionMultiple: ResultadoOperacion;
     listaRecolecciones: ListaRecolecciones;
 }
+
+export interface RequestGenerarGuia {
+    cliente: string,
+    cajas: number,
+    usuario: string,
+    listasEmpaque:DetallePickingRouteID[]
+}
+
+export interface ReimpresionCaex{
+    idCaex_Rutas: number,
+    numeroPieza: number,
+    numeroGuia: string,
+    urlConsulta: string,
+    rutas: string
+  }

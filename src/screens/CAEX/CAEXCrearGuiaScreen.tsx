@@ -3,9 +3,9 @@ import { RootStackParams } from '../../navigation/navigation'
 import { StackScreenProps } from '@react-navigation/stack'
 import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Header from '../../components/Header'
-import { DetallePickingRouteID, GenerarGuiaCaex } from '../../interfaces/CAEX/CaexInterface'
+import { DetallePickingRouteID, GenerarGuiaCaex, RequestGenerarGuia } from '../../interfaces/CAEX/CaexInterface'
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { black, green, grey, orange } from '../../constants/Colors'
+import { black, green, grey, navy, orange } from '../../constants/Colors'
 import { WmSApiCaex } from '../../api/WmsApiCaex'
 import { WMSContext } from '../../context/WMSContext'
 import SoundPlayer from 'react-native-sound-player'
@@ -21,6 +21,8 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
     const [cargando, setCargando] = useState<boolean>(false)
     const [manual, setManual] = useState<boolean>(false)
     const [cliente, setCliente] = useState<string>('')
+    const [Poblado, setPoblado] = useState<string>('')
+
     const { WMSState } = useContext(WMSContext);
     const [cajas, setCajas] = useState<string>('')
     const [reducir, setReducir] = useState<string>('')
@@ -31,7 +33,7 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
         try {
             await WmSApiCaex.get<DetallePickingRouteID>(`ListaEmpaque/${BoxCode}`).then(resp => {
                 if (cliente.length > 0) {
-                    if (resp.data.cuentaCliente == cliente && !Empaques.find(x => x.pickingRouteID == resp.data.pickingRouteID)) {
+                    if (resp.data.cuentaCliente == cliente && resp.data.codigo == Poblado && !Empaques.find(x => x.pickingRouteID == resp.data.pickingRouteID)) {
                         setEmpaques(Empaques.concat(resp.data))
                         let cantidad: number = parseInt(cajas) + resp.data.cajas
                         setCajas(cantidad + '')
@@ -40,10 +42,15 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
                         PlaySound('error')
                     }
                 } else {
-                    setEmpaques(Empaques.concat(resp.data))
-                    setCliente(resp.data.cuentaCliente)
-                    setCajas(resp.data.cajas + '')
-                    PlaySound('success')
+                    if (resp.data.pickingRouteID != '' && resp.data.pickingRouteID != null) {
+                        setEmpaques(Empaques.concat(resp.data))
+                        setCliente(resp.data.cuentaCliente)
+                        setCajas(resp.data.cajas + '')
+                        setPoblado(resp.data.codigo)
+                        PlaySound('success')
+                    } else {
+                        PlaySound('error')
+                    }
                 }
                 setBoxCode('')
             })
@@ -58,13 +65,39 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
         return (
             <View style={style.containerCard} >
                 <View style={style.card} >
-                    <Text style={style.textCardBold}>Pedido: <Text style={style.textCard}>{item.salesID}</Text></Text>
-                    <Text style={style.textCardBold}>Empaque: <Text style={style.textCard}>{item.pickingRouteID}</Text></Text>
+                    <View style={{ width: '100%', flexDirection: 'row' }}>
+                        <View style={{ width: '90%' }}>
+                            <Text style={style.textCardBold}>Pedido: <Text style={style.textCard}>{item.salesID}</Text></Text>
+                            <Text style={style.textCardBold}>Empaque: <Text style={style.textCard}>{item.pickingRouteID}</Text></Text>
+                        </View>
+                        <View style={{ width: '9%', alignItems: 'center', justifyContent: 'center' }}>
+                            <TouchableOpacity onPress={() => {
+                                let listas = Empaques.filter(x => x.pickingRouteID != item.pickingRouteID)
+                                setEmpaques(listas)
+                                let suma: number = 0
+                                if (listas.length > 0) {
+                                    listas.forEach(e => {
+                                        suma += e.cajas
+                                    })
+                                    setCajas(suma + '')
+                                } else {
+                                    setCajas('')
+                                }
+
+                            }} >
+                                <Icon name={'trash-alt'} size={20} color={black} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                     <Text style={style.textCardBold}>Cajas: <Text style={style.textCard}>{item.cajas}</Text></Text>
                     <Text style={style.textCardBold}>Cliente: </Text>
                     <Text style={style.textCard}>{item.cuentaCliente} {item.cliente}</Text>
+                    <Text style={style.textCardBold}>Direccion: </Text>
+                    <Text style={style.textCard}>{item.address}</Text>
                     <Text style={style.textCardBold}>Empacador<Text style={style.textCard}>{item.empacador}</Text></Text>
                     <Text style={style.textCardBold}>Embarque:<Text style={style.textCard}>{item.embarque}</Text></Text>
+
+
                 </View>
             </View>
 
@@ -74,20 +107,16 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
     const generarGuia = async () => {
         if (!enviando) {
             setEnviando(true)
-            let listas: string = ''
-            let cont: number = 0
-            let fin: number = Empaques.length
-            Empaques.forEach(element => {
-                listas = listas + element.pickingRouteID
-                cont++
-                if (cont != fin) {
-                    listas = listas + ','
-                }
 
-            })
-            console.log(`GenerarGuia/${cliente}/${listas}/${cajas}/${WMSState.usuario}`)
+            let data: RequestGenerarGuia = {
+                cliente,
+                cajas: parseInt(cajas),
+                usuario: WMSState.usuario,
+                listasEmpaque: Empaques
+
+            }
             try {
-                await WmSApiCaex.get<GenerarGuiaCaex>(`GenerarGuia/${cliente}/${listas}/${cajas}/${WMSState.usuario}`)
+                await WmSApiCaex.post<GenerarGuiaCaex>(`GenerarGuia`, data)
                     .then(resp => {
                         if (resp.data.resultadoOperacionMultiple.resultadoExitoso) {
                             PlaySound('success')
@@ -124,38 +153,50 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1='CAEX' texto2='' texto3='' />
-            <View style={[style.textInput, { borderColor: !manual ? '#77D970' : '#CD4439' }]}>
-
-                <Switch value={manual} onValueChange={() => setManual(!manual)}
-                    trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
-                    thumbColor={!manual ? '#77D970' : '#CD4439'} />
-
-                <TextInput
-                    ref={textInputRef}
-                    onChangeText={(value) => { setBoxCode(value) }}
-                    value={BoxCode}
-                    style={style.input}
-                    //onSubmitEditing={handleEnterPress}
-                    placeholder={!manual ? 'Escanear Ingreso...' : 'Ingreso Manual...'}
-                    autoFocus
-                    onBlur={() => textInputRef2.current?.isFocused() ? null : textInputRef.current?.focus()}
-                />
-                {!cargando ?
+            <View style={{ width: '100%', borderWidth: 1, flexDirection: 'row' }}>
+                <View style={{width:'19%',padding:5}}>
                     <TouchableOpacity onPress={() => {
-                        if (manual) {
-                            if (BoxCode.length > 0)
-                                onScan()
-                        } else {
-                            setBoxCode('')
-                        }
-                    }}>
-                        <Icon name={manual ? 'search' : 'times'} size={15} color={black} />
+                       navigation.navigate('ReimpresionEtiquetasCaex')
+                    }} style={{backgroundColor:navy,flex:1, borderRadius:10,alignItems:'center',justifyContent:'center'}}>
+                        <Icon name={'print'} size={25} color={grey} />
                     </TouchableOpacity>
-                    :
-                    <ActivityIndicator size={20} />
-                }
+                </View>
+                <View style={[style.textInput, { borderColor: !manual ? '#77D970' : '#CD4439' }]}>
 
+                    {
+                        /*<Switch value={manual} onValueChange={() => setManual(!manual)}
+                        trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
+                        thumbColor={!manual ? '#77D970' : '#CD4439'} />*/
+                    }
+
+                    <TextInput
+                        ref={textInputRef}
+                        onChangeText={(value) => { setBoxCode(value) }}
+                        value={BoxCode}
+                        style={style.input}
+                        //onSubmitEditing={handleEnterPress}
+                        placeholder={!manual ? 'Escanear Ingreso...' : 'Ingreso Manual...'}
+                        autoFocus
+                        onBlur={() => textInputRef2.current?.isFocused() ? null : textInputRef.current?.focus()}
+                    />
+                    {!cargando ?
+                        <TouchableOpacity onPress={() => {
+                            if (manual) {
+                                if (BoxCode.length > 0)
+                                    onScan()
+                            } else {
+                                setBoxCode('')
+                            }
+                        }}>
+                            <Icon name={manual ? 'search' : 'times'} size={15} color={black} />
+                        </TouchableOpacity>
+                        :
+                        <ActivityIndicator size={20} />
+                    }
+
+                </View>
             </View>
+
             {
                 Empaques.length > 1 &&
                 <View style={{ flexDirection: 'row', width: '85%', marginBottom: 5 }}>
@@ -219,7 +260,7 @@ export const CAEXCrearGuiaScreen: FC<props> = ({ navigation }) => {
 const style = StyleSheet.create({
     textInput: {
         maxWidth: 450,
-        width: '87%',
+        width: '80%',
         backgroundColor: grey,
         borderRadius: 10,
         flexDirection: 'row',
@@ -229,7 +270,7 @@ const style = StyleSheet.create({
         borderWidth: 2
     },
     input: {
-        width: '75%',
+        width: '85%',
         textAlign: 'center'
     },
     containerCard: {

@@ -61,6 +61,7 @@ import { ConsolidacionAuditoriaScreen } from '../screens/Devoluciones/Devolucion
 import { AuditoriaDevolucion_Detalle } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucion_Detalle';
 import { AuditoriaDevolucionDefecto } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionDefecto';
 import { CAEXCrearGuiaScreen } from '../screens/CAEX/CAEXCrearGuiaScreen';
+import { ReimpresionEtiquetasCaex } from '../screens/CAEX/ReimpresionEtiquetasCaex';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -123,7 +124,8 @@ export type RootStackParams = {
     ConsolidacionAuditoriaScreen:undefined,
     AuditoriaDevolucion_Detalle:undefined,
     AuditoriaDevolucionDefecto:undefined,
-    CAEXCrearGuiaScreen:undefined
+    CAEXCrearGuiaScreen:undefined,
+    ReimpresionEtiquetasCaex:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -214,6 +216,7 @@ export const Navigation = () => {
             <Stack.Screen name='ConsolidacionAuditoriaScreen' options={{ title: 'ConsolidacionAuditoriaScreen' }} component={ConsolidacionAuditoriaScreen} />
             {/* Caex */}
             <Stack.Screen name='CAEXCrearGuiaScreen' options={{ title: 'CAEXCrearGuiaScreen' }} component={CAEXCrearGuiaScreen} />
+            <Stack.Screen name='ReimpresionEtiquetasCaex' options={{ title: 'ReimpresionEtiquetasCaex' }} component={ReimpresionEtiquetasCaex} />
             
         </Stack.Navigator>
     )
