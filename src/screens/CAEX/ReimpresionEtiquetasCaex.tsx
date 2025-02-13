@@ -1,15 +1,14 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useEffect, useRef, useState } from 'react'
 import { RootStackParams } from '../../navigation/navigation'
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TextInput, TouchableOpacity, View, Text } from 'react-native'
 import Header from '../../components/Header'
 import { black, grey, navy } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { ReimpresionCaex } from '../../interfaces/CAEX/CaexInterface'
 import SoundPlayer from 'react-native-sound-player'
-import { Text } from 'react-native-elements'
+
 import { WmSApiCaex } from '../../api/WmsApiCaex'
-import { Caja } from '../../interfaces/Devoluciones/Devoluciones';
 
 type props = StackScreenProps<RootStackParams, "ReimpresionEtiquetasCaex">
 
@@ -28,10 +27,15 @@ export const ReimpresionEtiquetasCaex: FC<props> = ({ navigation }) => {
 
             try {
                 await WmSApiCaex.get<ReimpresionCaex[]>(`ObtenerimpresionEtiquetas/${BoxCode}`).then(resp => {
-                    setData(resp.data)
+                    if(resp.data.length>0){
+                       setData(resp.data)
                     PlaySound('success')
                     setInicio(Math.min(...resp.data.map(obj => obj.numeroPieza)) + '')
-                    setFinal(Math.max(...resp.data.map(obj => obj.numeroPieza)) + '')
+                    setFinal(Math.max(...resp.data.map(obj => obj.numeroPieza)) + '') 
+                    }else{
+                        PlaySound('error')
+                    }
+                    
                 })
             } catch (err) {
                 PlaySound('error')
@@ -74,16 +78,14 @@ export const ReimpresionEtiquetasCaex: FC<props> = ({ navigation }) => {
                 await WmSApiCaex.post<string>('ImprimirEtiquetas', data.filter(x => x.numeroPieza >= parseInt(inicio) && x.numeroPieza <= parseInt(final))).then(resp => {
                     if (resp.data == 'OK') {
                         PlaySound('success')
+                        setData([])
                     } else {
                         PlaySound('error')
                     }
                 })
             } catch (err) {
-
+                PlaySound('error')
             }
-
-
-
             setImprimiendo(false)
         }
     }
@@ -104,9 +106,9 @@ export const ReimpresionEtiquetasCaex: FC<props> = ({ navigation }) => {
                     onChangeText={(value) => { setBoxCode(value) }}
                     value={BoxCode}
                     style={style.input}
-                    //onSubmitEditing={handleEnterPress}
                     placeholder={'Escanear Caja...'}
                     autoFocus
+                    onBlur={() => data.length == 0 ? textInputRef.current?.focus() : null}
                 />
                 {!cargando ?
                     <TouchableOpacity onPress={() => {
@@ -146,10 +148,20 @@ export const ReimpresionEtiquetasCaex: FC<props> = ({ navigation }) => {
                             <Text style={[style.textCardBold, { textAlign: 'center' }]}>Hasta</Text>
                         </View>
                         <View style={{ flex: 1 }}>
-                            <TouchableOpacity onPress={() => {
-                                imprimirEtiquetas()
-                            }} style={{ marginHorizontal: 10, backgroundColor: navy, flex: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon name={'print'} size={25} color={grey} />
+                            <TouchableOpacity
+                                onPress={() => {
+                                    imprimirEtiquetas()
+                                }}
+                                disabled={imprimiendo}
+                                style={{ marginHorizontal: 10, backgroundColor: navy, flex: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}
+
+                            >
+                                {
+                                    imprimiendo ?
+                                        <ActivityIndicator size={25} color={grey} />
+                                        :
+                                        <Icon name={'print'} size={25} color={grey} />
+                                }
                             </TouchableOpacity>
                         </View>
                     </View>
