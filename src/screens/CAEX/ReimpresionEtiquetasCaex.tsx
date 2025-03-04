@@ -27,15 +27,15 @@ export const ReimpresionEtiquetasCaex: FC<props> = ({ navigation }) => {
 
             try {
                 await WmSApiCaex.get<ReimpresionCaex[]>(`ObtenerimpresionEtiquetas/${BoxCode}`).then(resp => {
-                    if(resp.data.length>0){
-                       setData(resp.data)
-                    PlaySound('success')
-                    setInicio(Math.min(...resp.data.map(obj => obj.numeroPieza)) + '')
-                    setFinal(Math.max(...resp.data.map(obj => obj.numeroPieza)) + '') 
-                    }else{
+                    if (resp.data.length > 0) {
+                        setData(resp.data)
+                        PlaySound('success')
+                        setInicio(Math.min(...resp.data.map(obj => obj.numeroPieza)) + '')
+                        setFinal(Math.max(...resp.data.map(obj => obj.numeroPieza)) + '')
+                    } else {
                         PlaySound('error')
                     }
-                    
+
                 })
             } catch (err) {
                 PlaySound('error')
@@ -61,7 +61,6 @@ export const ReimpresionEtiquetasCaex: FC<props> = ({ navigation }) => {
                     <View style={{ width: '100%', flexDirection: 'row' }}>
                         <Text style={style.textCardBold}>Caja: <Text style={style.textCard}>{item.numeroPieza}</Text></Text>
                         <Text style={style.textCardBold}> Guia: <Text style={style.textCard}>{item.numeroGuia}</Text></Text>
-
                     </View>
                 </View>
 

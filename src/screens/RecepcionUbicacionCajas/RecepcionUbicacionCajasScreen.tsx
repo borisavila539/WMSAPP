@@ -9,6 +9,7 @@ import SoundPlayer from 'react-native-sound-player'
 import { RecepcioUbicacionCajasInterface, UbicacionesInterface } from '../../interfaces/RecepcionUbicacionCajas/RecepcionUbicacionCajasInterface';
 import { WMSContext, WMSState } from '../../context/WMSContext';
 import Icon from 'react-native-vector-icons/FontAwesome5'
+import { SelectList } from 'react-native-dropdown-select-list'
 
 
 
@@ -26,7 +27,16 @@ export const RecepcionUbicacionCajasScreen: FC<props> = ({ navigation }) => {
     const { WMSState, changeUbicaciones } = useContext(WMSContext)
     const [enviar, setEnviar] = useState<boolean>(false)
     const [validarcamion, setValidarCamion] = useState(true)
-    const [tipo, setTipo] = useState<boolean>(true);
+    //const [tipo, setTipo] = useState<boolean>(true);
+    const [tipo, setTipo] = useState<{ key: string, value: string }[]>(
+        [
+            { key: 'DENIM', value: 'DENIM' },
+            { key: 'TP', value: 'TP' },
+            { key: 'MB', value: 'MB' }
+        ]
+    )
+    const [tiposelected, settiposelected] = useState<string>('DENIM')
+
 
     const PlaySound = (estado: string) => {
         try {
@@ -39,7 +49,7 @@ export const RecepcionUbicacionCajasScreen: FC<props> = ({ navigation }) => {
     const agregarCaja = async () => {
         setCargando(true)
         try {
-            await WmSApi.get<RecepcioUbicacionCajasInterface>(`RecepcionUbicacionCajas/${opBoxNum}/${ubicacion}/${tipo ? "DENIM" : "TP"}`).then(resp => {
+            await WmSApi.get<RecepcioUbicacionCajasInterface>(`RecepcionUbicacionCajas/${opBoxNum}/${ubicacion}/${tiposelected}`).then(resp => {
                 console.log(resp.data)
                 if (resp.data.ok == 'OK') {
                     PlaySound('success')
@@ -127,23 +137,42 @@ export const RecepcionUbicacionCajasScreen: FC<props> = ({ navigation }) => {
     }, [opBoxNum])
 
     useEffect(() => {
-        if (!tipo) {
+        if (tiposelected=='TP') {
             setValidarCamion(false)
         } else {
             setValidarCamion(true)
         }
-    }, [tipo])
+    }, [tiposelected])
 
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
             <Header texto1='Recepcion ubicacion Cajas' texto2='' texto3='' />
             <View style={[styles.input, { flexDirection: 'row', borderWidth: 0, justifyContent: 'center' }]}>
-                <Text style={{ fontWeight: 'bold', fontSize: 20 }}>{tipo ? "DENIM" : "TP"}</Text>
-                <Switch
-                    value={tipo}
-                    onValueChange={() => setTipo(!tipo)}
-                    trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
-                    thumbColor={tipo ? '#77D970' : '#CD4439'} />
+
+                {
+                    /*<Text style={{ fontWeight: 'bold', fontSize: 20 }}>{tipo ? "DENIM" : "TP"}</Text>
+                    <Switch
+                        value={tipo}
+                        onValueChange={() => setTipo(!tipo)}
+                        trackColor={{ false: '#C7C8CC', true: '#C7C8CC' }}
+                        thumbColor={tipo ? '#77D970' : '#CD4439'} />
+                    */
+                }
+                <View style={{ width: '80%', padding: 2 }}>
+                    <SelectList
+                        setSelected={(val: string) => {
+                            settiposelected(val)
+                        }}
+                        data={tipo}
+                        save='key'
+                        placeholder='Seleccione Tipo'
+                        search={false}
+                        dropdownShown={false}
+                        defaultOption={{ key: tiposelected, value: tiposelected }}
+                        boxStyles={{ backgroundColor: grey, borderColor: tiposelected ? black : orange }}
+                        dropdownStyles={{ backgroundColor: grey }}
+                    />
+                </View>
             </View>
 
             <TextInput
@@ -165,7 +194,7 @@ export const RecepcionUbicacionCajasScreen: FC<props> = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
             {
-                tipo &&
+                tiposelected != 'TP' &&
                 <View style={[styles.input, { borderColor: camion != '' ? black : orange, borderWidth: 2, flexDirection: 'row' }]}>
                     <TextInput
                         ref={textInputRef3}
@@ -183,7 +212,7 @@ export const RecepcionUbicacionCajasScreen: FC<props> = ({ navigation }) => {
 
 
             {
-                WMSState.ubicaciones.length > 0 && tipo &&
+                WMSState.ubicaciones.length > 0 && tiposelected != 'TP' &&
                 <TouchableOpacity onPress={enviarCorreo} style={{ backgroundColor: green, width: '90%', padding: 6, alignItems: 'center', borderRadius: 10, marginTop: 5 }}>
                     {
                         enviar ?
