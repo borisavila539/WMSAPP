@@ -1,4 +1,5 @@
 import { DevolucionesInterface } from "../interfaces/Devoluciones/Devoluciones"
+import { RecepcionMBInterface } from "../interfaces/RecepcionMB/RecepcionMB"
 import { UbicacionesInterface } from "../interfaces/RecepcionUbicacionCajas/RecepcionUbicacionCajasInterface"
 import { WMSState } from "./WMSContext"
 
@@ -18,6 +19,7 @@ type WMSAction =
     | { type: 'changeProdID', payload: string }
     | { type: 'changeUbicaciones', payload: UbicacionesInterface[] }
     | { type: 'changeDevolucion', payload: DevolucionesInterface }
+    | { type: 'changeRecepcionMB', payload: RecepcionMBInterface[] }
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -96,6 +98,11 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
             return {
                 ...state,
                 devolucion: action.payload
+            }
+        case "changeRecepcionMB":
+            return {
+                ...state,
+                RecepcionMB: action.payload
             }
 
         default:

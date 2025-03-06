@@ -2,6 +2,7 @@ import { createContext, useReducer } from "react";
 import { WMSReducer } from "./WMSReducer";
 import { UbicacionesInterface } from '../interfaces/RecepcionUbicacionCajas/RecepcionUbicacionCajasInterface';
 import { DevolucionesInterface } from "../interfaces/Devoluciones/Devoluciones";
+import { RecepcionMBInterface } from "../interfaces/RecepcionMB/RecepcionMB";
 
 //Definir la informacion a grabar
 export interface WMSState {
@@ -19,7 +20,8 @@ export interface WMSState {
     ProdID: string,
     Box: number,
     ubicaciones: UbicacionesInterface[],
-    devolucion: DevolucionesInterface
+    devolucion: DevolucionesInterface,
+    RecepcionMB: RecepcionMBInterface[]
 }
 
 //Estado inicial
@@ -45,8 +47,11 @@ export const WMSInitialState: WMSState = {
         numeroRMA: '',
         fechaCreacionAX: new Date,
         asesor: '',
-        descricpcion: ''
-    }
+        descricpcion: '',
+        camion: '',
+        totalUnidades: 0
+    },
+    RecepcionMB: []
 }
 
 export interface WMSContextProps {
@@ -66,6 +71,7 @@ export interface WMSContextProps {
     changeBox: (Box: number) => void
     changeUbicaciones: (ubicaciones: UbicacionesInterface[]) => void
     changeDevolucion: (devolucion: DevolucionesInterface) => void
+    changeRecepcionMB: (RecepcionMB: RecepcionMBInterface[]) => void
 }
 
 //crear el contexto
@@ -121,6 +127,9 @@ export const WMSProvider = ({ children }: any) => {
     const changeDevolucion = (devolucion: DevolucionesInterface) => {
         dispatch({ type: 'changeDevolucion', payload: devolucion })
     }
+    const changeRecepcionMB = (RecepcionMB: RecepcionMBInterface[]) => {
+        dispatch({ type: 'changeRecepcionMB', payload: RecepcionMB })
+    }
 
     return (
         <WMSContext.Provider
@@ -140,7 +149,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeBox,
                 changeProdID,
                 changeUbicaciones,
-                changeDevolucion
+                changeDevolucion,
+                changeRecepcionMB
             }}
         >
             {children}
