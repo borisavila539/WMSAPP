@@ -28,6 +28,7 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
             { Name: 'Devoluciones', Screen: 'MenuPrincipalDevolucion', image: require('../assets/Devolucion.png') },            
             { Name: 'CAEX', Screen: 'CAEXCrearGuiaScreen', image: require('../assets/caex.png') },            
             { Name: 'Recepcion MB', Screen: 'RecepcionMBScreen', image: require('../assets/DiarioEntrada.png') },         
+            { Name: 'Recepcion de tela', Screen: 'ReceptionTelaScreen', image: require('../assets/PickingTela.png') },         
         ]
         setData(tmp)
     }

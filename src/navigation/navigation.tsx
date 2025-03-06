@@ -63,6 +63,7 @@ import { AuditoriaDevolucionDefecto } from '../screens/Devoluciones/DevolucionCa
 import { CAEXCrearGuiaScreen } from '../screens/CAEX/CAEXCrearGuiaScreen';
 import { ReimpresionEtiquetasCaex } from '../screens/CAEX/ReimpresionEtiquetasCaex';
 import { RecepcionMBScreen } from '../screens/RecepcionMB/RecepcionMBScreen';
+import { ReceptionTelaScreen } from '../screens/ReceptionTela';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -127,7 +128,8 @@ export type RootStackParams = {
     AuditoriaDevolucionDefecto:undefined,
     CAEXCrearGuiaScreen:undefined,
     ReimpresionEtiquetasCaex:undefined,
-    RecepcionMBScreen:undefined
+    RecepcionMBScreen:undefined,
+    ReceptionTelaScreen: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -221,6 +223,9 @@ export const Navigation = () => {
             <Stack.Screen name='ReimpresionEtiquetasCaex' options={{ title: 'ReimpresionEtiquetasCaex' }} component={ReimpresionEtiquetasCaex} />
             {/* Recepcion MB */}
             <Stack.Screen name='RecepcionMBScreen' options={{ title: 'RecepcionMBScreen' }} component={RecepcionMBScreen} />
+            {/* Recepcion Tela */}
+            
+            <Stack.Screen name='ReceptionTelaScreen' options={{ title: 'ReceptionTelaScreen' }} component={ReceptionTelaScreen} />
 
         </Stack.Navigator>
     )
