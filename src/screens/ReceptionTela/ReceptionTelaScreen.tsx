@@ -1,5 +1,5 @@
 import { StackScreenProps } from '@react-navigation/stack'
-import React, { FC, useEffect, useRef, useState } from 'react'
+import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { RootStackParams } from '../../navigation/navigation'
 import { View, Text, FlatList, RefreshControl, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
 import Header from '../../components/Header'
@@ -8,12 +8,15 @@ import { ListTelas } from './ReceptionTela.types'
 import { ReceptionTelaStyle } from './ReceptionTela.style'
 import { black, orange } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
+import { WMSContext } from '../../context/WMSContext'
 
 type props = StackScreenProps<RootStackParams, "ReceptionTelaScreen">
 
-export const ReceptionTelaScreen: FC<props> = () => {
+export const ReceptionTelaScreen: FC<props> = ({ navigation }) => {
 
   const receptionTelaService = new ReceptionTelaService();
+
+  const { changeTelaJournalId } = useContext(WMSContext);
 
   const [dataListTelas, setDataListTelas] = useState<ListTelas[]>([]);
   const [journalId, setJournalId] = useState<string>('');
@@ -50,15 +53,25 @@ export const ReceptionTelaScreen: FC<props> = () => {
     return (
 
       <View style={{ width: '100%', alignItems: 'center', marginBottom: 12 }}>
-        <View style={{ width: '90%', borderWidth: 1, borderRadius: 10, padding: 5, marginBottom: 2 }} >
-          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <Text style={{ color: '#000', fontWeight: '500' }} > {item.journalId} </Text>
-            <Text style={{ color: '#000' }} > {item.numOfLinesComplete + '/' + item.numOfLines} </Text>
+        
+        <TouchableOpacity 
+        style={{width: '100%', alignItems: 'center'}}
+        onPress={() => {
+          changeTelaJournalId(item.journalId)
+          navigation.navigate('ReceptionTelaDetalle')
+        }}
+        >
+          <View style={{ width: '90%', borderWidth: 1, borderRadius: 10, padding: 5, marginBottom: 2 }} >
+            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <Text style={{ color: '#000', fontWeight: '500' }} > {item.journalId} </Text>
+              <Text style={{ color: '#000' }} > {item.numOfLinesComplete + '/' + item.numOfLines} </Text>
+            </View>
+
+            <Text style={{ color: '#000' }} > {item.description}</Text>
+
           </View>
 
-          <Text style={{ color: '#000' }} > {item.description}</Text>
-
-        </View>
+        </TouchableOpacity>
       </View>
     )
   }

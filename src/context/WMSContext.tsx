@@ -19,7 +19,8 @@ export interface WMSState {
     ProdID: string,
     Box: number,
     ubicaciones: UbicacionesInterface[],
-    devolucion: DevolucionesInterface
+    devolucion: DevolucionesInterface,
+    telaJournalId: string
 }
 
 //Estado inicial
@@ -66,6 +67,7 @@ export interface WMSContextProps {
     changeBox: (Box: number) => void
     changeUbicaciones: (ubicaciones: UbicacionesInterface[]) => void
     changeDevolucion: (devolucion: DevolucionesInterface) => void
+    changeTelaJournalId: (telaJournal: string) => void
 }
 
 //crear el contexto
@@ -115,6 +117,11 @@ export const WMSProvider = ({ children }: any) => {
     const changeBox = (Box: number) => {
         dispatch({ type: 'changeBox', payload: Box })
     }
+
+    const changeTelaJournalId = (telaJournal: string) => {
+        dispatch({ type: 'changeTelaJournalId', payload:  telaJournal})
+    }
+
     const changeUbicaciones = (ubicaciones: UbicacionesInterface[]) => {
         dispatch({ type: 'changeUbicaciones', payload: ubicaciones })
     }
@@ -140,7 +147,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeBox,
                 changeProdID,
                 changeUbicaciones,
-                changeDevolucion
+                changeDevolucion,
+                changeTelaJournalId
             }}
         >
             {children}
