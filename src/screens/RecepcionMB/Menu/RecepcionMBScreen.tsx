@@ -1,14 +1,14 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, RefreshControl, SectionList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { RootStackParams } from '../../navigation/navigation'
-import Header from '../../components/Header'
-import { RecepcionMBInterface } from '../../interfaces/RecepcionMB/RecepcionMB'
-import { WMSApiMB } from '../../api/WMSApiMB'
-import { black, green, grey, orange } from '../../constants/Colors'
+import { RootStackParams } from '../../../navigation/navigation'
+import Header from '../../../components/Header'
+import { RecepcionMBInterface } from '../../../interfaces/RecepcionMB/RecepcionMB'
+import { WMSApiMB } from '../../../api/WMSApiMB'
+import { black, green, grey, orange } from '../../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import SoundPlayer from 'react-native-sound-player'
-import { WMSContext } from '../../context/WMSContext';
+import { WMSContext } from '../../../context/WMSContext';
 
 type props = StackScreenProps<RootStackParams, "RecepcionMBScreen">
 
@@ -46,7 +46,7 @@ export const RecepcionMBScreen: FC<props> = ({ navigation }) => {
         }
     }
 
-    const Giones = (cant: number): string => {
+    const Giones = (cant: number): string => {        
         let texto: string = ''
         while (cant > 0) {
             texto += '_'
