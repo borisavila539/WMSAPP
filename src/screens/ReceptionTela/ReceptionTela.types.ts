@@ -21,6 +21,8 @@ export interface TelaPickingMerge {
     update_date:            Date;
     inventserialid_picking: string;
     vendroll_picking:       string;
+    reference:              string | null;
+    nameColor:              string | null;
 }
 
 export interface TelaPickingIsScanning {

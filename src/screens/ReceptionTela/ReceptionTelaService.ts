@@ -25,9 +25,9 @@ export class ReceptionTelaService {
         }
     }
 
-    async putTelaPickingIsScanning(telaPickingIsScanning:TelaPickingIsScanning) {
+    async putTelaPickingIsScanning(telaPickingIsScanning:TelaPickingIsScanning[]) {
         try {
-            const response = await ApiAxios.put<TelaPickingUpdate>(`MWMS_RecTela/UpdateTelaPickingIsScanning`, {...telaPickingIsScanning});
+            const response = await ApiAxios.post<TelaPickingUpdate>(`MWMS_RecTela/UpdateTelaPickingIsScanning`, telaPickingIsScanning);
 
             
             return response.data;
