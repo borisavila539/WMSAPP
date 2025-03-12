@@ -20,7 +20,7 @@ export interface DespachoMBInterface {
     enviado: Boolean
 }
 
-export interface DespachoPicking{
+export interface DespachoPicking {
     id: number,
     lote: string,
     orden: string,
@@ -33,4 +33,19 @@ export interface DespachoPicking{
     ubicacionRecepcion: string,
     idConsolidado: number,
     picking: boolean
-  }
+}
+
+export interface DespachoPacking {
+    id: number,
+    lote: string,
+    orden: string,
+    articulo: string,
+    numeroCaja: number,
+    talla: string,
+    cantidad: number,
+    color: string,
+    nombreColor: string,
+    idConsolidado: number,
+    packing: boolean,
+    pallet: string
+}

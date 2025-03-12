@@ -59,6 +59,7 @@ export const PickingMB: FC<props> = ({ navigation }) => {
       if (item != undefined) {
         if (item.picking == true) {
           PlaySound('repeat')
+          setBOXNUM('')
         } else {
           await WMSApiMB.get<DespachoPicking>(`DespachoUpdatePicking/${item.idConsolidado != 0 ? item.idConsolidado : item.id}/${WMSState.usuario}`)
             .then(resp => {
