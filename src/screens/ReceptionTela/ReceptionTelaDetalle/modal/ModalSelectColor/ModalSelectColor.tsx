@@ -57,9 +57,13 @@ export const ModalSelectColor: FC<ModalSelectColorProps> = ({ isOpenModal, onClo
                   <Text style={{ color: grey }} >PR: {item.item.vendRoll}</Text>
                   <Text style={{ color: grey }} >Color: {`${item.item.nameColor} (${item.item.inventColorId})`}</Text>
                   <Text style={{ color: grey }} >Qty: {item.item.qty.toFixed(2)}</Text>
-                  {item.item.itemId.startsWith('40') && <Text style={{ color: grey }} >RF: {item.item.reference}</Text>}
+                  <Text style={{ color: grey }} >Ubicación: {item.item.location}</Text>
+
+                  {item.item.itemId.startsWith('40') || item.item.itemId.startsWith('45') && <Text style={{ color: grey }} >Tela: {item.item.reference}</Text>}
                   <Text style={{ color: grey }} >{item.item.itemId}</Text>
                   <Text style={{ color: grey }} >{item.item.inventBatchId}</Text>
+                  {item.item.descriptionDefecto && <Text style={{ color: grey, borderTopWidth:1, borderColor: '#fff', marginTop: 8 }} >Observación : {item.item.descriptionDefecto}</Text>}
+
 
                 </View>
               </TouchableHighlight>

@@ -5,12 +5,12 @@ import { RootStackParams } from "../../../navigation/navigation"
 import { WMSContext } from "../../../context/WMSContext"
 import Header from "../../../components/Header"
 import { ReceptionTelaService } from "../ReceptionTelaService"
-import { TelaPickingIsScanning, TelaPickingMerge } from "../ReceptionTela.types"
+import { TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge } from "../ReceptionTela.types"
 import { black, blue, grey, navy, orange } from "../../../constants/Colors"
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { ReceptionTelaDetalleStyle } from "./ReceptionTelaDetalle.style"
 import SoundPlayer from 'react-native-sound-player'
-import { ModalSelectColor } from "./modal"
+import { ModalSelectColor, ModalSelectDefecto } from "./modal"
 
 type props = StackScreenProps<RootStackParams, "ReceptionTelaDetalle">
 
@@ -23,16 +23,26 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [telaPendiente, setTelaPendiente] = useState<TelaPickingMerge[]>([]);
     const [telaByColor, setTelaByColor] = useState<TelaPickingMerge[]>([]);
     const [telaScanning, setTelaScanning] = useState<TelaPickingMerge[]>([]);
+    const [listTelaPickingDefecto, setListTelaPickingDefecto] = useState<TelaPickingDefecto[]>([]);
+    const [selectedRollo, setSelectedRollo] = useState<TelaPickingMerge | null>(null);
+
     const [ubicacion, setUbicacion] = useState<string>('');
     const [rollo, setRollo] = useState<string>('');
+
     const [isLoading, setIsLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [isModalDefectoVisible, setIsModalDefectoVisible] = useState(false);
+
 
     const rolloInputRef = useRef<TextInput>(null);
     const ubicacionInputRef = useRef<TextInput>(null);
 
     useEffect(() => {
-        //setModalVisible(!modalVisible);
+        receptionTelaService.getTelaPickingDefecto()
+            .then(data => {
+                setListTelaPickingDefecto(data);
+            });
+
         getData()
     }, [])
 
@@ -54,14 +64,29 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const TelaItem = ({ item }: { item: TelaPickingMerge }) => (
         <View style={{ width: '100%', backgroundColor: !item.is_scanning ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
 
-            <Text style={{ fontWeight: 'bold', color: grey, marginBottom: 2 }}>{item.inventSerialId}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }} >
+                <Text style={{ fontWeight: 'bold', color: grey }}>{item.inventSerialId}</Text>
+                {
+                    item.is_scanning && 
+                        <Icon name='edit' 
+                            size={20} 
+                            color={grey} 
+                            onPress={() => {
+                                setSelectedRollo(item);
+                                setIsModalDefectoVisible(true);
+                            }}>
+                        </Icon>
+                }
+            </View>
 
             <Text style={{ color: grey }} >PR: {item.vendRoll}</Text>
             <Text style={{ color: grey }} >Color: {`${item.nameColor} (${item.inventColorId})`}</Text>
             <Text style={{ color: grey }} >Qty: {item.qty.toFixed(2)}</Text>
-            {item.itemId.startsWith('40') && <Text style={{ color: grey }} >RF: {item.reference}</Text>}
+            <Text style={{ color: grey }} >Ubicación: {item.location}</Text>
+            {item.itemId.startsWith('40') && <Text style={{ color: grey }} >Tela: {item.reference}</Text>}
             <Text style={{ color: grey }} >{item.itemId}</Text>
             <Text style={{ color: grey }} >{item.inventBatchId}</Text>
+            {item.descriptionDefecto && <Text style={{ color: grey, borderTopWidth:1, borderColor: '#fff', marginTop: 8 }} >Observación : {item.descriptionDefecto}</Text>}
 
         </View>
     );
@@ -87,22 +112,22 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
 
         if (isUpdateAll) {
-            const telaPickingIsScanningList: TelaPickingIsScanning[] = listColors.map(({ 
-                vendRoll: vendroll, journalId, inventSerialId 
+            const telaPickingIsScanningList: TelaPickingIsScanning[] = listColors.map(({
+                vendRoll: vendroll, journalId, inventSerialId
             }) => ({
                 ...{ vendroll, journalId, inventSerialId },
-                userCode: WMSState.usuario, 
-                location: ubicacion 
+                userCode: WMSState.usuario,
+                location: ubicacion
             }));
-            
+
             sendTelaScanning(telaPickingIsScanningList);
-        }else{
+        } else {
 
             if (listColors.length > 1) {
                 PlaySound('repeat');
                 setModalVisible(true);
                 rolloInputRef.current?.blur();
-    
+
             } else {
                 putOneTelaPicking(rolloValue);
             }
@@ -130,7 +155,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             ];
 
             sendTelaScanning(telaPickingIsScanning);
-        }else if(telaScanning.find(x => x.vendRoll == rolloValue)?.inventSerialId) {
+        } else if (telaScanning.find(x => x.vendRoll == rolloValue)?.inventSerialId) {
             PlaySound('repeat');
             setRollo('');
         } else {
@@ -156,6 +181,30 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }} >
             <Header texto1='Recepcion de tela' texto2={WMSState.telaJournalId} texto3={telaScanning.length + ' / ' + telaPendiente.length} />
+
+            <ModalSelectDefecto
+                isOpenModal={isModalDefectoVisible}
+                onClose={(value) => {
+                    
+                    if(value){
+                        let telaPickingIsScanning: TelaPickingIsScanning[] = [
+                            {
+                                userCode: WMSState.usuario,
+                                vendroll: selectedRollo?.vendRoll ?? '',
+                                journalId: WMSState.telaJournalId,
+                                inventSerialId: selectedRollo?.inventSerialId ?? '',
+                                location: ubicacion,
+                                telaPickingDefectoId: value.telaPickingDefectoId
+                            }
+                        ];
+                        sendTelaScanning(telaPickingIsScanning);
+                    }
+                    setIsModalDefectoVisible(false);
+                    setSelectedRollo(null);
+                }}
+                listDefecto={listTelaPickingDefecto}
+                selectedRollo={selectedRollo}
+            />
 
             <ModalSelectColor
                 isOpenModal={modalVisible}

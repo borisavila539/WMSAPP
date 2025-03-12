@@ -23,6 +23,9 @@ export interface TelaPickingMerge {
     vendroll_picking:       string;
     reference:              string | null;
     nameColor:              string | null;
+    telaPickingDefectoId:   number;
+    descriptionDefecto:     string | null;
+    location:               string | null;
 }
 
 export interface TelaPickingIsScanning {
@@ -31,6 +34,7 @@ export interface TelaPickingIsScanning {
     journalId:      string;
     inventSerialId: string;
     location: string;
+    telaPickingDefectoId?: number | null;
 }
 
 
@@ -43,4 +47,9 @@ export interface TelaPickingUpdate {
     created_date:    Date;
     is_scanning:     boolean;
     update_date:     Date;
+}
+
+export interface TelaPickingDefecto {
+    telaPickingDefectoId: number;
+    descriptionDefecto:   string;
 }

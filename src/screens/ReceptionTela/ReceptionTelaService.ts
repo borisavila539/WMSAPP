@@ -1,5 +1,5 @@
 import { ApiAxios } from "../../api/apiAxios";
-import { ListTelas, TelaPickingIsScanning, TelaPickingMerge, TelaPickingUpdate } from "./ReceptionTela.types";
+import { ListTelas, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingUpdate } from "./ReceptionTela.types";
 
 
 export class ReceptionTelaService {
@@ -30,6 +30,16 @@ export class ReceptionTelaService {
             const response = await ApiAxios.post<TelaPickingUpdate>(`MWMS_RecTela/UpdateTelaPickingIsScanning`, telaPickingIsScanning);
 
             
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching list of telas", error);
+            throw error;
+        }
+    }
+
+    async getTelaPickingDefecto() {
+        try {
+            const response = await ApiAxios.get<TelaPickingDefecto[]>(`MWMS_RecTela/GetTelaPickingDefecto`);
             return response.data;
         } catch (error) {
             console.error("Error fetching list of telas", error);
