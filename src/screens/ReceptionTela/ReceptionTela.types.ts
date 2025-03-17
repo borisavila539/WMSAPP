@@ -39,17 +39,35 @@ export interface TelaPickingIsScanning {
 
 
 export interface TelaPickingUpdate {
-    tela_picking_id: number;
-    journalid:       string;
-    inventserialid:  string;
-    vendroll:        string;
-    user:            number;
-    created_date:    Date;
-    is_scanning:     boolean;
-    update_date:     Date;
+    tela_picking_id:      number;
+    journalid:            string;
+    inventserialid:       string;
+    vendroll:             string;
+    user:                 number;
+    created_date:         Date;
+    is_scanning:          boolean;
+    update_date:          Date;
+    location:             string;
+    itemId:               string;
+    telaPickingDefectoId: number;
 }
 
 export interface TelaPickingDefecto {
     telaPickingDefectoId: number;
     descriptionDefecto:   string;
+}
+
+
+export interface TelaPickingRule {
+    telaPickingRuleId: number;
+    startWith:         string;
+    maxCount:          number;
+    isActive:          boolean;
+}
+
+export interface ActualCount{
+    location: string;
+    qtyActual: number;
+    maxCount: number;
+    isComplete: boolean;
 }

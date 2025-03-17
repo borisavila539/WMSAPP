@@ -1,5 +1,5 @@
 import { ApiAxios } from "../../api/apiAxios";
-import { ListTelas, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingUpdate } from "./ReceptionTela.types";
+import { ListTelas, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "./ReceptionTela.types";
 
 
 export class ReceptionTelaService {
@@ -27,7 +27,7 @@ export class ReceptionTelaService {
 
     async putTelaPickingIsScanning(telaPickingIsScanning:TelaPickingIsScanning[]) {
         try {
-            const response = await ApiAxios.post<TelaPickingUpdate>(`MWMS_RecTela/UpdateTelaPickingIsScanning`, telaPickingIsScanning);
+            const response = await ApiAxios.post<TelaPickingUpdate[]>(`MWMS_RecTela/UpdateTelaPickingIsScanning`, telaPickingIsScanning);
 
             
             return response.data;
@@ -37,14 +37,31 @@ export class ReceptionTelaService {
         }
     }
 
-    async getTelaPickingDefecto() {
+    private async getTelaPickingDefecto() {
         try {
             const response = await ApiAxios.get<TelaPickingDefecto[]>(`MWMS_RecTela/GetTelaPickingDefecto`);
             return response.data;
         } catch (error) {
-            console.error("Error fetching list of telas", error);
+            console.error("Error fetching list of defecto", error);
             throw error;
         }
+    }
+
+    private async GetTelaPickingRule() {
+        try {
+            const response = await ApiAxios.get<TelaPickingRule[]>(`MWMS_RecTela/GetTelaPickingRule`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching list of rule", error);
+            throw error;
+        }
+    }
+
+    async getDataList(){
+        const rules = await this.GetTelaPickingRule();
+        const defecto = await this.getTelaPickingDefecto();
+
+        return {rules, defecto};
     }
 
 }

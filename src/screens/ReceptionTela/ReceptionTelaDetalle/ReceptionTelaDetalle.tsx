@@ -5,12 +5,12 @@ import { RootStackParams } from "../../../navigation/navigation"
 import { WMSContext } from "../../../context/WMSContext"
 import Header from "../../../components/Header"
 import { ReceptionTelaService } from "../ReceptionTelaService"
-import { TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge } from "../ReceptionTela.types"
+import { ActualCount, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "../ReceptionTela.types"
 import { black, blue, grey, navy, orange } from "../../../constants/Colors"
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { ReceptionTelaDetalleStyle } from "./ReceptionTelaDetalle.style"
 import SoundPlayer from 'react-native-sound-player'
-import { ModalSelectColor, ModalSelectDefecto } from "./modal"
+import { ModalSelectColor, ModalSelectDefecto, ModalRuleCount } from "./modal"
 
 type props = StackScreenProps<RootStackParams, "ReceptionTelaDetalle">
 
@@ -24,6 +24,9 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [telaByColor, setTelaByColor] = useState<TelaPickingMerge[]>([]);
     const [telaScanning, setTelaScanning] = useState<TelaPickingMerge[]>([]);
     const [listTelaPickingDefecto, setListTelaPickingDefecto] = useState<TelaPickingDefecto[]>([]);
+    const [listRule, setListRule] = useState<TelaPickingRule[]>([]);
+    const [actualCountFind, setActualCountFind] = useState<ActualCount | null>(null);
+    const [listActualCount, setListActualCount] = useState<ActualCount[]>([]);
     const [selectedRollo, setSelectedRollo] = useState<TelaPickingMerge | null>(null);
 
     const [ubicacion, setUbicacion] = useState<string>('');
@@ -32,27 +35,75 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [isModalDefectoVisible, setIsModalDefectoVisible] = useState(false);
-
+    const [isModalCount, setIsModalCount] = useState(false);
+    const [isChangeDefecto, setIsChangeDefecto] = useState(false);
 
     const rolloInputRef = useRef<TextInput>(null);
     const ubicacionInputRef = useRef<TextInput>(null);
 
     useEffect(() => {
-        receptionTelaService.getTelaPickingDefecto()
+
+        receptionTelaService.getDataList()
             .then(data => {
-                setListTelaPickingDefecto(data);
+                setListTelaPickingDefecto(data.defecto);
+                setListRule(data.rules);
+                getData()
             });
 
-        getData()
     }, [])
 
+    useEffect(() => {
+        if(isChangeDefecto === false){
+
+            setListActualCount([]);
+            setListActualCount(prevList => {
+                let updatedList = [...prevList];
+                telaScanning.map(item => {
+                    updatedList = setConteo(item, updatedList, listRule);
+                });
+                return updatedList;
+            });
+        }
+    }, [telaScanning, listRule]);
+
+
+    const setConteo = (item: TelaPickingMerge | TelaPickingUpdate, listActualCount: ActualCount[], listRule: TelaPickingRule[]) => {
+        const newList = [...listActualCount];
+        const cumpleRegla = listRule.find(rule => item.itemId.startsWith(rule.startWith));
+
+        if (cumpleRegla) {
+            let ubicacion = newList.find(rule => rule.location === item.location);
+
+            if (ubicacion) {
+                const updatedUbicacion = { ...ubicacion, qtyActual: ubicacion.qtyActual + 1 };
+
+                if (updatedUbicacion.qtyActual === cumpleRegla.maxCount) {
+                    updatedUbicacion.isComplete = true;
+                }
+
+                newList[newList.indexOf(ubicacion)] = updatedUbicacion;
+            } else {
+                newList.push({
+                    location: item.location ?? '',
+                    qtyActual: 1,
+                    maxCount: cumpleRegla.maxCount,
+                    isComplete: false
+                });
+            }
+        }
+
+        return newList;
+    };
+
     const getData = async () => {
+
         if (!isLoading) {
             setIsLoading(true);
             receptionTelaService.postTelaPickingMerge(WMSState.telaJournalId)
                 .then((data) => {
 
                     setTelaPendiente(data.filter(x => x.is_scanning === false));
+
                     setTelaScanning(data.filter(x => x.is_scanning === true));
 
                     setIsLoading(false);
@@ -67,15 +118,16 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }} >
                 <Text style={{ fontWeight: 'bold', color: grey }}>{item.inventSerialId}</Text>
                 {
-                    item.is_scanning && 
-                        <Icon name='edit' 
-                            size={20} 
-                            color={grey} 
-                            onPress={() => {
-                                setSelectedRollo(item);
-                                setIsModalDefectoVisible(true);
-                            }}>
-                        </Icon>
+                    item.is_scanning &&
+                    <Icon name='edit'
+                        size={20}
+                        color={grey}
+                        onPress={() => {
+                            
+                            setSelectedRollo(item);
+                            setIsModalDefectoVisible(true);
+                        }}>
+                    </Icon>
                 }
             </View>
 
@@ -86,7 +138,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             {item.itemId.startsWith('40') && <Text style={{ color: grey }} >Tela: {item.reference}</Text>}
             <Text style={{ color: grey }} >{item.itemId}</Text>
             <Text style={{ color: grey }} >{item.inventBatchId}</Text>
-            {item.descriptionDefecto && <Text style={{ color: grey, borderTopWidth:1, borderColor: '#fff', marginTop: 8 }} >Observación : {item.descriptionDefecto}</Text>}
+            {item.descriptionDefecto && <Text style={{ color: grey, borderTopWidth: 1, borderColor: '#fff', marginTop: 8 }} >Observación : {item.descriptionDefecto}</Text>}
 
         </View>
     );
@@ -104,10 +156,10 @@ export const ReceptionTelaDetalle: FC<props> = () => {
         setTelaByColor([]);
         const combinedTelas = [...telaPendiente, ...telaScanning];
         const listColors = combinedTelas.filter(x => x.vendRoll === rolloValue);
-        setTelaByColor(telaByColor);
+        setTelaByColor(listColors);
 
         const isUpdateAll = listColors.length > 0 && listColors.every(x =>
-            x.itemId.startsWith('45 02') || x.itemId.startsWith('45 01')
+            x.itemId.startsWith('45 02') || x.itemId.startsWith('45 01')    
         )
 
 
@@ -123,7 +175,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             sendTelaScanning(telaPickingIsScanningList);
         } else {
 
-            if (listColors.length > 1) {
+            if (listColors.length > 1 && listColors.some(x=> x.is_scanning === false)) {
                 PlaySound('repeat');
                 setModalVisible(true);
                 rolloInputRef.current?.blur();
@@ -165,28 +217,86 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
     }
 
-    const sendTelaScanning = (telaPickingIsScanning: TelaPickingIsScanning[]) => {
-        receptionTelaService.putTelaPickingIsScanning(telaPickingIsScanning)
-            .then(() => {
-                setRollo('');
-                PlaySound('success');
-                getData();
-            })
-            .catch((err) => {
-                PlaySound('error');
-            })
+    const sendTelaScanning = (telaPickingIsScanning: TelaPickingIsScanning[], isUpdateDefecto?: boolean) => {
+
+        let actuaCount: ActualCount | null = null;
+
+        
+        if(isUpdateDefecto !== true){
+            
+            telaPickingIsScanning.filter(rollo => {
+                const ubicacion = listActualCount.find(actual => actual.location === rollo.location);
+    
+                if (ubicacion?.isComplete) {
+                    actuaCount = ubicacion;
+                }
+    
+                return !ubicacion?.isComplete;
+            });
+        }else{
+            setIsChangeDefecto(isChangeDefecto);
+        }
+
+
+        setActualCountFind(actuaCount);
+        
+        if (actuaCount === null) {
+            receptionTelaService.putTelaPickingIsScanning(telaPickingIsScanning)
+                .then((response) => {
+                    
+                    if(isUpdateDefecto !== true){
+                        setListActualCount(prevList => {
+                            let updatedList = [...prevList];
+                            response.map(item => {
+                                updatedList = setConteo(item, updatedList, listRule);
+                            });
+                            
+                            return updatedList;
+                        });
+                    }
+
+                    setRollo('');
+                    PlaySound('success');
+                    getData();
+                    
+                })
+                .catch((err) => {
+                    
+                    PlaySound('error');
+                })
+        } else {
+
+            setIsModalCount(true);
+            PlaySound('repeat');
+        }
 
     }
 
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }} >
-            <Header texto1='Recepcion de tela' texto2={WMSState.telaJournalId} texto3={telaScanning.length + ' / ' + telaPendiente.length} />
 
+            <Header 
+                texto1={WMSState.telaJournalId}  
+                texto2={'Rollos : '+ telaScanning.length + ' / ' + telaPendiente.length} 
+                texto3={ubicacion && listActualCount.find(x => x.location === ubicacion) ? `Ubicacion: ${listActualCount.find(x => x.location === ubicacion)?.qtyActual} / ${listActualCount.find(x => x.location === ubicacion)?.maxCount}` : ''} 
+            />
+            
+            <ModalRuleCount
+                isOpenModal={isModalCount}
+                onClose={() => {
+                    setIsModalCount(false);
+                    setUbicacion('');
+                    ubicacionInputRef.current?.focus();
+                    setRollo('');
+                }}
+                limiteAlcanzado={actualCountFind?.maxCount ?? 0}
+                location={ubicacion}
+            />
             <ModalSelectDefecto
                 isOpenModal={isModalDefectoVisible}
                 onClose={(value) => {
-                    
-                    if(value){
+
+                    if (value) {
                         let telaPickingIsScanning: TelaPickingIsScanning[] = [
                             {
                                 userCode: WMSState.usuario,
@@ -197,7 +307,8 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                                 telaPickingDefectoId: value.telaPickingDefectoId
                             }
                         ];
-                        sendTelaScanning(telaPickingIsScanning);
+                        
+                        sendTelaScanning(telaPickingIsScanning, true);
                     }
                     setIsModalDefectoVisible(false);
                     setSelectedRollo(null);
