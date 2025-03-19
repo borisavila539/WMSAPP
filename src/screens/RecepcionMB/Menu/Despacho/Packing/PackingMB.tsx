@@ -60,9 +60,9 @@ export const PackingMB: FC<props> = ({ navigation }) => {
   const verificarRollo = async () => {
     try {
       let texto: string[] = BOXNUM.split(',')
-      let item: DespachoPacking | undefined = data.find(x => x.orden == texto[0] && x.numeroCaja + '' == texto[1] && x.pallet == pallet)
+      let item: DespachoPacking | undefined = data.find(x => x.orden == texto[0] && x.numeroCaja + '' == texto[1])
       if (item != undefined) {
-        if (item.packing == true) {
+        if (item.packing == true && item.pallet == pallet) {
           PlaySound('repeat')
           setBOXNUM('')
         } else {
