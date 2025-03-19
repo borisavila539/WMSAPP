@@ -1,12 +1,12 @@
 import { StackScreenProps } from "@react-navigation/stack"
 import { FC, useContext, useEffect, useRef, useState, } from "react"
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, FlatList } from "react-native"
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, FlatList, Alert } from "react-native"
 import { RootStackParams } from "../../../navigation/navigation"
 import { WMSContext } from "../../../context/WMSContext"
 import Header from "../../../components/Header"
 import { ReceptionTelaService } from "../ReceptionTelaService"
 import { ActualCount, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "../ReceptionTela.types"
-import { black, blue, grey, navy, orange } from "../../../constants/Colors"
+import { black, blue, green, grey, navy, orange } from "../../../constants/Colors"
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { ReceptionTelaDetalleStyle } from "./ReceptionTelaDetalle.style"
 import SoundPlayer from 'react-native-sound-player'
@@ -37,6 +37,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [isModalDefectoVisible, setIsModalDefectoVisible] = useState(false);
     const [isModalCount, setIsModalCount] = useState(false);
     const [isChangeDefecto, setIsChangeDefecto] = useState(false);
+    const [isSendEmail, setIsSendEmail] = useState(false);
 
     const rolloInputRef = useRef<TextInput>(null);
     const ubicacionInputRef = useRef<TextInput>(null);
@@ -53,7 +54,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     }, [])
 
     useEffect(() => {
-        if(isChangeDefecto === false){
+        if (isChangeDefecto === false) {
 
             setListActualCount([]);
             setListActualCount(prevList => {
@@ -123,7 +124,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                         size={20}
                         color={grey}
                         onPress={() => {
-                            
+
                             setSelectedRollo(item);
                             setIsModalDefectoVisible(true);
                         }}>
@@ -159,7 +160,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
         setTelaByColor(listColors);
 
         const isUpdateAll = listColors.length > 0 && listColors.every(x =>
-            x.itemId.startsWith('45 02') || x.itemId.startsWith('45 01')    
+            x.itemId.startsWith('45 02') || x.itemId.startsWith('45 01')
         )
 
 
@@ -175,7 +176,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             sendTelaScanning(telaPickingIsScanningList);
         } else {
 
-            if (listColors.length > 1 && listColors.some(x=> x.is_scanning === false)) {
+            if (listColors.length > 1 && listColors.some(x => x.is_scanning === false)) {
                 PlaySound('repeat');
                 setModalVisible(true);
                 rolloInputRef.current?.blur();
@@ -208,6 +209,17 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
             sendTelaScanning(telaPickingIsScanning);
         } else if (telaScanning.find(x => x.vendRoll == rolloValue)?.inventSerialId) {
+            const repeatScanning = telaScanning.find(x => x.vendRoll == rolloValue);
+
+            if (repeatScanning?.location !== ubicacion) {
+                Alert.alert(
+                    'Rollo ya se encuentra en otra ubicación.',
+                    `El rollo ${repeatScanning?.vendRoll} ya se encuentra en la ubicación: \n${repeatScanning?.location}.`,
+                    [{ text: 'OK' }]
+                );
+
+            }
+
             PlaySound('repeat');
             setRollo('');
         } else {
@@ -221,36 +233,36 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
         let actuaCount: ActualCount | null = null;
 
-        
-        if(isUpdateDefecto !== true){
-            
+
+        if (isUpdateDefecto !== true) {
+
             telaPickingIsScanning.filter(rollo => {
                 const ubicacion = listActualCount.find(actual => actual.location === rollo.location);
-    
+
                 if (ubicacion?.isComplete) {
                     actuaCount = ubicacion;
                 }
-    
+
                 return !ubicacion?.isComplete;
             });
-        }else{
+        } else {
             setIsChangeDefecto(isChangeDefecto);
         }
 
 
         setActualCountFind(actuaCount);
-        
+
         if (actuaCount === null) {
             receptionTelaService.putTelaPickingIsScanning(telaPickingIsScanning)
                 .then((response) => {
-                    
-                    if(isUpdateDefecto !== true){
+
+                    if (isUpdateDefecto !== true) {
                         setListActualCount(prevList => {
                             let updatedList = [...prevList];
                             response.map(item => {
                                 updatedList = setConteo(item, updatedList, listRule);
                             });
-                            
+
                             return updatedList;
                         });
                     }
@@ -258,10 +270,10 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                     setRollo('');
                     PlaySound('success');
                     getData();
-                    
+
                 })
                 .catch((err) => {
-                    
+
                     PlaySound('error');
                 })
         } else {
@@ -272,15 +284,27 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
     }
 
+    const sendEmail = ()=>{
+        setIsSendEmail(true);
+
+        receptionTelaService.EnviarCorreoDeRecepcionDeTela(WMSState.telaJournalId)
+        .then(()=>{
+            setIsSendEmail(false);
+        })
+        .catch(()=>{
+            setIsSendEmail(false);
+        })
+    }
+
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center' }} >
 
-            <Header 
-                texto1={WMSState.telaJournalId}  
-                texto2={'Rollos : '+ telaScanning.length + ' / ' + telaPendiente.length} 
-                texto3={ubicacion && listActualCount.find(x => x.location === ubicacion) ? `Ubicacion: ${listActualCount.find(x => x.location === ubicacion)?.qtyActual} / ${listActualCount.find(x => x.location === ubicacion)?.maxCount}` : ''} 
+            <Header
+                texto1={WMSState.telaJournalId}
+                texto2={'Rollos : ' + telaScanning.length + ' / ' + (telaScanning.length + telaPendiente.length)}
+                texto3={ubicacion && listActualCount.find(x => x.location === ubicacion) ? `Ubicacion: ${listActualCount.find(x => x.location === ubicacion)?.qtyActual} / ${listActualCount.find(x => x.location === ubicacion)?.maxCount}` : ''}
             />
-            
+
             <ModalRuleCount
                 isOpenModal={isModalCount}
                 onClose={() => {
@@ -307,7 +331,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                                 telaPickingDefectoId: value.telaPickingDefectoId
                             }
                         ];
-                        
+
                         sendTelaScanning(telaPickingIsScanning, true);
                     }
                     setIsModalDefectoVisible(false);
@@ -333,27 +357,48 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                 vendRoll={rollo}
             />
 
-            <View style={[ReceptionTelaDetalleStyle.input, { borderColor: rollo != '' || ubicacion === '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', width: '95%', opacity: ubicacion != '' ? 1 : 0.3 }]}>
-                <TextInput
-                    placeholder='Rollo'
-                    style={[ReceptionTelaDetalleStyle.input, { width: '90%', borderWidth: 0 }]}
-                    onChangeText={(value) => {
-                        setRollo(value)
-                        updateRollo(value)
-                    }}
-                    value={rollo}
-                    onBlur={() => ubicacionInputRef.current?.isFocused() || ubicacion.length >= 1 ? null : rolloInputRef.current?.focus()}
-                    ref={rolloInputRef}
-                />
-                {
-                    isLoading ?
-                        <ActivityIndicator size={20} />
-                        :
-                        <TouchableOpacity onPress={() => { setRollo('') }}>
-                            <Icon name='times' size={15} color={black} />
-                        </TouchableOpacity>
-                }
+
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 8, gap: 8}} >
+                <View style={[ReceptionTelaDetalleStyle.input, { borderColor: rollo != '' || ubicacion === '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', flex: 1, opacity: ubicacion != '' ? 1 : 0.3 }]}>
+                    <TextInput
+                        placeholder='Rollo'
+                        style={[ReceptionTelaDetalleStyle.input, { width: '90%', borderWidth: 0 }]}
+                        onChangeText={(value) => {
+                            setRollo(value)
+                            updateRollo(value)
+                        }}
+                        value={rollo}
+                        onBlur={() => ubicacionInputRef.current?.isFocused() || ubicacion.length >= 1 ? null : rolloInputRef.current?.focus()}
+                        ref={rolloInputRef}
+                    />
+
+                    {
+                        isLoading ?
+                            <ActivityIndicator size={20} />
+                            :
+                            <TouchableOpacity onPress={() => { setRollo('') }}>
+                                <Icon name='times' size={15} color={black} />
+                            </TouchableOpacity>
+                    }
+                </View>
+           
+                <TouchableOpacity
+                    onPress={()=>sendEmail()}
+                    style={{ backgroundColor: green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
+                    disabled={isSendEmail}
+                >
+                    {
+                        isSendEmail ?
+                            <ActivityIndicator />
+                            :
+                            <Icon name='check' size={15} color={black} />
+                    }
+
+                </TouchableOpacity>
             </View>
+
+
+
 
             <View style={[ReceptionTelaDetalleStyle.input, { borderColor: ubicacion != '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', width: '95%' }]}>
                 <TextInput

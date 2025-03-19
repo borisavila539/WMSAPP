@@ -64,4 +64,14 @@ export class ReceptionTelaService {
         return {rules, defecto};
     }
 
+    public async EnviarCorreoDeRecepcionDeTela(journalId: string) {
+        try {
+            const response = await ApiAxios.get<string>(`MWMS_RecTela/EnviarCorreoDeRecepcionDeTela/${journalId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
 }

@@ -9,6 +9,7 @@ import { ReceptionTelaStyle } from './ReceptionTela.style'
 import { black, orange } from '../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { WMSContext } from '../../context/WMSContext'
+import { ProgressBar } from '@react-native-community/progress-bar-android';
 
 type props = StackScreenProps<RootStackParams, "ReceptionTelaScreen">
 
@@ -61,13 +62,29 @@ export const ReceptionTelaScreen: FC<props> = ({ navigation }) => {
           navigation.navigate('ReceptionTelaDetalle')
         }}
         >
-          <View style={{ width: '90%', borderWidth: 1, borderRadius: 10, padding: 5, marginBottom: 2 }} >
-            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <View style={{ width: '90%', borderWidth: 1, borderRadius: 10, padding: 5}} >
+            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ color: '#000', fontWeight: '500' }} > {item.journalId} </Text>
               <Text style={{ color: '#000' }} > {item.numOfLinesComplete + '/' + item.numOfLines} </Text>
             </View>
 
             <Text style={{ color: '#000' }} > {item.description}</Text>
+
+            <View style={{marginTop: item.journalScanCounts.length > 1 ? 14 : 0}} >
+                {item.journalScanCounts?.map(scanCount=>(
+                  <View key={scanCount.journalid + scanCount.groupByColumn} style={{justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, flexDirection: 'row', gap: 12}} >
+                    <Text style={{fontSize: 12}} >{scanCount.groupByColumn}</Text>
+                    <ProgressBar
+                            styleAttr='Horizontal'
+                            indeterminate={false}
+                            progress={scanCount.scannedCount / scanCount.totalCount}
+                            style={{ flex: 1 }}
+                            color='#6BCB77'
+                        />
+                    <Text style={{ flex: 1/2, textAlign: 'right'}} >{`${scanCount.scannedCount} / ${scanCount.totalCount}`} </Text>
+                  </View>
+                ))}
+            </View>
 
           </View>
 

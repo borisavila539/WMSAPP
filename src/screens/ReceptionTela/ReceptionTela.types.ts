@@ -4,6 +4,15 @@ export interface ListTelas {
     numOfLines:         number;
     journalNameId:      string;
     numOfLinesComplete: number;
+    journalScanCounts:  JournalScanCount[];
+}
+
+export interface JournalScanCount {
+    journalid:       string;
+    groupByColumn:   string;
+    scannedCount:    number;
+    notScannedCount: number;
+    totalCount:      number;
 }
 
 export interface TelaPickingMerge {
