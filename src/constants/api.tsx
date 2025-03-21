@@ -5,4 +5,4 @@ const WMSMB = 'http://10.100.2.17:8095/api/WMSMB/'//produccion 10.100.2.17:8095 
 //const WMSMB = 'http://localhost:13274/api/WMSMB/'
 //http://localhost:13274/
 
-export { WMSUrl,WMSUrlCaex ,WMSMB}
+export { WMSUrl,WMSUrlCaex ,WMSMB }

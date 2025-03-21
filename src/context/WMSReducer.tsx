@@ -19,6 +19,7 @@ type WMSAction =
     | { type: 'changeProdID', payload: string }
     | { type: 'changeUbicaciones', payload: UbicacionesInterface[] }
     | { type: 'changeDevolucion', payload: DevolucionesInterface }
+    | { type: 'changeTelaJournalId', payload: string }
     | { type: 'changeRecepcionMB', payload: RecepcionMBInterface[] }
 
 
@@ -99,6 +100,11 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
                 ...state,
                 devolucion: action.payload
             }
+            case "changeTelaJournalId":
+                return {
+                    ...state,
+                    telaJournalId: action.payload
+                }
         case "changeRecepcionMB":
             return {
                 ...state,
