@@ -1,8 +1,8 @@
 import axios from 'axios'
-import { URL_BASE } from '../constants/api'
+import { WMSUrl } from '../constants/api'
 
 export const ApiAxios = axios.create({
-    baseURL: URL_BASE,
+    baseURL: WMSUrl,
     headers: {
         'Content-Type': 'application/json'
       }
