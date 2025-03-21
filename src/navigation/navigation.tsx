@@ -62,8 +62,13 @@ import { AuditoriaDevolucion_Detalle } from '../screens/Devoluciones/DevolucionC
 import { AuditoriaDevolucionDefecto } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionDefecto';
 import { CAEXCrearGuiaScreen } from '../screens/CAEX/CAEXCrearGuiaScreen';
 import { ReimpresionEtiquetasCaex } from '../screens/CAEX/ReimpresionEtiquetasCaex';
-import { RecepcionMBScreen } from '../screens/RecepcionMB/RecepcionMBScreen';
 import { ReceptionTelaScreen, ReceptionTelaDetalle } from '../screens/ReceptionTela';
+import { MenuMB } from '../screens/RecepcionMB/MenuMB';
+import { PackingMB } from '../screens/RecepcionMB/Menu/Despacho/Packing/PackingMB';
+import { PickingMB } from '../screens/RecepcionMB/Menu/Despacho/Picking/PickingMB';
+import { RecepcionMBScreen } from '../screens/RecepcionMB/Menu/RecepcionMBScreen';
+import { DespachosMB } from '../screens/RecepcionMB/Menu/DespachosMB';
+import { MenuDespachoMB } from '../screens/RecepcionMB/Menu/Despacho/MenuDespacho';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -131,6 +136,11 @@ export type RootStackParams = {
     RecepcionMBScreen:undefined,
     ReceptionTelaScreen: undefined,
     ReceptionTelaDetalle: undefined
+    DespachosMB:undefined,
+    MenuMB:undefined,
+    PickingMB:undefined,
+    PackingMB:undefined,
+    MenuDespachoMB:undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -224,6 +234,11 @@ export const Navigation = () => {
             <Stack.Screen name='ReimpresionEtiquetasCaex' options={{ title: 'ReimpresionEtiquetasCaex' }} component={ReimpresionEtiquetasCaex} />
             {/* Recepcion MB */}
             <Stack.Screen name='RecepcionMBScreen' options={{ title: 'RecepcionMBScreen' }} component={RecepcionMBScreen} />
+            <Stack.Screen name='DespachosMB' options={{ title: 'DespachosMB' }} component={DespachosMB} />
+            <Stack.Screen name='MenuMB' options={{ title: 'MenuMB' }} component={MenuMB} />
+            <Stack.Screen name='MenuDespachoMB' options={{ title: 'MenuDespachoMB' }} component={MenuDespachoMB} />
+            <Stack.Screen name='PackingMB' options={{ title: 'PackingMB' }} component={PackingMB} />
+            <Stack.Screen name='PickingMB' options={{ title: 'PickingMB' }} component={PickingMB} />
             
             {/* Recepcion Tela */}
             <Stack.Screen name='ReceptionTelaScreen' options={{ title: 'ReceptionTelaScreen' }} component={ReceptionTelaScreen} />
