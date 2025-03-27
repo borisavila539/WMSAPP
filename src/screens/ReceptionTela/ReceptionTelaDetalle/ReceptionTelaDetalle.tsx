@@ -5,12 +5,12 @@ import { RootStackParams } from "../../../navigation/navigation"
 import { WMSContext } from "../../../context/WMSContext"
 import Header from "../../../components/Header"
 import { ReceptionTelaService } from "../ReceptionTelaService"
-import { ActualCount, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "../ReceptionTela.types"
+import { ActualCount, Impresoras, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "../ReceptionTela.types"
 import { black, blue, green, grey, navy, orange } from "../../../constants/Colors"
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { ReceptionTelaDetalleStyle } from "./ReceptionTelaDetalle.style"
 import SoundPlayer from 'react-native-sound-player'
-import { ModalSelectColor, ModalSelectDefecto, ModalRuleCount } from "./modal"
+import { ModalSelectColor, ModalSelectDefecto, ModalRuleCount, ModalPrint } from "./modal"
 
 type props = StackScreenProps<RootStackParams, "ReceptionTelaDetalle">
 
@@ -25,6 +25,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [telaScanning, setTelaScanning] = useState<TelaPickingMerge[]>([]);
     const [listTelaPickingDefecto, setListTelaPickingDefecto] = useState<TelaPickingDefecto[]>([]);
     const [listRule, setListRule] = useState<TelaPickingRule[]>([]);
+    const [listaImpresoras, setListaImpresoras] = useState<Impresoras[]>([]);
     const [actualCountFind, setActualCountFind] = useState<ActualCount | null>(null);
     const [listActualCount, setListActualCount] = useState<ActualCount[]>([]);
     const [selectedRollo, setSelectedRollo] = useState<TelaPickingMerge | null>(null);
@@ -37,7 +38,9 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [isModalDefectoVisible, setIsModalDefectoVisible] = useState(false);
     const [isModalCount, setIsModalCount] = useState(false);
     const [isChangeDefecto, setIsChangeDefecto] = useState(false);
+    const [isModalPrint, setIsModalPrint] = useState(false);
     const [isSendEmail, setIsSendEmail] = useState(false);
+    const [isPrint, setIsPrint] = useState(false);
 
     const rolloInputRef = useRef<TextInput>(null);
     const ubicacionInputRef = useRef<TextInput>(null);
@@ -48,6 +51,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             .then(data => {
                 setListTelaPickingDefecto(data.defecto);
                 setListRule(data.rules);
+                setListaImpresoras(data.impresoras);
                 getData()
             });
 
@@ -116,23 +120,43 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const TelaItem = ({ item }: { item: TelaPickingMerge }) => (
         <View style={{ width: '100%', backgroundColor: !item.is_scanning ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }} >
-                <Text style={{ fontWeight: 'bold', color: grey }}>{item.inventSerialId}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: item.is_scanning ? 'space-around': 'flex-start', marginBottom: 4 }} >
                 {
                     item.is_scanning &&
-                    <Icon name='edit'
-                        size={20}
-                        color={grey}
-                        onPress={() => {
+                    (<>
+                        <Icon name='print'
+                            size={20}
+                            color={grey}
+                            onPress={() => {
 
-                            setSelectedRollo(item);
-                            setIsModalDefectoVisible(true);
-                        }}>
-                    </Icon>
+                                setSelectedRollo(item);
+                                setIsModalPrint(true);
+                            }}>
+                        </Icon>
+                    </>)
                 }
+                <Text style={{ fontWeight: 'bold', color: grey }}>{item.inventSerialId}</Text>
+
+                {
+                    item.is_scanning &&
+                    (<>
+                        <Icon name='edit'
+                            size={20}
+                            color={grey}
+                            onPress={() => {
+
+                                setSelectedRollo(item);
+                                setIsModalDefectoVisible(true);
+                            }}>
+                        </Icon>
+                    </>)
+                }
+
             </View>
 
+
             <Text style={{ color: grey }} >PR: {item.vendRoll}</Text>
+
             <Text style={{ color: grey }} >Color: {`${item.nameColor} (${item.inventColorId})`}</Text>
             <Text style={{ color: grey }} >Qty: {item.qty.toFixed(2)}</Text>
             <Text style={{ color: grey }} >Ubicación: {item.location}</Text>
@@ -284,16 +308,36 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
     }
 
-    const sendEmail = ()=>{
+    const sendEmail = () => {
         setIsSendEmail(true);
 
         receptionTelaService.EnviarCorreoDeRecepcionDeTela(WMSState.telaJournalId)
-        .then(()=>{
-            setIsSendEmail(false);
-        })
-        .catch(()=>{
-            setIsSendEmail(false);
-        })
+            .then(() => {
+                setIsSendEmail(false);
+            })
+            .catch(() => {
+                setIsSendEmail(false);
+            })
+    }
+
+    const printEtiquetas = (ipPrint: string, selectedRollo: TelaPickingMerge | null) => {
+        setIsPrint(true);
+
+        const telaToPrint = selectedRollo ? [selectedRollo] : telaScanning;
+
+        receptionTelaService
+            .postPrintEtiquetasTela(ipPrint, telaToPrint)
+            .then(() => {
+                setIsPrint(false);
+            })
+            .catch((e) => {
+                Alert.alert(
+                    'Error al imprimir',
+                    'No se pudo imprimir la etiqueta. Si el problema persiste, contacte con soporte.',
+                    [{ text: 'OK' }]
+                );
+                setIsPrint(false);
+            })
     }
 
     return (
@@ -303,6 +347,20 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                 texto1={WMSState.telaJournalId}
                 texto2={'Rollos : ' + telaScanning.length + ' / ' + (telaScanning.length + telaPendiente.length)}
                 texto3={ubicacion && listActualCount.find(x => x.location === ubicacion) ? `Ubicacion: ${listActualCount.find(x => x.location === ubicacion)?.qtyActual} / ${listActualCount.find(x => x.location === ubicacion)?.maxCount}` : ''}
+            />
+
+            <ModalPrint
+                selectedRollo={selectedRollo}
+                isOpenModal={isModalPrint}
+                journalId={WMSState.telaJournalId}
+                onClose={(value, rolloToPrint) => {
+                    if (value) {
+                        printEtiquetas(value, rolloToPrint);
+                    }
+                    setIsModalPrint(false);
+                    setSelectedRollo(null);
+                }}
+                listaImpresoras={listaImpresoras}
             />
 
             <ModalRuleCount
@@ -358,7 +416,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             />
 
 
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', padding: 8, gap: 8}} >
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8, gap: 8 }} >
                 <View style={[ReceptionTelaDetalleStyle.input, { borderColor: rollo != '' || ubicacion === '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', flex: 1, opacity: ubicacion != '' ? 1 : 0.3 }]}>
                     <TextInput
                         placeholder='Rollo'
@@ -381,9 +439,9 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                             </TouchableOpacity>
                     }
                 </View>
-           
+
                 <TouchableOpacity
-                    onPress={()=>sendEmail()}
+                    onPress={() => sendEmail()}
                     style={{ backgroundColor: green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
                     disabled={isSendEmail}
                 >
@@ -400,20 +458,40 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
 
 
-            <View style={[ReceptionTelaDetalleStyle.input, { borderColor: ubicacion != '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', width: '95%' }]}>
-                <TextInput
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8, gap: 8 }}>
+                <View style={[ReceptionTelaDetalleStyle.input, { borderColor: ubicacion != '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', flex: 1 }]}>
+                    <TextInput
+                        placeholder='Ubicacion'
+                        style={[ReceptionTelaDetalleStyle.input, { width: '90%', borderWidth: 0 }]}
+                        onKeyPress={(e) => {
 
-                    placeholder='Ubicacion'
-                    style={[ReceptionTelaDetalleStyle.input, { width: '90%', borderWidth: 0 }]}
-                    onChangeText={(value) => {
-                        setUbicacion(value)
-                        rolloInputRef.current?.focus()
-                    }}
-                    value={ubicacion}
-                    ref={ubicacionInputRef}
-                />
-                <TouchableOpacity onPress={() => { setRollo(''); setUbicacion('') }}>
-                    <Icon name='times' size={15} color={black} />
+                            if (e.nativeEvent.key === 'Enter') {
+                                rolloInputRef.current?.focus()
+                            }
+                        }}
+                        onChangeText={(value) => {
+                            setUbicacion(value)
+                        }}
+                        value={ubicacion}
+                        ref={ubicacionInputRef}
+                    />
+                    <TouchableOpacity onPress={() => { setRollo(''); setUbicacion('') }}>
+                        <Icon name='times' size={15} color={black} />
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                    onPress={() => setIsModalPrint(true)}
+                    style={{ backgroundColor: blue, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
+                    disabled={isPrint}
+                >
+                    {
+                        isPrint ?
+                            <ActivityIndicator color="#fff" />
+                            :
+                            <Icon name='print' size={15} color='#fff' />
+                    }
+
                 </TouchableOpacity>
             </View>
 

@@ -1,5 +1,5 @@
 import { ApiAxios } from "../../api/apiAxios";
-import { ListTelas, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "./ReceptionTela.types";
+import { Impresoras, ListTelas, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "./ReceptionTela.types";
 
 
 export class ReceptionTelaService {
@@ -60,8 +60,9 @@ export class ReceptionTelaService {
     async getDataList(){
         const rules = await this.GetTelaPickingRule();
         const defecto = await this.getTelaPickingDefecto();
+        const impresoras = await this.getImpresoras();
 
-        return {rules, defecto};
+        return {rules, defecto, impresoras};
     }
 
     public async EnviarCorreoDeRecepcionDeTela(journalId: string) {
@@ -73,5 +74,24 @@ export class ReceptionTelaService {
         }
     }
 
+    private async getImpresoras() {
+        try {
+            const response = await ApiAxios.get<Impresoras[]>('Impresoras');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public async postPrintEtiquetasTela(ipImpresora:string, telaScanning: TelaPickingMerge[]){
+        try {
+            const response = await ApiAxios.post<string>(`MWMS_RecTela/PostPrintEtiquetasTela/${ipImpresora}`, telaScanning);
+            return response.data;
+        } catch (error) {
+            
+            throw error;
+        }
+    }
+    
 
 }

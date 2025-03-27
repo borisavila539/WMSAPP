@@ -35,6 +35,8 @@ export interface TelaPickingMerge {
     telaPickingDefectoId:   number;
     descriptionDefecto:     string | null;
     location:               string | null;
+    configid:               string;
+    nameProveedor:          string;
 }
 
 export interface TelaPickingIsScanning {
@@ -79,4 +81,9 @@ export interface ActualCount{
     qtyActual: number;
     maxCount: number;
     isComplete: boolean;
+}
+
+export interface Impresoras {
+    iM_DESCRIPTION_PRINTER: string;
+    iM_IPPRINTER:           string;
 }
