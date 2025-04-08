@@ -40,6 +40,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const [isChangeDefecto, setIsChangeDefecto] = useState(false);
     const [isModalPrint, setIsModalPrint] = useState(false);
     const [isSendEmail, setIsSendEmail] = useState(false);
+    const [isChnageLocation, setIsChangeLocation] = useState(false);
     const [isPrint, setIsPrint] = useState(false);
 
     const rolloInputRef = useRef<TextInput>(null);
@@ -159,7 +160,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
             <Text style={{ color: grey }} >Color: {`${item.nameColor} (${item.inventColorId})`}</Text>
             <Text style={{ color: grey }} >Qty: {item.qty.toFixed(2)}</Text>
-            <Text style={{ color: grey }} >Ubicación: {item.location}</Text>
+            {item.location !== null && <Text style={{ color: grey }} >Ubicación: {item.location}</Text>}
             {item.itemId.startsWith('40') && <Text style={{ color: grey }} >Tela: {item.reference}</Text>}
             <Text style={{ color: grey }} >{item.itemId}</Text>
             <Text style={{ color: grey }} >{item.inventBatchId}</Text>
@@ -204,6 +205,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                 PlaySound('repeat');
                 setModalVisible(true);
                 rolloInputRef.current?.blur();
+                
 
             } else {
                 putOneTelaPicking(rolloValue);
@@ -218,8 +220,10 @@ export const ReceptionTelaDetalle: FC<props> = () => {
         if (!scanningRoll) {
             scanningRoll = telaPendiente.find(x => x.vendRoll == rolloValue)?.inventSerialId;
         }
-
-        if (scanningRoll != undefined) {
+        
+        const findScaning = [...telaPendiente,  ...telaScanning].filter(x => x.vendRoll == rolloValue);
+        
+        if (scanningRoll !== undefined) {
 
             let telaPickingIsScanning: TelaPickingIsScanning[] = [
                 {
@@ -232,24 +236,32 @@ export const ReceptionTelaDetalle: FC<props> = () => {
             ];
 
             sendTelaScanning(telaPickingIsScanning);
-        } else if (telaScanning.find(x => x.vendRoll == rolloValue)?.inventSerialId) {
-            const repeatScanning = telaScanning.find(x => x.vendRoll == rolloValue);
-
-            if (repeatScanning?.location !== ubicacion) {
-                Alert.alert(
-                    'Rollo ya se encuentra en otra ubicación.',
-                    `El rollo ${repeatScanning?.vendRoll} ya se encuentra en la ubicación: \n${repeatScanning?.location}.`,
-                    [{ text: 'OK' }]
-                );
-
-            }
-
+        } else if (findScaning.length >= 1 && scanningRoll === undefined) {
+            
+            
             PlaySound('repeat');
-            setRollo('');
-        } else {
+
+            if([...findScaning].filter(x=> x.location !== ubicacion).length>=1){
+                
+                setIsChangeLocation(true)
+                setTelaByColor(findScaning);
+                setModalVisible(true);
+                
+            }else{
+                
+                rolloInputRef.current?.blur();
+                rolloInputRef.current?.focus();
+                
+                setRollo('');
+            }
+            
+        } else { 
+            
             PlaySound('error');
             setRollo('');
         }
+        
+
 
     }
 
@@ -293,11 +305,12 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
                     setRollo('');
                     PlaySound('success');
+                    setIsChangeLocation(false);
                     getData();
 
                 })
                 .catch((err) => {
-
+                    setIsChangeLocation(false);
                     PlaySound('error');
                 })
         } else {
@@ -323,7 +336,8 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const printEtiquetas = (ipPrint: string, selectedRollo: TelaPickingMerge | null) => {
         setIsPrint(true);
 
-        const telaToPrint = selectedRollo ? [selectedRollo] : telaScanning;
+        const telaScanningByRack = telaScanning.filter(x=>x.location === ubicacion);
+        const telaToPrint = selectedRollo ? [selectedRollo] : telaScanningByRack;
 
         receptionTelaService
             .postPrintEtiquetasTela(ipPrint, telaToPrint)
@@ -355,8 +369,10 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                 journalId={WMSState.telaJournalId}
                 onClose={(value, rolloToPrint) => {
                     if (value) {
+                        
                         printEtiquetas(value, rolloToPrint);
                     }
+                    
                     setIsModalPrint(false);
                     setSelectedRollo(null);
                 }}
@@ -406,28 +422,33 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                     setTelaByColor([]);
                     setModalVisible(false);
                     if (value) {
+                        if(isChnageLocation) value.location = ubicacion;
                         putOneTelaPicking(value.vendRoll, value.inventSerialId);
                     }
                     setRollo('');
                     rolloInputRef.current?.focus();
                 }}
                 listColors={telaByColor}
-                vendRoll={rollo}
+                title={ isChnageLocation ? '¿Cambio de ubicación?' : 'PR: ' + rollo}
             />
 
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8, gap: 8 }} >
                 <View style={[ReceptionTelaDetalleStyle.input, { borderColor: rollo != '' || ubicacion === '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center', flex: 1, opacity: ubicacion != '' ? 1 : 0.3 }]}>
                     <TextInput
+                        ref={rolloInputRef}
                         placeholder='Rollo'
+                        onSubmitEditing={()=>{
+                            rolloInputRef.current?.focus();
+                        }}
                         style={[ReceptionTelaDetalleStyle.input, { width: '90%', borderWidth: 0 }]}
                         onChangeText={(value) => {
-                            setRollo(value)
-                            updateRollo(value)
+                            setRollo(value);
+                            updateRollo(value);
                         }}
                         value={rollo}
-                        onBlur={() => ubicacionInputRef.current?.isFocused() || ubicacion.length >= 1 ? null : rolloInputRef.current?.focus()}
-                        ref={rolloInputRef}
+                        
+                        
                     />
 
                     {
