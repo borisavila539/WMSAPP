@@ -24,7 +24,7 @@ const Header: FC<HeaderInterface> = ({ texto1, texto2,texto3 }) => {
 
     return (
         <View style={style.header}>
-            <Pressable onPress={navigateBack} style={{ width: '20%', maxWidth: 50, padding: 5 }}>
+            <Pressable focusable={false} onPress={navigateBack} style={{ width: '20%', maxWidth: 50, padding: 5 }}>
                 <Icon name='arrow-back-sharp' size={20} color={grey} />
             </Pressable>
             <View style={{ alignContent: 'center' }}>

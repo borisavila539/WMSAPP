@@ -35,7 +35,7 @@ export interface TelaPickingMerge {
     telaPickingDefectoId:   number;
     descriptionDefecto:     string | null;
     location:               string | null;
-    configid:               string;
+    configid:               string ;
     nameProveedor:          string;
 }
 
