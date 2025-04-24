@@ -87,11 +87,11 @@ export const DespachoPTAuditoriaCajas: FC<props> = ({ navigation }) => {
 
     const validarCaja = () => {
         let Prod = ProdIDBox.split(',');
-        let qty: number | undefined = cajas.find(x => x.prodID == Prod[0] && x.box == parseInt(Prod[1]))?.qty
+        let qty: number | undefined = cajas.find(x => x.prodID.startsWith(Prod[0]) && x.box == parseInt(Prod[1]))?.qty
         if (qty) {
             PlaySound('success')
             setProdIDBox('')
-            changeProdID(Prod[0])
+            changeProdID(cajas.find(x => x.prodID.startsWith(Prod[0]) && x.box == parseInt(Prod[1]))?.prodID)
             changeBox(parseInt(Prod[1]))
             navigation.navigate('DespachoPTAuditoriaCajasLineas')
 
