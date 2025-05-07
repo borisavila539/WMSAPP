@@ -189,7 +189,7 @@ export const RecibirPlantaDevolucionesDetalle: FC<props> = ({ navigation }) => {
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, }}>
             <Header
                 texto1='Recibir Planta'
-                texto2={WMSState.devolucion.numDevolucion}
+                texto2={WMSState.devolucion.numDevolucion ? WMSState.devolucion.numDevolucion : WMSState.devolucion.numeroRMA}
                 texto3={data.reduce((suma, devolucion) => suma + devolucion.recibidaPlanta, 0) + '/' + data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0)} />
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <TextInput
@@ -207,7 +207,14 @@ export const RecibirPlantaDevolucionesDetalle: FC<props> = ({ navigation }) => {
                     ?
                     <View style={{ width: '100%', alignItems: 'center' }}>
                         <TouchableOpacity onPress={() => ActualizarEstado('Recibido en Planta')} style={{ backgroundColor: green, width: '85%', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 10, marginTop: 5, alignItems: 'center' }}>
-                            <Text style={style.textRender}>RECIBIR</Text>
+                            {
+                                !enviandoEstado ?
+
+                                <Text style={style.textRender}>RECIBIR</Text>
+                                :
+                                <ActivityIndicator size={20}/>
+
+                            }
                         </TouchableOpacity>
                     </View>
                     :

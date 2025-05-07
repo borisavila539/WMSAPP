@@ -4,7 +4,7 @@ import { RootStackParams } from '../../../../navigation/navigation'
 import { actualizarDefecto, DefectosAuditoria, ListaAuditoria } from '../../../../interfaces/Devoluciones/areasDevolucion';
 import { WmSApi } from '../../../../api/WMSApi'
 import { WMSContext } from '../../../../context/WMSContext'
-import { Alert, SliderComponent, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, SliderComponent, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Header from '../../../../components/Header'
 import { black, grey, orange } from '../../../../constants/Colors'
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -34,6 +34,8 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
     const [tiposelected, settiposelected] = useState<string>('')
     const [actualizando, setActualizando] = useState<boolean>(false)
     const [reparacion, setReparacion] = useState<boolean>(false)
+
+    const [cantidad, setCantidad] = useState<string>('1')
 
     const getData = async () => {
         if (!cargando) {
@@ -77,7 +79,7 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                 let defetoID: number = tmp.defecto.find(x => x.key == defecto)?.id
                 console.log(defetoID)
                 try {
-                    WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/${defetoID ? defetoID : 0}/${tiposelected}/${reparacion}/${operacionid ? operacionid : 0}`)
+                    WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/${defetoID ? defetoID : 0}/${tiposelected}/${reparacion}/${operacionid ? operacionid : 0}/${cantidad ? cantidad : 1}`)
                         .then(resp => {
                             if (resp.data.id != 0) {
                                 navigation.goBack()
@@ -88,7 +90,7 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                 }
             } else {
                 try {
-                    WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/0/${tiposelected}/${reparacion}/0`)
+                    WmSApi.get<actualizarDefecto>(`Devolucion/DefectosDetalle/${WMSState.recID}/0/${tiposelected}/${reparacion}/0/${cantidad ? cantidad : 1}`)
                         .then(resp => {
                             if (resp.data.id != 0) {
                                 navigation.goBack()
@@ -198,6 +200,20 @@ export const AuditoriaDevolucionDefecto: FC<props> = ({ navigation }) => {
                     />
                 </View>
             }
+
+            
+            <View style={{ width: '80%' }}>
+                <Text style={{ fontWeight: 'bold', color: black, textAlign: 'left' }}>Cantidad:</Text>
+            </View>
+            <View style={{ borderWidth: 1, width: '80%', borderRadius: 10 }}>
+
+                <TextInput
+                    value={cantidad}
+                    onChangeText={(value) => setCantidad(value)}
+                    style={{ textAlign: 'center' }}
+                    keyboardType='decimal-pad'
+                />
+            </View>
 
             <View style={{ width: '80%', flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => {

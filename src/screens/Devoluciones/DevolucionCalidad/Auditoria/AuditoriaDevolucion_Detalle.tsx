@@ -79,7 +79,7 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
         if (!imprimiendo) {
             setImprimiendo(true)
             try {
-                await WmSApi.get<string>(`Devolucion/ImpresionEtiqueta/${WMSState.devolucion.id}/${WMSState.devolucion.numDevolucion}/${Cajasprimeras.length > 0 ? Cajasprimeras : '0'}/${CajasIrregular.length > 0 ? CajasIrregular : '0'}/${WMSState.usuario}`)
+                await WmSApi.get<string>(`Devolucion/ImpresionEtiqueta/${WMSState.devolucion.id}/${WMSState.devolucion.numDevolucion ? WMSState.devolucion.numDevolucion : WMSState.devolucion.numeroRMA}/${Cajasprimeras.length > 0 ? Cajasprimeras : '0'}/${CajasIrregular.length > 0 ? CajasIrregular : '0'}/${WMSState.usuario}`)
                     .then(resp => {
                         PlaySound('success')
                         setShowModalPrint(false)
@@ -221,7 +221,7 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
-            <Header texto1='Auditoria' texto2={WMSState.devolucion.numDevolucion}
+            <Header texto1='Auditoria' texto2={WMSState.devolucion.numDevolucion ? WMSState.devolucion.numDevolucion : WMSState.devolucion.numeroRMA}
                 texto3={getTotalAuditado() + "/" + data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0) + ''}
             />
             <View style={{ width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly' }}>
