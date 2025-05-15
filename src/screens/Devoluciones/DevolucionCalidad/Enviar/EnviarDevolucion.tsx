@@ -59,6 +59,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                 <View style={{ width: '95%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
                     <View style={{ width: '100%', justifyContent: 'space-between', flexDirection: 'row' }}>
                         <Text style={{ fontWeight: 'bold' }}>{item.numDevolucion}</Text>
+                        <Text style={{ fontWeight: 'bold' }}>{item.numeroRMA}</Text>
                         <Text style={{ fontWeight: 'bold' }}>{cantidad()}/{item.cajas.length}</Text>
                     </View>
                     <FlatList
@@ -222,7 +223,7 @@ export const EnviarDevolucion: FC<props> = ({ navigation }) => {
                 </View>
                 <TouchableOpacity onPress={() => ActualizarEstado('Enviado a CD')} disabled={false} style={{ backgroundColor: green, paddingVertical: 5, paddingHorizontal: 5, borderRadius: 10, width: '15%', height: '85%', alignItems: 'center' }}>
                     {
-                        !false ?
+                        !enviandoEstado ?
                             <Icon name='check' size={35} color={black} />
                             :
                             <ActivityIndicator size={20} />

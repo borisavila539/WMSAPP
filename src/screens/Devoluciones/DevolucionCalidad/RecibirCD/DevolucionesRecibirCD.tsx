@@ -55,6 +55,7 @@ export const DevolucionesRecibirCD: FC<props> = ({ navigation }) => {
                 <TouchableOpacity disabled={cantidad() != item.cajas.length} onPress={() => onPress(item)} style={{ width: '95%', borderWidth: 1, borderRadius: 15, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 }} >
                     <View style={{ width: '100%', justifyContent: 'space-between', flexDirection: 'row' }}>
                         <Text style={{ fontWeight: 'bold' }}>{item.numDevolucion}</Text>
+                        <Text style={{ fontWeight: 'bold' }}>{item.numeroRMA}</Text>
                         <Text style={{ fontWeight: 'bold' }}>{cantidad()}/{item.cajas.length}</Text>
                     </View>
                     <FlatList

@@ -177,7 +177,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
     useEffect(() => {
         if (itemBarcode.length > 0) {
             agregarBarra()
-            
+
         }
         setmantener(true)
     }, [itemBarcode])
@@ -186,7 +186,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, }}>
             <Header
                 texto1='Recibir CD'
-                texto2={WMSState.devolucion.numDevolucion}
+                texto2={WMSState.devolucion.numDevolucion ? WMSState.devolucion.numDevolucion : WMSState.devolucion.numeroRMA}
                 texto3={data.reduce((suma, devolucion) => suma + devolucion.recibidaCD, 0) + '/' + data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0)} />
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <TextInput
@@ -195,7 +195,7 @@ export const DevolucionRecibirCDDetalle: FC<props> = ({ navigation }) => {
                     onChangeText={(value) => setItembarcode(value)}
                     value={itemBarcode}
                     autoFocus
-                    //onBlur={() => mantener ? textInputRefBarra.current?.focus() : null}
+                //onBlur={() => mantener ? textInputRefBarra.current?.focus() : null}
 
                 />
             </View>

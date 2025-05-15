@@ -79,7 +79,7 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
         if (!imprimiendo) {
             setImprimiendo(true)
             try {
-                await WmSApi.get<string>(`Devolucion/ImpresionEtiqueta/${WMSState.devolucion.id}/${WMSState.devolucion.numDevolucion}/${Cajasprimeras.length > 0 ? Cajasprimeras : '0'}/${CajasIrregular.length > 0 ? CajasIrregular : '0'}/${WMSState.usuario}`)
+                await WmSApi.get<string>(`Devolucion/ImpresionEtiqueta/${WMSState.devolucion.id}/${WMSState.devolucion.numDevolucion ? WMSState.devolucion.numDevolucion : WMSState.devolucion.numeroRMA}/${Cajasprimeras.length > 0 ? Cajasprimeras : '0'}/${CajasIrregular.length > 0 ? CajasIrregular : '0'}/${WMSState.usuario}`)
                     .then(resp => {
                         PlaySound('success')
                         setShowModalPrint(false)
@@ -130,7 +130,7 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
                         <Text style={style.textRender}>Articulo: {item.articulo}</Text>
                         <Text style={style.textRender}>{getCantidad()}/{item.cantidad}</Text>
                     </View>
-                    {/*<Text style={style.textRender}>Cod. Barra: {item.itembarcode}</Text>*/}
+                    <Text style={style.textRender}>Cod. Barra: {item.itembarcode}</Text>
                     <Text style={style.textRender}>Talla: {item.talla}</Text>
                     <Text style={style.textRender}>Color: {item.color}</Text>
 
@@ -166,11 +166,6 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
                                                 <Icon name='edit' size={20} color={black} />
                                             </View>
                                         </TouchableOpacity>
-
-
-
-
-
                                     </View>
                                 ))
                             }
@@ -221,15 +216,15 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey, alignItems: 'center' }}>
-            <Header texto1='Auditoria' texto2={WMSState.devolucion.numDevolucion}
+            <Header texto1='Auditoria' texto2={WMSState.devolucion.numDevolucion ? WMSState.devolucion.numDevolucion : WMSState.devolucion.numeroRMA}
                 texto3={getTotalAuditado() + "/" + data.reduce((suma, devolucion) => suma + devolucion.cantidad, 0) + ''}
             />
             <View style={{ width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly' }}>
                 <TextInput
                     style={style.textInput}
                     onChangeText={(value) => {
-                        /*setShowList(data.find(x => x.itembarcode == value)?.articulo ?? '')
-                        setId(data.find(x => x.itembarcode == value)?.id ?? 0)*/
+                        //setItembarcode(value)
+                        setId(data.find(x => x.itembarcode == value)?.id ?? 0)
                     }}
                     value={itemBarcode}
                     autoFocus

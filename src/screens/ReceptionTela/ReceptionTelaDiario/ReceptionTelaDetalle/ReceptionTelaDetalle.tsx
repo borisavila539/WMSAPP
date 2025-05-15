@@ -121,7 +121,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const TelaItem = ({ item }: { item: TelaPickingMerge }) => (
         <View style={{ width: '100%', backgroundColor: !item.is_scanning ? orange : blue, borderRadius: 10, marginBottom: 5, padding: 5 }}>
 
-            <View style={{ flexDirection: 'row', justifyContent: item.is_scanning ? 'space-around': 'flex-start', marginBottom: 4 }} >
+            <View style={{ flexDirection: 'row', justifyContent: item.is_scanning ? 'space-around' : 'flex-start', marginBottom: 4 }} >
                 {
                     item.is_scanning &&
                     (<>
@@ -205,7 +205,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                 PlaySound('repeat');
                 setModalVisible(true);
                 rolloInputRef.current?.blur();
-                
+
 
             } else {
                 putOneTelaPicking(rolloValue);
@@ -220,9 +220,9 @@ export const ReceptionTelaDetalle: FC<props> = () => {
         if (!scanningRoll) {
             scanningRoll = telaPendiente.find(x => x.vendRoll == rolloValue)?.inventSerialId;
         }
-        
-        const findScaning = [...telaPendiente,  ...telaScanning].filter(x => x.vendRoll == rolloValue);
-        
+
+        const findScaning = [...telaPendiente, ...telaScanning].filter(x => x.vendRoll == rolloValue);
+
         if (scanningRoll !== undefined) {
 
             let telaPickingIsScanning: TelaPickingIsScanning[] = [
@@ -237,30 +237,30 @@ export const ReceptionTelaDetalle: FC<props> = () => {
 
             sendTelaScanning(telaPickingIsScanning);
         } else if (findScaning.length >= 1 && scanningRoll === undefined) {
-            
-            
+
+
             PlaySound('repeat');
 
-            if([...findScaning].filter(x=> x.location !== ubicacion).length>=1){
-                
+            if ([...findScaning].filter(x => x.location !== ubicacion).length >= 1) {
+
                 setIsChangeLocation(true)
                 setTelaByColor(findScaning);
                 setModalVisible(true);
-                
-            }else{
-                
+
+            } else {
+
                 rolloInputRef.current?.blur();
                 rolloInputRef.current?.focus();
-                
+
                 setRollo('');
             }
-            
-        } else { 
-            
+
+        } else {
+
             PlaySound('error');
             setRollo('');
         }
-        
+
 
 
     }
@@ -336,7 +336,7 @@ export const ReceptionTelaDetalle: FC<props> = () => {
     const printEtiquetas = (ipPrint: string, selectedRollo: TelaPickingMerge | null) => {
         setIsPrint(true);
 
-        const telaScanningByRack = telaScanning.filter(x=>x.location === ubicacion);
+        const telaScanningByRack = telaScanning.filter(x => x.location === ubicacion);
         const telaToPrint = selectedRollo ? [selectedRollo] : telaScanningByRack;
 
         receptionTelaService
@@ -369,10 +369,10 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                 journalId={WMSState.telaJournalId}
                 onClose={(value, rolloToPrint) => {
                     if (value) {
-                        
+
                         printEtiquetas(value, rolloToPrint);
                     }
-                    
+
                     setIsModalPrint(false);
                     setSelectedRollo(null);
                 }}
@@ -422,14 +422,14 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                     setTelaByColor([]);
                     setModalVisible(false);
                     if (value) {
-                        if(isChnageLocation) value.location = ubicacion;
+                        if (isChnageLocation) value.location = ubicacion;
                         putOneTelaPicking(value.vendRoll, value.inventSerialId);
                     }
                     setRollo('');
                     rolloInputRef.current?.focus();
                 }}
                 listColors={telaByColor}
-                title={ isChnageLocation ? '¿Cambio de ubicación?' : 'PR: ' + rollo}
+                title={isChnageLocation ? '¿Cambio de ubicación?' : 'PR: ' + rollo}
             />
 
 
@@ -438,17 +438,18 @@ export const ReceptionTelaDetalle: FC<props> = () => {
                     <TextInput
                         ref={rolloInputRef}
                         placeholder='Rollo'
-                        onSubmitEditing={()=>{
+                        onSubmitEditing={() => {
                             rolloInputRef.current?.focus();
                         }}
                         style={[ReceptionTelaDetalleStyle.input, { width: '90%', borderWidth: 0 }]}
                         onChangeText={(value) => {
-                            setRollo(value);
-                            updateRollo(value);
+                            const valuSinLetras = value.replace(/\D/g, '');
+                            setRollo(valuSinLetras);
+                            updateRollo(valuSinLetras);
                         }}
                         value={rollo}
-                        
-                        
+
+
                     />
 
                     {
