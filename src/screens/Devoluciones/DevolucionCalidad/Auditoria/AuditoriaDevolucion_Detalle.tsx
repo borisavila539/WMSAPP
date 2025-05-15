@@ -130,7 +130,7 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
                         <Text style={style.textRender}>Articulo: {item.articulo}</Text>
                         <Text style={style.textRender}>{getCantidad()}/{item.cantidad}</Text>
                     </View>
-                    {/*<Text style={style.textRender}>Cod. Barra: {item.itembarcode}</Text>*/}
+                    <Text style={style.textRender}>Cod. Barra: {item.itembarcode}</Text>
                     <Text style={style.textRender}>Talla: {item.talla}</Text>
                     <Text style={style.textRender}>Color: {item.color}</Text>
 
@@ -166,11 +166,6 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
                                                 <Icon name='edit' size={20} color={black} />
                                             </View>
                                         </TouchableOpacity>
-
-
-
-
-
                                     </View>
                                 ))
                             }
@@ -228,8 +223,8 @@ export const AuditoriaDevolucion_Detalle: FC<props> = ({ navigation }) => {
                 <TextInput
                     style={style.textInput}
                     onChangeText={(value) => {
-                        /*setShowList(data.find(x => x.itembarcode == value)?.articulo ?? '')
-                        setId(data.find(x => x.itembarcode == value)?.id ?? 0)*/
+                        //setItembarcode(value)
+                        setId(data.find(x => x.itembarcode == value)?.id ?? 0)
                     }}
                     value={itemBarcode}
                     autoFocus
