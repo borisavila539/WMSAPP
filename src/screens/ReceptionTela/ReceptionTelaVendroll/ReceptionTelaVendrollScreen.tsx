@@ -106,7 +106,7 @@ export const ReceptionTelaVendrollScreen: FC<props> = ({ navigation }) => {
                 <View style={[ReceptionTelaStyle.input, { borderColor: nombreProveedor != '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center' }]}>
                     <TextInput
                         ref={textInputRef}
-                        placeholder='Textiles'
+                        placeholder='Nombre proveedor'
 
                         style={[ReceptionTelaStyle.input, { borderWidth: 0 }]}
                         onChangeText={(value) => setNombreProveedor(value)}
