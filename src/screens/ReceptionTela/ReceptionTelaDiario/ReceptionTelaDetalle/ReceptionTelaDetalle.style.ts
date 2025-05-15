@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { grey, orange } from "../../../constants/Colors";
+import { grey, orange } from "../../../../constants/Colors";
 
 export const ReceptionTelaDetalleStyle = StyleSheet.create({
     item: {

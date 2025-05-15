@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { grey } from "../../constants/Colors";
+import { grey } from "../../../constants/Colors";
 
 export const ReceptionTelaStyle = StyleSheet.create({
     input: {

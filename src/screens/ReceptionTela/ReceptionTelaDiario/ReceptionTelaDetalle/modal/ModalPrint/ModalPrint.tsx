@@ -1,7 +1,7 @@
 import { Impresoras, TelaPickingMerge } from "../../../ReceptionTela.types";
 import { FC, useEffect, useState, } from "react";
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { black } from "../../../../../constants/Colors";
+import { black } from "../../../../../../constants/Colors";
 import { Modal, Pressable, View, Text, FlatList, TouchableHighlight } from "react-native";
 import { ModalPrintStyle } from "./ModalPrint.style";
 
