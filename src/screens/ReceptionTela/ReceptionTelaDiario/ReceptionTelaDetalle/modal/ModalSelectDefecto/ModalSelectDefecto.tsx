@@ -1,7 +1,7 @@
 import { TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge } from "../../../ReceptionTela.types";
 import { FC, useEffect, useState, } from "react";
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { black, blue, grey } from "../../../../../constants/Colors";
+import { black, blue, grey } from "../../../../../../constants/Colors";
 import { FlatList, Modal, Pressable, View, Text, TouchableHighlight } from "react-native";
 import { ModalSelectDefectoStyle } from "./ModalSelectDefecto.style";
 import { ReceptionTelaService } from "../../../ReceptionTelaService";

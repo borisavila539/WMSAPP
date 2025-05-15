@@ -62,13 +62,15 @@ import { AuditoriaDevolucion_Detalle } from '../screens/Devoluciones/DevolucionC
 import { AuditoriaDevolucionDefecto } from '../screens/Devoluciones/DevolucionCalidad/Auditoria/AuditoriaDevolucionDefecto';
 import { CAEXCrearGuiaScreen } from '../screens/CAEX/CAEXCrearGuiaScreen';
 import { ReimpresionEtiquetasCaex } from '../screens/CAEX/ReimpresionEtiquetasCaex';
-import { ReceptionTelaScreen, ReceptionTelaDetalle } from '../screens/ReceptionTela';
+import { ReceptionTelaScreen, ReceptionTelaDetalle } from '../screens/ReceptionTela/ReceptionTelaDiario';
 import { MenuMB } from '../screens/RecepcionMB/MenuMB';
 import { PackingMB } from '../screens/RecepcionMB/Menu/Despacho/Packing/PackingMB';
 import { PickingMB } from '../screens/RecepcionMB/Menu/Despacho/Picking/PickingMB';
 import { RecepcionMBScreen } from '../screens/RecepcionMB/Menu/RecepcionMBScreen';
 import { DespachosMB } from '../screens/RecepcionMB/Menu/DespachosMB';
 import { MenuDespachoMB } from '../screens/RecepcionMB/Menu/Despacho/MenuDespacho';
+import { ReceptionTelaMenu } from '../screens/ReceptionTela/ReceptionTelaMenu';
+import { ReceptionTelaVendrollScreen, ReceptionTelaVendrollDetalle  } from '../screens/ReceptionTela/ReceptionTelaVendroll';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -140,7 +142,10 @@ export type RootStackParams = {
     MenuMB:undefined,
     PickingMB:undefined,
     PackingMB:undefined,
-    MenuDespachoMB:undefined
+    MenuDespachoMB:undefined,
+    ReceptionTelaMenu: undefined,
+    ReceptionTelaVendroll: undefined,
+    ReceptionTelaVendrollDetalle: undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -241,8 +246,11 @@ export const Navigation = () => {
             <Stack.Screen name='PickingMB' options={{ title: 'PickingMB' }} component={PickingMB} />
             
             {/* Recepcion Tela */}
+            <Stack.Screen name='ReceptionTelaMenu' options={{ title: 'ReceptionTelaMenu' }} component={ReceptionTelaMenu} />
             <Stack.Screen name='ReceptionTelaScreen' options={{ title: 'ReceptionTelaScreen' }} component={ReceptionTelaScreen} />
             <Stack.Screen name='ReceptionTelaDetalle' options={{ title: 'ReceptionTelaDetalle' }} component={ReceptionTelaDetalle} />
+            <Stack.Screen name='ReceptionTelaVendroll' options={{ title: 'ReceptionTelaVendroll' }} component={ReceptionTelaVendrollScreen} />
+            <Stack.Screen name='ReceptionTelaVendrollDetalle' options={{ title: 'ReceptionTelaVendrollDetalle' }} component={ReceptionTelaVendrollDetalle} />
 
         </Stack.Navigator>
     )

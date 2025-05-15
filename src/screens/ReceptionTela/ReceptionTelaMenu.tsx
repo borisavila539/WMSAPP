@@ -1,20 +1,19 @@
 import { StackScreenProps } from '@react-navigation/stack'
-import React, { FC, useEffect, useState } from 'react'
-import { RootStackParams } from '../../../../navigation/navigation'
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
-import Header from '../../../../components/Header'
-import { grey, navy } from '../../../../constants/Colors'
-import { ScreensInterface } from '../../../../interfaces/ScreeensInterface'
+import React, { FC, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { ScreensInterface } from '../../interfaces/ScreeensInterface';
+import { RootStackParams } from '../../navigation/navigation';
+import Header from '../../components/Header';
+import { grey, navy } from '../../constants/Colors';
 
-type props = StackScreenProps<RootStackParams, "MenuDespachoMB">
-export const MenuDespachoMB: FC<props> = ({ navigation }) => {
+type props = StackScreenProps<RootStackParams, "ReceptionTelaMenu">
+export const ReceptionTelaMenu: FC<props> = ({ navigation }) => {
   const [data, setData] = useState<ScreensInterface[]>([])
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'Picking', Screen: 'PickingMB', image: require('../../../../assets/Transferir.png') },
-            { Name: 'Packing', Screen: 'PackingMB', image: require('../../../../assets/Recibir.png') },
-              
+            { Name: 'Tela por codigo', Screen: 'ReceptionTelaVendroll', image: require('../../assets/RecTelaVendroll.png') },
+            { Name: 'Diario de Tela', Screen: 'ReceptionTelaScreen', image: require('../../assets/DiarioRecTela.png') },
         ]
         setData(tmp)
     }
@@ -41,7 +40,7 @@ export const MenuDespachoMB: FC<props> = ({ navigation }) => {
     
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey }}>
-            <Header texto1='' texto2='Menu Despacho PT' texto3='' />
+            <Header texto1='' texto2='Menu Recepcion Tela' texto3='' />
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.Screen.toString()}

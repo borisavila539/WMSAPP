@@ -2,7 +2,7 @@ import { FlatList, Modal, Pressable, View, Text, TouchableHighlight } from "reac
 import { ModalSelectColorStyle } from "./ModalSelectColor.style";
 import { FC, useEffect, useState } from "react";
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { black, blue, grey, orange } from "../../../../../constants/Colors";
+import { black, blue, grey, orange } from "../../../../../../constants/Colors";
 import { TelaPickingMerge } from "../../../ReceptionTela.types";
 
 interface ModalSelectColorProps {

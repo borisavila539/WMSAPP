@@ -1,14 +1,14 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useRef, useState } from 'react'
-import { RootStackParams } from '../../navigation/navigation'
+import { RootStackParams } from '../../../navigation/navigation'
 import { View, Text, FlatList, RefreshControl, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
-import Header from '../../components/Header'
+import Header from '../../../components/Header'
 import { ReceptionTelaService } from './ReceptionTelaService'
 import { ListTelas } from './ReceptionTela.types'
 import { ReceptionTelaStyle } from './ReceptionTela.style'
-import { black, orange } from '../../constants/Colors'
+import { black, orange } from '../../../constants/Colors'
 import Icon from 'react-native-vector-icons/FontAwesome5'
-import { WMSContext } from '../../context/WMSContext'
+import { WMSContext } from '../../../context/WMSContext'
 import { ProgressBar } from '@react-native-community/progress-bar-android';
 
 type props = StackScreenProps<RootStackParams, "ReceptionTelaScreen">
@@ -95,7 +95,7 @@ export const ReceptionTelaScreen: FC<props> = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-      <Header texto1='Recepcion de tela' texto2='' texto3='' />
+      <Header texto1='Recepcion de tela por diario' texto2='' texto3='' />
 
       <View style={[ReceptionTelaStyle.input, { borderColor: journalId != '' ? black : orange, borderWidth: 2, flexDirection: 'row', alignItems: 'center' }]}>
         <TextInput

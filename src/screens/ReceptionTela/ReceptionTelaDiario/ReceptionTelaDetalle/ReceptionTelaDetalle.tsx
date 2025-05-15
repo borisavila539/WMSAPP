@@ -1,12 +1,12 @@
 import { StackScreenProps } from "@react-navigation/stack"
 import { FC, useContext, useEffect, useRef, useState, } from "react"
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, FlatList, Alert } from "react-native"
-import { RootStackParams } from "../../../navigation/navigation"
-import { WMSContext } from "../../../context/WMSContext"
-import Header from "../../../components/Header"
+import { RootStackParams } from "../../../../navigation/navigation"
+import { WMSContext } from "../../../../context/WMSContext"
+import Header from "../../../../components/Header"
 import { ReceptionTelaService } from "../ReceptionTelaService"
 import { ActualCount, Impresoras, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "../ReceptionTela.types"
-import { black, blue, green, grey, navy, orange } from "../../../constants/Colors"
+import { black, blue, green, grey, navy, orange } from "../../../../constants/Colors"
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import { ReceptionTelaDetalleStyle } from "./ReceptionTelaDetalle.style"
 import SoundPlayer from 'react-native-sound-player'

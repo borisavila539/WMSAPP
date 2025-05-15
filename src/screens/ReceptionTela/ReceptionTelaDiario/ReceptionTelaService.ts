@@ -1,4 +1,4 @@
-import { ApiAxios } from "../../api/apiAxios";
+import { ApiAxios } from "../../../api/apiAxios";
 import { Impresoras, ListTelas, TelaPickingDefecto, TelaPickingIsScanning, TelaPickingMerge, TelaPickingRule, TelaPickingUpdate } from "./ReceptionTela.types";
 
 
