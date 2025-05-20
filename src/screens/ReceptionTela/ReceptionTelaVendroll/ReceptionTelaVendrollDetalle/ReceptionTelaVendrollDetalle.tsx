@@ -1,5 +1,5 @@
 import React, { FC, useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { RootStackParams } from '../../../../navigation/navigation';
 import { StackScreenProps } from '@react-navigation/stack';
 import { WMSContext } from '../../../../context/WMSContext';
@@ -115,22 +115,36 @@ export const ReceptionTelaVendrollDetalle: FC<props> = () => {
 
     }
 
-    const vendRollInputfocus = () =>{
+    const vendRollInputfocus = () => {
         vendRollInputRef.current?.blur();
         vendRollInputRef.current?.focus();
     }
 
     const onSendEmail = () => {
 
-        setIsSendEmail(true);
-        console.log(rollosList);
-        receptionTelaVendrollService.PostCorreoTelaPickingByVendroll(rollosList)
-        .then((data=>{
-            setIsSendEmail(false);
-        }))
-        .catch(()=>{
-            setIsSendEmail(false);
-        })
+        Alert.alert('Confirmar envío de correo',
+            `¿Deseas enviar un correo con los ${rollosList.length} rollos escaneados? Esta acción no se puede deshacer.`, [
+            {
+                text: 'Cancelar',
+                style: 'cancel',
+            },
+            {
+                text: 'Enviar', onPress: () => {
+                    setIsSendEmail(true);
+
+                    receptionTelaVendrollService.PostCorreoTelaPickingByVendroll(rollosList)
+                        .then((data => {
+                            setIsSendEmail(false);
+                            PlaySound('success');
+                        }))
+                        .catch(() => {
+                            setIsSendEmail(false);
+                        })
+                }
+            },
+        ]);
+
+
     }
 
     useEffect(() => {
@@ -196,14 +210,13 @@ export const ReceptionTelaVendrollDetalle: FC<props> = () => {
             />
             <Header
                 texto1={`Recepcion de Tela por Código`}
-                texto2={`${
-                    rollosList[0]?.nameProveedor
-                      ? rollosList[0].nameProveedor.length > 30
+                texto2={`${rollosList[0]?.nameProveedor
+                    ? rollosList[0].nameProveedor.length > 30
                         ? rollosList[0].nameProveedor.substring(0, 30) + '...'
                         : rollosList[0].nameProveedor
-                      : ''
-                  }`}
-                texto3={`Rollos: ${rollosList.length}`}
+                    : ''
+                    }`}
+                texto3={` Ubicación: ${rollosList.filter(x=>x.location === bodyTela.Location).length ?? 0} - Rollos: ${rollosList.length}`}
             />
             <View style={{ width: '100%' }} >
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8, gap: 8 }} >
@@ -238,9 +251,9 @@ export const ReceptionTelaVendrollDetalle: FC<props> = () => {
                     </View>
 
                     <TouchableOpacity
-                        
+
                         onPress={() => { onSendEmail() }}
-                        style={{ backgroundColor: (isSendEmail || rollosList.length <=0) ? green + '80' : green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
+                        style={{ backgroundColor: (isSendEmail || rollosList.length <= 0) ? green + '80' : green, alignItems: 'center', justifyContent: 'center', borderRadius: 8, marginRight: 3, width: '10%' }}
                         disabled={isSendEmail || rollosList.length <= 0}
                     >
                         {
@@ -256,8 +269,9 @@ export const ReceptionTelaVendrollDetalle: FC<props> = () => {
 
                 <View style={{ flexDirection: 'column', paddingHorizontal: 8, gap: 8, marginBottom: 10 }} >
 
-                    <View style={[ReceptionTelaDetalleStyle.input, { borderColor: bodyTela.Location.length <= 0 ? orange : black, width: '100%', borderWidth: 2, flexDirection: 'row', alignItems: 'center' }]} >
+                    <View style={[ReceptionTelaDetalleStyle.input, { borderColor: bodyTela.Location.length <= 0 && selectedTipoTela !== null ? orange : black, width: '100%', borderWidth: 2, flexDirection: 'row', alignItems: 'center', opacity: selectedTipoTela !== null ? 1 : 0.3 }]} >
                         <TextInput
+                            editable={selectedTipoTela !== null}
                             onFocus={() => setIsFocusedLocation(true)}
                             onBlur={() => setIsFocusedLocation(false)}
                             ref={ubicacionInputRef}
@@ -277,11 +291,11 @@ export const ReceptionTelaVendrollDetalle: FC<props> = () => {
                         <TouchableOpacity
                             disabled={rollosList.length >= 1 || isLoading === true}
                             onPress={() => { setIsOpenModalProveedor(true) }}
-                            style={[ReceptionTelaDetalleStyle.input, { overflow: 'hidden' ,borderColor: black, width: '60%', padding: 8, gap: 6, borderWidth: 2, flexDirection: 'row', alignItems: 'center' }]}
+                            style={[ReceptionTelaDetalleStyle.input, { overflow: 'hidden', borderColor: black, width: '60%', padding: 8, gap: 6, borderWidth: 2, flexDirection: 'row', alignItems: 'center' }]}
                         >
                             <Icon name='building' size={16} ></Icon>
                             {selectedProveedor ? (
-                                <Text style={{width: '96%'}} numberOfLines={1} >{selectedProveedor.name}</Text>
+                                <Text style={{ width: '96%' }} numberOfLines={1} >{selectedProveedor.name}</Text>
                             ) : (
                                 <Text style={{ opacity: 0.4 }} >Proveedor</Text>
                             )}
@@ -290,8 +304,8 @@ export const ReceptionTelaVendrollDetalle: FC<props> = () => {
 
                         <TouchableOpacity
                             onPress={() => { setIsOpenModalTela(true) }}
-                            disabled={ rollosList.length >= 1 || isLoading === true || !(selectedProveedor !== null)}
-                            style={[ReceptionTelaDetalleStyle.input, { borderColor: black, width: '35%', padding: 8, gap: 6, borderWidth: 2, flexDirection: 'row', alignItems: 'center', opacity:  isLoading === true || !(selectedProveedor !== null) ? 0.4 : 1 }]}
+                            disabled={rollosList.length >= 1 || isLoading === true || !(selectedProveedor !== null)}
+                            style={[ReceptionTelaDetalleStyle.input, { borderColor: black, width: '35%', padding: 8, gap: 6, borderWidth: 2, flexDirection: 'row', alignItems: 'center', opacity: isLoading === true || !(selectedProveedor !== null) ? 0.4 : 1 }]}
                         >
                             {selectedTipoTela ? (
                                 <Text >{selectedTipoTela.reference}</Text>
