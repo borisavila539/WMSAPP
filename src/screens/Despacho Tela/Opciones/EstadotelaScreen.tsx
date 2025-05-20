@@ -1,6 +1,6 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useEffect, useState } from 'react'
-import {  View } from 'react-native'
+import { ActivityIndicator, View } from 'react-native'
 import { Text } from 'react-native-elements'
 import { RootStackParams } from '../../../navigation/navigation'
 import Header from '../../../components/Header'
@@ -15,21 +15,28 @@ type props = StackScreenProps<RootStackParams, "EstadotelaScreen">
 export const EstadotelaScreen: FC<props> = ({ navigation }) => {
     const { WMSState } = useContext(WMSContext)
     const [data, setData] = useState<EstadoTelaInterface[]>([])
+    const [cargando, setCargando] = useState<boolean>(false)
     const getData = async () => {
-        try {
-            await WmSApi.get<EstadoTelaInterface[]>(`EstadoTrasladoTipo/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}`).then(resp => {
-                setData(resp.data)
-            })
-        } catch (err) {
+        if (!cargando) {
+            setCargando(true)
+            try {
+                await WmSApi.get<EstadoTelaInterface[]>(`EstadoTrasladoTipo/${WMSState.TRANSFERIDFROM}/${WMSState.TRANSFERIDTO}/${WMSState.INVENTLOCATIONIDTO}`).then(resp => {
+                    setData(resp.data)
+                })
+            } catch (err) {
+
+            }
+            setCargando(false)
 
         }
+
     }
 
     const renderItem = (item: EstadoTelaInterface) => {
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>
                 <View style={{ backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 1 }}>
-                    <Text style={{textAlign:'center',fontWeight: 'bold'}}>{item.tipo}</Text>
+                    <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>{item.tipo}</Text>
                     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text>Picking </Text>
                         <ProgressBar
@@ -79,14 +86,19 @@ export const EstadotelaScreen: FC<props> = ({ navigation }) => {
     return (
         <View style={{ flex: 1, width: '100%' }}>
             <Header texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} texto2='Estado Tela' texto3='' />
-            <FlatList
-                data={data}
-                keyExtractor={(item) => item.tipo}
-                renderItem={({ item, index }) => renderItem(item)}
-                refreshControl={
-                    <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
-                }
-            />
+            {
+                cargando ?
+                    <ActivityIndicator size={20} />
+                    :
+                    <FlatList
+                        data={data}
+                        keyExtractor={(item) => item.tipo}
+                        renderItem={({ item, index }) => renderItem(item)}
+                        refreshControl={
+                            <RefreshControl refreshing={false} onRefresh={() => getData()} colors={['#069A8E']} />
+                        }
+                    />
+            }
 
         </View>
     )
