@@ -24,6 +24,7 @@ export interface WMSState {
     telaJournalId: string
     RecepcionMB: RecepcionMBInterface[],
     activityUUID: string,
+    itemId: string,
 }
 
 //Estado inicial
@@ -55,7 +56,8 @@ export const WMSInitialState: WMSState = {
     },
     telaJournalId: '',
     RecepcionMB: [],
-    activityUUID: ''
+    activityUUID: '',
+    itemId: ''
 }
 
 export interface WMSContextProps {
@@ -78,6 +80,7 @@ export interface WMSContextProps {
     changeTelaJournalId: (telaJournal: string) => void
     changeRecepcionMB: (RecepcionMB: RecepcionMBInterface[]) => void
     changeReceptionTelaVendroll: (activityUUID: string) => void
+    changeItemId: (itemId: string) => void;
 }
 
 //crear el contexto
@@ -144,6 +147,10 @@ export const WMSProvider = ({ children }: any) => {
     const changeReceptionTelaVendroll = (activityUUID: string) => {
         dispatch({ type: 'changeReceptionTelaVendroll', payload: activityUUID })
     }
+    
+    const changeItemId = (itemId: string) => {
+        dispatch({ type: 'changeItemId', payload: itemId })
+    }
 
     return (
         <WMSContext.Provider
@@ -166,7 +173,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeDevolucion,
                 changeTelaJournalId,
                 changeRecepcionMB,
-                changeReceptionTelaVendroll
+                changeReceptionTelaVendroll,
+                changeItemId,
             }}
         >
             {children}

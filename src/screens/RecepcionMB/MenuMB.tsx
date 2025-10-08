@@ -1,21 +1,30 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useContext, useEffect, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import { ScreensInterface } from '../../interfaces/ScreeensInterface'
 import { RootStackParams } from '../../navigation/navigation'
 import { StackScreenProps } from '@react-navigation/stack'
 import { grey, navy } from '../../constants/Colors'
 import Header from '../../components/Header'
+import { WMSContext } from '../../context/WMSContext'
+import { WMSApiMB } from '../../api/WMSApiMB'
+import { RespuestaValidacionUsuario } from '../../interfaces/ReimpresiónEtiqueta/RespuestaValidacionUsuario'
 
 type props = StackScreenProps<RootStackParams, "MenuMB">
 export const MenuMB : FC<props> = ({ navigation }) => {
     const [data, setData] = useState<ScreensInterface[]>([])
-
-    const setScreens = () => {
+    const { WMSState } = useContext(WMSContext);
+ 
+    const setScreens = async () => {
+        var usuairoValido = await WMSApiMB.get<boolean>(`ValidarAcceso/${WMSState.usuario}`);
         let tmp: ScreensInterface[] = [
             { Name: 'Recepcion', Screen: 'RecepcionMBScreen', image: require('../../assets/Recibir.png') },
             { Name: 'Despacho', Screen: 'DespachosMB', image: require('../../assets/Transferir.png') },
-              
+           
         ]
+        console.log(usuairoValido.data);
+        if(usuairoValido.data === true){
+            tmp.push({ Name: 'Reimpresión Etiquetas', Screen: 'ReimpresionEtiquetasScreen', image: require('../../assets/ReimpresionEtiquetas.png') })
+        }
         setData(tmp)
     }
 
@@ -26,7 +35,7 @@ export const MenuMB : FC<props> = ({ navigation }) => {
                     <TouchableOpacity onPress={() => navigation.navigate(item.Screen)}>
                         <Image
                             source={item.image}
-                            style={{ width: 100, height: 100, resizeMode: 'contain' }}
+                            style={{ width: 100, height: 100, resizeMode: 'contain' , alignSelf:'center'}}
                         />
                         <Text style={{ color: navy, textAlign: 'center' }}>{item.Name}</Text>
                     </TouchableOpacity>

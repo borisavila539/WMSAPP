@@ -22,6 +22,7 @@ type WMSAction =
     | { type: 'changeTelaJournalId', payload: string }
     | { type: 'changeRecepcionMB', payload: RecepcionMBInterface[] }
     | { type: 'changeReceptionTelaVendroll', payload: string }
+    | { type: 'changeItemId', payload: string }
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -115,6 +116,11 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
             return {
                 ...state,
                 activityUUID: action.payload
+            }
+        case "changeItemId":
+            return {
+                ...state,
+                itemId: action.payload
             }
 
         default:
