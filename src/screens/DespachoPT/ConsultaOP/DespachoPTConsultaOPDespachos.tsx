@@ -30,7 +30,6 @@ export const DespachoPTConsultaOPDespachos: FC<props> = ({ navigation }) => {
 
         }
     }
-
     const renderItem = (item: ConsultaOPOrdenesInterface) => {
         return (
             <View style={{ width: '100%', alignItems: 'center' }}>

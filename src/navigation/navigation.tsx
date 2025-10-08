@@ -71,6 +71,11 @@ import { DespachosMB } from '../screens/RecepcionMB/Menu/DespachosMB';
 import { MenuDespachoMB } from '../screens/RecepcionMB/Menu/Despacho/MenuDespacho';
 import { ReceptionTelaMenu } from '../screens/ReceptionTela/ReceptionTelaMenu';
 import { ReceptionTelaVendrollScreen, ReceptionTelaVendrollDetalle  } from '../screens/ReceptionTela/ReceptionTelaVendroll';
+import { ConsultaPorBaseScreen } from '../screens/GestioSerigrafia/ConsultaPorBase';
+import { MenuFlujoProcesoScreen } from '../screens/GestioSerigrafia/MenuFlujoProceso';
+import { ConsultaPorOPsBaseScreen } from '../screens/GestioSerigrafia/InicioOp/CosultaOpsPorBase';
+import { ConsultaConsolidadoOpPorColorScreen } from '../screens/GestioSerigrafia/PreparaciónOP/ConsultaConsolidadoOpPorColor';
+import { ReimpresionEtiquetasScreen } from '../screens/RecepcionMB/Menu/ReimpresionEtiquetas';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -146,6 +151,11 @@ export type RootStackParams = {
     ReceptionTelaMenu: undefined,
     ReceptionTelaVendroll: undefined,
     ReceptionTelaVendrollDetalle: undefined,
+    ConsultaPorBaseScreen: undefined,
+    MenuFlujoProcesoScreen: undefined,
+    ConsultaPorOPsBaseScreen: undefined,
+    ConsultaConsolidadoOpPorColorScreen: undefined,
+    ReimpresionEtiquetasScreen: undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -244,6 +254,7 @@ export const Navigation = () => {
             <Stack.Screen name='MenuDespachoMB' options={{ title: 'MenuDespachoMB' }} component={MenuDespachoMB} />
             <Stack.Screen name='PackingMB' options={{ title: 'PackingMB' }} component={PackingMB} />
             <Stack.Screen name='PickingMB' options={{ title: 'PickingMB' }} component={PickingMB} />
+            <Stack.Screen name='ReimpresionEtiquetasScreen' options={{ title: 'ReimpresionEtiquetasScreen' }} component={ReimpresionEtiquetasScreen} />
             
             {/* Recepcion Tela */}
             <Stack.Screen name='ReceptionTelaMenu' options={{ title: 'ReceptionTelaMenu' }} component={ReceptionTelaMenu} />
@@ -252,6 +263,11 @@ export const Navigation = () => {
             <Stack.Screen name='ReceptionTelaVendroll' options={{ title: 'ReceptionTelaVendroll' }} component={ReceptionTelaVendrollScreen} />
             <Stack.Screen name='ReceptionTelaVendrollDetalle' options={{ title: 'ReceptionTelaVendrollDetalle' }} component={ReceptionTelaVendrollDetalle} />
 
+            {/* Gestio Serigrafia */}
+            <Stack.Screen name='ConsultaPorBaseScreen' options={{ title: 'ConsultaPorBaseScreen' }} component={ConsultaPorBaseScreen} />
+            <Stack.Screen name='MenuFlujoProcesoScreen' options={{ title: 'MenuFlujoProcesoScreen' }} component={MenuFlujoProcesoScreen} />
+            <Stack.Screen name='ConsultaConsolidadoOpPorColorScreen' options={{ title: 'ConsultaConsolidadoOpPorColorScreen' }} component={ConsultaConsolidadoOpPorColorScreen} />
+            <Stack.Screen name='ConsultaPorOPsBaseScreen' options={{ title: 'ConsultaPorOPsBaseScreen' }} component={ConsultaPorOPsBaseScreen} />
         </Stack.Navigator>
     )
 }
