@@ -52,13 +52,15 @@ export const ReimpresionEtiquetasScreen: FC<props> = ({ navigation }) => {
       try {
         const workOrderId = code.split(',')[0];
         const boxNum = code.split(',')[1];
+
         await WMSApiMB.get<ReimpresionEtiqueta>(`GetEtiquetaDespacho/${workOrderId}/${boxNum}`)
           .then(resp => {
             setData(resp.data)
+            console.log(resp.data)
             setQuantity(resp.data.qty ? parseInt(resp.data.qty) : 1)
           })
       } catch (err) {
-        Alert.alert("Error", "No se encontró información para el código ingresado.")
+        Alert.alert("Error", "No se encontró información para el código ingresado." + err)
       }
       setCargando(false)
     }
@@ -91,12 +93,14 @@ export const ReimpresionEtiquetasScreen: FC<props> = ({ navigation }) => {
 
   function handleScandChange(text: string): void {
     setScanCode(text);
-    if (text.length == 17) { // Ajusta este valor según el formato esperado del código escaneado
-      getData(text);
-      setScanCode(''); // Limpia el campo después de escanear
+
+    const regex = /^OP-\d{8}\s\d{3},\d{1,2}$/;
+
+    if (regex.test(text.trim())) { 
+      getData(text.trim());
     }
   }
-  
+
   return (
     <View style={{ flex: 1, backgroundColor: "#F3F4F6" }}>
       {/* 🔹 Header personalizado */}
@@ -122,27 +126,14 @@ export const ReimpresionEtiquetasScreen: FC<props> = ({ navigation }) => {
                 placeholderTextColor="#9CA3AF"
               />
               <TouchableOpacity style={styles.scanButton} onPress={handleCancel}>
-                <Icon name="times" size={30} color="#2563EB" />
+                <Icon name="times-circle" size={20} color="#2563EB" />
               </TouchableOpacity>
             </View>
+              <TouchableOpacity style={{ marginTop: 8 }} onPress={() => getData(scanCode)}>
+                <Text style={{ color: '#2563EB', fontWeight: '500' }}>Buscar</Text>
+              </TouchableOpacity>
           </View>
-          {/* Selector de Impresora */}
-          <View style={styles.section}>
-            <Text style={styles.label}>Impresora</Text>
-            <Dropdown data={Impresoras}
-              labelField="iM_DESCRIPTION_PRINTER"
-              valueField="iM_IPPRINTER"
-              placeholder="Seleccionar impresora"
-              value={impresoraSeleccionada}
-              onChange={item => {
-                setImpresoraSelecionada(item.iM_IPPRINTER);
-              }}
-              style={styles.input}
-              placeholderStyle={{ color: '#9CA3AF' }}
-              selectedTextStyle={{ color: '#111827', fontSize: 16 }}
-              itemTextStyle={{ color: '#111827', fontSize: 16 }}
-            />
-          </View>
+
           {/* Información del Producto */}
           <View style={styles.productInfo}>
             <Text style={styles.productTitle}>Información del Producto</Text>
@@ -198,6 +189,24 @@ export const ReimpresionEtiquetasScreen: FC<props> = ({ navigation }) => {
                 <Text style={styles.productValue}>{data.size}</Text>
               </View>
             </View>
+          </View>
+
+          {/* Selector de Impresora */}
+          <View style={styles.section}>
+            <Text style={styles.label}>Impresora</Text>
+            <Dropdown data={Impresoras}
+              labelField="iM_DESCRIPTION_PRINTER"
+              valueField="iM_IPPRINTER"
+              placeholder="Seleccionar impresora..."
+              value={impresoraSeleccionada}
+              onChange={item => {
+                setImpresoraSelecionada(item.iM_IPPRINTER);
+              }}
+              style={styles.input}
+              placeholderStyle={{ color: '#9CA3AF' }}
+              selectedTextStyle={{ color: '#111827', fontSize: 16 }}
+              itemTextStyle={{ color: '#111827', fontSize: 16 }}
+            />
           </View>
 
           {/* Selector de Cantidad */}
