@@ -1,22 +1,22 @@
-import { FC, useContext, useEffect, useState } from "react";
+import React, { FC, useContext, useEffect, useState } from "react";
 import { StackScreenProps } from '@react-navigation/stack'
-import { RootStackParams } from "../../navigation/navigation";
-import { ScreensInterface } from "../../interfaces/ScreeensInterface";
+import { RootStackParams } from "../../../navigation/navigation";
 import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
-import { grey, navy } from '../../constants/Colors'
-import Header from '../../components/Header'
-import { WMSContext } from "../../context/WMSContext";
+import { grey, navy } from "../../../constants/Colors";
+import Header from "../../../components/Header";
+import { ScreensInterface } from "../../../interfaces/ScreeensInterface";
 
-type props = StackScreenProps <RootStackParams, "MenuFlujoProcesoScreen">;
-export const MenuFlujoProcesoScreen: FC<props> = ({ navigation}) => {
+
+type props = StackScreenProps<RootStackParams, "MenuTrasladoSCreen">;
+export const MenuTrasladoSCreen: FC<props> = ({ navigation }) => {
     const [data, setData] = useState<ScreensInterface[]>([]);
-    const { WMSState } = useContext(WMSContext);
+
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'Preparación por Base', Screen: 'ConsultaConsolidadoOpPorColorScreen', image: require('../../assets/Preparar.png') },
-            { Name: 'Iniciar Ops', Screen: 'ConsultaPorOPsBaseScreen', image: require('../../assets/Iniciar.png') },
-            { Name: 'Terminar Ops', Screen: 'DespachoPTPackingCamionChofer', image: require('../../assets/Terminado.png') },
-            { Name: 'KPIs', Screen: 'DespachoPTOrdenesRecibir', image: require('../../assets/KPIs.png') },
+            { Name: 'Gestionar Diarios', Screen: 'CrearDiariosCreen', image: require('../../../assets/GestionDiario.png') },
+            { Name: 'Crear Traslados', Screen: 'ConsultaCreacionTrasladosScreen', image: require('../../../assets/CreacionTraslado.png') },
+            { Name: 'Despacho', Screen: 'CreacionDespachoPakingScreen', image: require('../../../assets/CrearDespacho.png') },
+           { Name: 'Recibir Despacho', Screen: 'EscorgerTrasladoParaRecibirScreen', image: require('../../../assets/RecibirTraslado.png') },
         ]
         setData(tmp)
     }
@@ -36,13 +36,13 @@ export const MenuFlujoProcesoScreen: FC<props> = ({ navigation}) => {
             </View>
         )
     }
-
+    
     useEffect(() => {
         setScreens()
     }, [])
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: grey }}>
-            <Header texto1='' texto2='Flujo de Proceso' texto3='' />
+            <Header texto1='' texto2="Menu Traslado" texto3= "" />
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.Screen.toString()}

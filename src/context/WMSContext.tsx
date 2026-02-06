@@ -25,6 +25,8 @@ export interface WMSState {
     RecepcionMB: RecepcionMBInterface[],
     activityUUID: string,
     itemId: string,
+    lote: string,
+    SRGDespachoId: number,
 }
 
 //Estado inicial
@@ -57,7 +59,9 @@ export const WMSInitialState: WMSState = {
     telaJournalId: '',
     RecepcionMB: [],
     activityUUID: '',
-    itemId: ''
+    itemId: '',
+    lote: '',
+    SRGDespachoId: 0,
 }
 
 export interface WMSContextProps {
@@ -81,6 +85,8 @@ export interface WMSContextProps {
     changeRecepcionMB: (RecepcionMB: RecepcionMBInterface[]) => void
     changeReceptionTelaVendroll: (activityUUID: string) => void
     changeItemId: (itemId: string) => void;
+    changeLote: (lote: string) => void;
+    changeSRGDespachoId: (SRGDespachoId: number) => void;
 }
 
 //crear el contexto
@@ -151,7 +157,12 @@ export const WMSProvider = ({ children }: any) => {
     const changeItemId = (itemId: string) => {
         dispatch({ type: 'changeItemId', payload: itemId })
     }
-
+    const changeLote = (lote: string) => {
+        dispatch({ type: 'changeLote', payload: lote })
+    }
+    const changeSRGDespachoId = (SRGDespachoId: number) => {
+        dispatch({ type: 'changeSRGDespachoId', payload: SRGDespachoId })
+    }
     return (
         <WMSContext.Provider
             value={{
@@ -175,6 +186,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeRecepcionMB,
                 changeReceptionTelaVendroll,
                 changeItemId,
+                changeLote,
+                changeSRGDespachoId
             }}
         >
             {children}

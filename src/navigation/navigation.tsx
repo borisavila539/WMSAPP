@@ -71,11 +71,20 @@ import { DespachosMB } from '../screens/RecepcionMB/Menu/DespachosMB';
 import { MenuDespachoMB } from '../screens/RecepcionMB/Menu/Despacho/MenuDespacho';
 import { ReceptionTelaMenu } from '../screens/ReceptionTela/ReceptionTelaMenu';
 import { ReceptionTelaVendrollScreen, ReceptionTelaVendrollDetalle  } from '../screens/ReceptionTela/ReceptionTelaVendroll';
-import { ConsultaPorBaseScreen } from '../screens/GestioSerigrafia/ConsultaPorBase';
-import { MenuFlujoProcesoScreen } from '../screens/GestioSerigrafia/MenuFlujoProceso';
-import { ConsultaPorOPsBaseScreen } from '../screens/GestioSerigrafia/InicioOp/CosultaOpsPorBase';
-import { ConsultaConsolidadoOpPorColorScreen } from '../screens/GestioSerigrafia/PreparaciónOP/ConsultaConsolidadoOpPorColor';
+import { ConsultaPorBaseScreen } from '../screens/GestionSerigrafia/ConsultaPorBase';
+import { MenuFlujoProcesoScreen } from '../screens/GestionSerigrafia/MenuFlujoProceso';
+import { ConsultaInicioPorOPsBaseScreen } from '../screens/GestionSerigrafia/InicioOp/CosultaInicioOpsPorBase';
+import { ConsultaConsolidadoOpPorColorScreen } from '../screens/GestionSerigrafia/PreparaciónOP/ConsultaConsolidadoOpPorColor';
 import { ReimpresionEtiquetasScreen } from '../screens/RecepcionMB/Menu/ReimpresionEtiquetas';
+import { ConsultaTerminarOpsPorBaseScreen } from '../screens/GestionSerigrafia/TerminarOp/ConsultaTerminarOpsPorBase';
+import { MenuGestionSerigrafiaScreen } from '../screens/GestionSerigrafia/MenuGestionSerigrafiaScreen';
+import { MenuTrasladoSCreen } from '../screens/GestionSerigrafia/Despacho/MenuTrasladoSCreen';
+import { ConsultaCreacionTrasladosScreen } from '../screens/GestionSerigrafia/Despacho/CrearTraslados/ConsultaCreacionTraslados';
+import {CreacionDespachoPakingScreen} from '../screens/GestionSerigrafia/Despacho/CrearDespacho/CreacionDespachoPaking';
+import { CrearDiariosCreen } from '../screens/GestionSerigrafia/Despacho/CrearDiarios/ConsultaCrearDiarios';
+import { DespachoEnviarTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/EnviarTralados/DespachoEnviarTraslado';
+import { DespachoRecibirTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/DespachoRecibirTraslado';
+import { EscorgerTrasladoParaRecibirScreen} from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/EscogerDespacho';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -153,9 +162,18 @@ export type RootStackParams = {
     ReceptionTelaVendrollDetalle: undefined,
     ConsultaPorBaseScreen: undefined,
     MenuFlujoProcesoScreen: undefined,
-    ConsultaPorOPsBaseScreen: undefined,
+    ConsultaInicioPorOPsBaseScreen: undefined,
     ConsultaConsolidadoOpPorColorScreen: undefined,
+    ConsultaTerminarOpsPorBaseScreen: undefined,
     ReimpresionEtiquetasScreen: undefined,
+    MenuGestionSerigrafiaScreen: undefined,
+    MenuTrasladoSCreen: undefined,
+    ConsultaCreacionTrasladosScreen: undefined,
+    CreacionDespachoPakingScreen: undefined,
+    CrearDiariosCreen: undefined,
+    DespachoEnviarTrasladoScreen: undefined,
+    DespachoRecibirTrasladoScreen: undefined,
+    EscorgerTrasladoParaRecibirScreen: undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -264,10 +282,20 @@ export const Navigation = () => {
             <Stack.Screen name='ReceptionTelaVendrollDetalle' options={{ title: 'ReceptionTelaVendrollDetalle' }} component={ReceptionTelaVendrollDetalle} />
 
             {/* Gestio Serigrafia */}
+
+            <Stack.Screen name='MenuGestionSerigrafiaScreen' options={{ title: 'MenuGestionSerigrafiaScreen' }} component={MenuGestionSerigrafiaScreen} />
             <Stack.Screen name='ConsultaPorBaseScreen' options={{ title: 'ConsultaPorBaseScreen' }} component={ConsultaPorBaseScreen} />
             <Stack.Screen name='MenuFlujoProcesoScreen' options={{ title: 'MenuFlujoProcesoScreen' }} component={MenuFlujoProcesoScreen} />
             <Stack.Screen name='ConsultaConsolidadoOpPorColorScreen' options={{ title: 'ConsultaConsolidadoOpPorColorScreen' }} component={ConsultaConsolidadoOpPorColorScreen} />
-            <Stack.Screen name='ConsultaPorOPsBaseScreen' options={{ title: 'ConsultaPorOPsBaseScreen' }} component={ConsultaPorOPsBaseScreen} />
+            <Stack.Screen name='ConsultaInicioPorOPsBaseScreen' options={{ title: 'ConsultaInicioPorOPsBaseScreen' }} component={ConsultaInicioPorOPsBaseScreen} />
+            <Stack.Screen name='ConsultaTerminarOpsPorBaseScreen' options={{ title: 'ConsultaTerminarOpsPorBaseScreen' }} component={ConsultaTerminarOpsPorBaseScreen} />
+            <Stack.Screen name='MenuTrasladoSCreen' options={{ title: 'MenuTrasladoSCreen' }} component={MenuTrasladoSCreen} />
+            <Stack.Screen name='ConsultaCreacionTrasladosScreen' options={{ title: 'ConsultaCreacionTrasladosScreen' }} component={ConsultaCreacionTrasladosScreen} />
+            <Stack.Screen name= 'CreacionDespachoPakingScreen' options={{title: 'CreacionDespachoPakingScreen'}} component={CreacionDespachoPakingScreen} />
+            <Stack.Screen name= 'CrearDiariosCreen' options={{title: 'CrearDiariosCreen'}} component={CrearDiariosCreen} />
+            <Stack.Screen name= 'DespachoEnviarTrasladoScreen' options={{title: 'DespachoEnviarTrasladoScreen'}} component={DespachoEnviarTrasladoScreen} />
+            <Stack.Screen name= 'DespachoRecibirTrasladoScreen' options={{title: 'DespachoRecibirTrasladoScreen'}} component={DespachoRecibirTrasladoScreen} />
+            <Stack.Screen name= 'EscorgerTrasladoParaRecibirScreen' options={{title: 'EscorgerTrasladoParaRecibirScreen'}} component={EscorgerTrasladoParaRecibirScreen} />
         </Stack.Navigator>
     )
 }

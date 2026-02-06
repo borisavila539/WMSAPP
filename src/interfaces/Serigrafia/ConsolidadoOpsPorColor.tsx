@@ -2,6 +2,7 @@ export interface Talla {
   talla: string             
   cantidadSolicitada: number
   cantidadPreparada: number
+  estadoOp:number
 }
 export interface ConsolidadoOpsPorColorInterface {
   inventcolorid: string     
@@ -11,6 +12,8 @@ export interface ConsolidadoOpsPorColorInterface {
 
 export interface ColorData {
   color: string
+  colornName: string
+  estado: number
   solicitado: Record<string, number>
   preparado: Record<string, string>
 }
