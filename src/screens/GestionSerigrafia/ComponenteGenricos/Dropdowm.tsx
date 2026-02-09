@@ -11,12 +11,17 @@ import {
   Dimensions,
 } from "react-native";
 
+interface Option {
+  label: string;
+  value: string;
+}
+
 interface DropdownProps {
-  options: string[];               // Lista de elementos dinámicos
-  selectedOption?: string;         // Opción seleccionada por defecto
+  options: Option[];                 // Ahora acepta objetos con label y value
+  selectedOption?: string;           // Valor seleccionado (value)
   onSelect: (value: string) => void;
-  placeholder?: string;            // Texto cuando no hay selección
-  includeAll?: boolean;            // <-- Nueva prop para incluir "All"
+  placeholder?: string;
+  includeAll?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -27,20 +32,22 @@ const Dropdown: React.FC<DropdownProps> = ({
   includeAll = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(selectedOption || "");
+  const [selected, setSelected] = useState<string>(selectedOption || "");
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const buttonRef = useRef<TouchableOpacity>(null);
 
-  // Generar las opciones de menú (con o sin "All")
-  const [menuOptions, setMenuOptions] = useState<string[]>([]);
+  const [menuOptions, setMenuOptions] = useState<Option[]>([]);
 
   useEffect(() => {
-    const uniqueOptions = Array.from(new Set(options));
-    if (includeAll) {
-      setMenuOptions(["All", ...uniqueOptions.filter(o => o !== "All")]);
-    } else {
-      setMenuOptions(uniqueOptions);
+    let uniqueOptions = options.filter(
+      (opt, index, self) => index === self.findIndex(o => o.value === opt.value)
+    );
+
+    if (includeAll && !uniqueOptions.some(o => o.value === "All")) {
+      uniqueOptions = [{ label: "All", value: "All" }, ...uniqueOptions];
     }
+
+    setMenuOptions(uniqueOptions);
   }, [options, includeAll]);
 
   const openDropdown = () => {
@@ -62,11 +69,14 @@ const Dropdown: React.FC<DropdownProps> = ({
     onSelect(value);
   };
 
+  const selectedLabel =
+    menuOptions.find((opt) => opt.value === selected)?.label || placeholder;
+
   return (
     <View>
       <TouchableOpacity ref={buttonRef} style={styles.dropdown} onPress={openDropdown}>
         <Text style={styles.dropdownText}>
-          {selected !== "" ? selected : placeholder}
+          {selectedLabel}
         </Text>
         <Text style={styles.dropdownArrow}>▼</Text>
       </TouchableOpacity>
@@ -86,10 +96,10 @@ const Dropdown: React.FC<DropdownProps> = ({
         >
           <FlatList
             data={menuOptions}
-            keyExtractor={(item) => item}
+            keyExtractor={(item) => item.value}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.dropdownItem} onPress={() => handleSelect(item)}>
-                <Text style={styles.dropdownItemText}>{item}</Text>
+              <TouchableOpacity style={styles.dropdownItem} onPress={() => handleSelect(item.value)}>
+                <Text style={styles.dropdownItemText}>{item.label}</Text>
               </TouchableOpacity>
             )}
           />

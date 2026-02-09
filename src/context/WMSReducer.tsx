@@ -23,6 +23,8 @@ type WMSAction =
     | { type: 'changeRecepcionMB', payload: RecepcionMBInterface[] }
     | { type: 'changeReceptionTelaVendroll', payload: string }
     | { type: 'changeItemId', payload: string }
+    | { type: 'changeLote', payload: string }
+    | { type: 'changeSRGDespachoId', payload:number}
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -122,7 +124,16 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
                 ...state,
                 itemId: action.payload
             }
-
+        case "changeLote":
+            return {
+                ...state,
+                lote: action.payload
+            }
+        case "changeSRGDespachoId":
+            return {
+                ...state,
+                SRGDespachoId: action.payload
+            }
         default:
             return state;
     }
