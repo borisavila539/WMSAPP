@@ -11,6 +11,8 @@ import { Icon } from "react-native-elements";
 import Dropdown from "../ComponenteGenricos/Dropdowm";
 import { OrderCard } from "../ComponenteGenricos/OrderCard";
 import { EstadoOp, getEstadoTexto } from "../../../interfaces/Serigrafia/Enums/EstadoOP";
+import { UsuarioValidoPorAccion } from "../../../interfaces/Serigrafia/UsuarioValidoPorAccion";
+import { State } from "react-native-gesture-handler";
 
 
 type Props = StackScreenProps<RootStackParams, 'ConsultaInicioPorOPsBaseScreen'>;
@@ -26,8 +28,8 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
     const [seEstaEnviandoInf, setSeEstaEnviadoInf] = useState(false);
     const tituloConBase = `Base: ${WMSState.itemId}`;
     const tituloLote = `Lote: ${WMSState.lote}`;
-
-
+    const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
+    const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
     const styleOptions = Array.from(
         new Set(data.map(order => order.itemIdEstilo))
     ).map((s) => ({ label: s, value: s }));
@@ -41,6 +43,10 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
                 `GetOpsPorBase/${WMSState.itemId}/${WMSState.lote}`
             );
             setData(resp.data);
+            const noHayPendientesIniciar = resp.data.some((op) => op.estadoOp >= 0 && op.estadoOp <= EstadoOp.Iniciado)
+            if (!noHayPendientesIniciar) {
+                Alert.alert("No hay pendientes a Iniciar")
+            }
         } catch (err) {
             console.log("Error fetching data", err);
         } finally {
@@ -50,10 +56,29 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
     };
 
 
+    const getUsuarioValido = async () => {
+        setData([]);
+        const validoParaIniciar = "I";
+        setCargando(true);
+        try {
+            const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
+                `GetUsuariosPorAccion/${validoParaIniciar}`
+            );
+            setUsuariosValidos(resp.data)
+        } catch (err) {
+            console.log("Error fetching data", err);
+        } finally {
+            setCargando(false);
+            setRefreshing(false);
+        }
+    };
+
     useEffect(() => {
         getData();
     }, []);
-
+    useEffect(() => {
+        getUsuarioValido();
+    }, []);
     const handleSearch = (value: string) => {
         setSearchText(value);
     };
@@ -71,6 +96,11 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
         const orderActualizada = { ...order, tallas: tallasActualizadas };
         const detalle = generarDetlleTallasPendientesIniciar(orderActualizada);
         const tallasPendientes = orderActualizada.tallas.filter(t => t.estadoOP < EstadoOp.Iniciado);
+
+        if (!esUsuarioValido) {
+            Alert.alert("Alerta", "Usuario invalido para esta acción.")
+            return
+        }
         if (tallasPendientes.length === 0) {
             Alert.alert("No hay tallas pendientes para iniciar.");
             return;
@@ -140,17 +170,17 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
             if (result === 'ERROR') {
                 mostrarErrorProduccion(resp.data);
             } else {
-                Alert.alert("Éxito",formatearRespuesApiExito(resp.data));
+                Alert.alert("Éxito", formatearRespuesApiExito(resp.data));
             }
         } catch (error) {
             mostrarErrorProduccion((error as any).response.data);
-             setSeEstaEnviadoInf(false)
+            setSeEstaEnviadoInf(false)
 
         }
         setSeEstaEnviadoInf(false)
         getData();
     }
-  const formatearRespuesApiExito = (xmlRaw: string): string => {
+    const formatearRespuesApiExito = (xmlRaw: string): string => {
         const match = xmlRaw.match(/<Respuesta>(.*?)<\/Respuesta>/i)
 
         if (!match) {
@@ -170,6 +200,10 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
 
 
     const handleOnAjustar = async (order: ConsultaOpsPorBaseInterface, tallasActualizadas: TallaInterface[]) => {
+        if (!esUsuarioValido) {
+            Alert.alert("Alerta", "Usuario invalido para esta acción.")
+            return
+        }
         const orderActualizada = { ...order, tallas: tallasActualizadas };
 
         const detalle = generarDetalleTallas(orderActualizada);
@@ -202,7 +236,7 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
         );
     };
 
-  
+
     const generarDetlleTallasPendientesIniciar = (order: ConsultaOpsPorBaseInterface) => {
         if (!order.tallas || order.tallas.length === 0) return "No hay tallas asociadas.";
         let detalle = "Tallas pendientes de iniciar:\n\n";

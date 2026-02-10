@@ -11,6 +11,7 @@ import { Icon } from "react-native-elements";
 import Dropdown from "../ComponenteGenricos/Dropdowm";
 import { OrderCard } from "../ComponenteGenricos/OrderCard";
 import { EstadoOp, getEstadoTexto } from "../../../interfaces/Serigrafia/Enums/EstadoOP";
+import { UsuarioValidoPorAccion } from "../../../interfaces/Serigrafia/UsuarioValidoPorAccion";
 
 type Props = StackScreenProps<RootStackParams, 'ConsultaTerminarOpsPorBaseScreen'>;
 
@@ -27,7 +28,8 @@ export const ConsultaTerminarOpsPorBaseScreen: FC<Props> = ({ navigation }) => {
     const [selectedStyle, setSelectedStyle] = useState("");
     const [selectedEstadoOp, setSelectedEstadoOp] = useState<number | null>(null);
     const [seEstaEnviandoInf, setSeEstaEnviadoInf] = useState(false);
-
+    const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
+    const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
 
     const styleOptions = Array.from(
         new Set(
@@ -47,6 +49,11 @@ export const ConsultaTerminarOpsPorBaseScreen: FC<Props> = ({ navigation }) => {
 
             resp.data.sort((a, b) => a.estadoOp - b.estadoOp);
             setData(resp.data);
+            const hayPendientesNotificar = resp.data.some((op)=> op.estadoOp >= EstadoOp.Iniciado)
+            if(!hayPendientesNotificar){
+                Alert.alert("No hay pendientes a Noticar")
+            }
+            
         } catch (err) {
             console.log("Error fetching data", err);
         } finally {
@@ -56,8 +63,28 @@ export const ConsultaTerminarOpsPorBaseScreen: FC<Props> = ({ navigation }) => {
 
     };
 
+    const getUsuarioValido = async () => {
+        setData([]);
+        const validoNotificarComoTerminado = "N";
+        setCargando(true);
+        try {
+            const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
+                `GetUsuariosPorAccion/${validoNotificarComoTerminado}`
+            );
+            setUsuariosValidos(resp.data)
+        } catch (err) {
+            console.log("Error fetching data", err);
+        } finally {
+            setCargando(false);
+            setRefreshing(false);
+        }
+    };
     useEffect(() => {
         getData();
+    }, []);
+
+    useEffect(() => {
+        getUsuarioValido();
     }, []);
 
     const handleSearch = (value: string) => {
@@ -71,12 +98,16 @@ export const ConsultaTerminarOpsPorBaseScreen: FC<Props> = ({ navigation }) => {
     };
 
     const handleOnPressTerminar = async (order: ConsultaOpsPorBaseInterface, tallasActualizadas: TallaInterface[]) => {
+        if (!esUsuarioValido) {
+            Alert.alert("Alerta", "Usuario invalido para esta acción.")
+            return
+        }
         const orderActualizada = { ...order, tallas: tallasActualizadas };
-
         const detalle = generarDetlleTallasPendientesNotificarTerminado(orderActualizada);
         const tallasPendientes = {
             tallas: orderActualizada.tallas.filter(t => t.estadoOP < EstadoOp.NotificadoTerminado)
         };
+
         if (!tallasPendientes || tallasPendientes.tallas.length === 0) {
             Alert.alert("No hay tallas pendientes de notificar como terminadas.");
             return;
@@ -154,8 +185,11 @@ export const ConsultaTerminarOpsPorBaseScreen: FC<Props> = ({ navigation }) => {
 
 
     const handleOnAjustar = async (order: ConsultaOpsPorBaseInterface, tallasActualizadas: TallaInterface[]) => {
+        if (!esUsuarioValido) {
+            Alert.alert("Alerta", "Usuario invalido para esta acción.")
+            return
+        }
         const orderActualizada = { ...order, tallas: tallasActualizadas };
-
         const detalle = generarDetalleTallas(orderActualizada);
         const OrderToSend = {
             ...orderActualizada,

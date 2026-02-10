@@ -21,6 +21,7 @@ import { WMSContext } from "../../../../context/WMSContext"
 import { WMSApiSerigrafia } from "../../../../api/WMSApiSerigrafia"
 import type { TrasladoDespachoDTO } from "../../../../interfaces/Serigrafia/TrasladoDespachoDTO"
 import SoundPlayer from "react-native-sound-player"
+import { UsuarioValidoPorAccion } from "../../../../interfaces/Serigrafia/UsuarioValidoPorAccion"
 
 export interface IDespachoLinesPacking {
   id: number
@@ -66,6 +67,9 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
 
   const [despachoTrasladodata, setDespachoTrasladodata] = useState<TrasladoDespachoDTO[]>([])
   const [trasladosExpanded, setTrasladosExpanded] = useState<boolean>(!isSmallDevice)
+
+  const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
+  const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
 
   const allpacked = data.length > 0 && data.every((item) => item.packing);
   const trasladosEnviados = despachoTrasladodata.every((traslado) => traslado.statusId === 1)
@@ -115,6 +119,24 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
       console.log(err)
     }
   }
+  const getUsuarioValido = async () => {
+    setData([]);
+    const validoEnviar = "E";
+    try {
+      const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
+        `GetUsuariosPorAccion/${validoEnviar}`
+      );
+      setUsuariosValidos(resp.data)
+    } catch (err) {
+      console.log("Error fetching data", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    getUsuarioValido();
+  }, []);
 
   const getDespachoTrasladoData = async () => {
     try {
@@ -179,6 +201,10 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
   }
 
   const changeTransferStatus = async () => {
+    if (!esUsuarioValido) {
+      Alert.alert("Alerta", "Usuario invalido para esta acción.")
+      return
+    }
     if (loading) return
 
     setLoading(true)
