@@ -20,6 +20,7 @@ import { WMSContext } from "../../../../context/WMSContext"
 import { WMSApiSerigrafia } from "../../../../api/WMSApiSerigrafia"
 import type { TrasladoDespachoDTO } from "../../../../interfaces/Serigrafia/TrasladoDespachoDTO"
 import SoundPlayer from "react-native-sound-player"
+import { UsuarioValidoPorAccion } from "../../../../interfaces/Serigrafia/UsuarioValidoPorAccion"
 
 export interface IDespachoLinesPacking {
   id: number
@@ -69,6 +70,9 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
 
   const allReceived = data.length > 0 && data.every((item) => item.receive);
 
+  const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
+  const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
+
   const PlaySound = (estado: string) => {
     try {
       SoundPlayer.playSoundFile(estado, "mp3")
@@ -76,6 +80,24 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
       console.log(err)
     }
   }
+    const getUsuarioValido = async () => {
+      setData([]);
+      const validoEnviar = "R";
+      try {
+        const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
+          `GetUsuariosPorAccion/${validoEnviar}`
+        );
+        setUsuariosValidos(resp.data)
+      } catch (err) {
+        console.log("Error fetching data", err);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+  
+    useEffect(() => {
+      getUsuarioValido();
+    }, []);
 
   const scanRegex = /^OP-\d{8}\s\d{3},\d+$/
 
@@ -140,6 +162,10 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
     }
   }
   const changeTransferStatus = async () => {
+     if (!esUsuarioValido) {
+      Alert.alert("Alerta", "Usuario invalido para esta acción.")
+      return
+    }
     if (loading) return
 
     setLoading(true)

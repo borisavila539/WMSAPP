@@ -179,7 +179,6 @@ export const OrderCard = memo(function OrderCard({
     isTerminarPantalla,
     isDisableIniciado,
   ])
-  console.log(isDisabledPreparadoEmpacado)
   return (
     <View style={styles.orderCard}>
       <View style={[styles.statusIndicator, { backgroundColor: colorbyStatusOp }]} />
