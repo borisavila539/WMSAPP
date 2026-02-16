@@ -24,13 +24,13 @@ import { TrasladoDespachoDTO } from "../../../../interfaces/Serigrafia/TrasladoD
 import { DespachoCreado } from "../../../../interfaces/Serigrafia/DespachoCreado"
 import { WmSApi } from "../../../../api/WMSApi"
 import { useFocusEffect } from "@react-navigation/native"
+import { getEstadoTextoSended } from "../../../../interfaces/Serigrafia/Enums/EstadosDespacho"
 
 type props = StackScreenProps<RootStackParams, "CreacionDespachoPakingScreen">
 
 export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
   // Campos del formulario
-  const [truck, setTruck] = useState("")
-  const [driver, setDriver] = useState("")
+  const [descripcion, setdescripcion] = useState("")
   const [deTraslado, setDeTraslado] = useState("")
   const [aTraslado, setATraslado] = useState("")
   const [dataLote, setDataLote] = useState<ConsultaLoteInterface[]>([])
@@ -43,14 +43,17 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
   const [despachosCreados, setDespachosCreados] = useState<DespachoCreado[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { WMSState } = useContext(WMSContext)
+  const [refreshing, setRefreshing] = useState(false)
 
   const getData = async () => {
-    if (!loteSeleccionadoModal) return
+    if (!loteSeleccionadoDespacho) return
     setCargando(true)
     try {
       const Estado = 1 // Estado 1 = Creado
-      const resp = await WMSApiSerigrafia.get<DespachoCreado[]>(`GetDespachosByBatchId/${loteSeleccionadoModal}/${Estado}`)
+      const resp = await WMSApiSerigrafia.get<DespachoCreado[]>(`GetDespachosByBatchId/${loteSeleccionadoDespacho}/${Estado}`)
+      //console.log(resp.data)
       setDespachosCreados(resp.data)
+      console.log(despachosCreados)
       setCargando(false)
     } catch (error) {
       Alert.alert("Error al obtener los despachos creados")
@@ -169,8 +172,8 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
   }
 
   const abrirModalCrearDespacho = () => {
-    if (!truck || !driver) {
-      Alert.alert("Validación", "Por favor complete todos los campos obligatorios (Camión y Chofer)")
+    if (!descripcion) {
+      Alert.alert("Validación", "Debe de ingresar una despción")
       return
     }
 
@@ -192,32 +195,27 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
 
       const nuevoDespacho: DespachoCreado = {
         id: 0, // Temporal hasta que el API retorne el ID real
-        truck: truck,
-        driver: driver,
+        descripcion: descripcion,
         store: "40", // Agregar store si es necesario
         createdBy: WMSState.usuario, // Agregar createdBy si es necesario
         createdDateTime: new Date().toISOString(),
-        statusId: 0,
+        sended: 0,
+        received: 0,
         traslados: trasladosSeleccionados.map((t) => ({ ...t, selected: false })),
       }
 
       const resp = await WMSApiSerigrafia.post<string>('CreateDespacho', nuevoDespacho)
-      if (resp.data.includes("Error")) {
-        Alert.alert("Error al crear el despacho", resp.data)
-        return
-      }
-      // changeSRGDespachoId(Number(resp.data))
-      // navigation.navigate("DespachoEnviarTrasladoScreen")
-      
       // Limpiar formulario
-      setTruck("")
-      setDriver("")
+      setdescripcion("")
       setDeTraslado("")
       setATraslado("")
       Alert.alert("Éxito", `Despacho creado con ${trasladosSeleccionados.length} traslado(s)`)
-      await getData()
       setModalVisible(false)
-    } catch {
+      if (!resp.data.includes("OK")) {
+        Alert.alert("Error al crear el despacho", resp.data)
+        return
+      }
+    } catch(error) {
 
     }
   }
@@ -225,10 +223,10 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
     switch (statusId) {
       case 0: // Creado
         return { backgroundColor: '#e4e2d9' } // amarillo
-      case 1: // Enviado #22C55E
-        return { backgroundColor: '#22C55E' } // azul
+      case 1: // Enviado
+        return { backgroundColor: '#48acd3' } // azul
       case 2: // Recibido
-        return { backgroundColor: '#3B82F6' } // verde
+        return { backgroundColor: '#22C55E' } // verde
       case 3: // Cancelado
         return { backgroundColor: '#EF4444' } // rojo
       default:
@@ -245,27 +243,12 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
     }
   }
 
-  const getStatusLabel = (statusId: number) => {
-    switch (statusId) {
-      case 0:
-        return 'Creado'
-      case 1:
-        return 'Enviado'
-      case 2:
-        return 'Recibido'
-      case 3:
-        return 'Cancelado'
-      default:
-        return 'Desconocido'
-    }
-  }
-
 
   const renderDespachoCreado = ({ item }: { item: DespachoCreado }) => {
     // Formatear la fecha del API
     const fechaCreacion = new Date(item.createdDateTime)
     const fechaFormateada = `${fechaCreacion.toLocaleDateString()} ${fechaCreacion.toLocaleTimeString()}`
-
+    console.log(item.descripcion)
     return (
       <TouchableOpacity
         style={styles.despachoCard}
@@ -282,14 +265,10 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
           </View>
 
           <View style={styles.despachoInfo}>
+          
             <View style={styles.despachoInfoRow}>
-              <Text style={styles.despachoLabel}>Camión:</Text>
-              <Text style={styles.despachoValue}>{item.truck}</Text>
-            </View>
-
-            <View style={styles.despachoInfoRow}>
-              <Text style={styles.despachoLabel}>Chofer:</Text>
-              <Text style={styles.despachoValue}>{item.driver}</Text>
+              <Text style={styles.despachoLabel}>Descripción:</Text>
+              <Text style={styles.despachoValue}>{item.descripcion}</Text>
             </View>
 
             {item.createdBy && (
@@ -300,14 +279,20 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
             )}
 
           </View>
-          <View style={[styles.statusBadge, getStatusStyle(item.statusId)]}>
-            <Text style={[styles.statusText, getStatusTextStyle(item.statusId)]}>
-              {getStatusLabel(item.statusId)}
+          <View style={[styles.statusBadge, getStatusStyle(item.sended)]}>
+            <Text style={[styles.statusText, getStatusTextStyle(item.sended)]}>
+              {getEstadoTextoSended(item.sended)}
             </Text>
           </View>
         </View>
       </TouchableOpacity>
     );
+  }
+
+  const onRefresh = async ()=>{
+    setRefreshing(true)
+    await getData()
+    setRefreshing(false)
   }
 
   return (
@@ -319,23 +304,12 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
 
         <View style={styles.formSection}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Camión *</Text>
+            <Text style={styles.label}>Descripción *</Text>
             <TextInput
               style={styles.input}
-              value={truck}
-              onChangeText={setTruck}
-              placeholder="Ingrese patente del camión"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Chofer *</Text>
-            <TextInput
-              style={styles.input}
-              value={driver}
-              onChangeText={setDriver}
-              placeholder="Ingrese nombre del chofer"
+              value={descripcion}
+              onChangeText={setdescripcion}
+              placeholder="Despacho Lote 326S primera parte..."
               placeholderTextColor="#999"
             />
           </View>
@@ -369,7 +343,7 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
             </View>
           ) : despachosCreados.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No hay despachos creados</Text>
+              <Text style={styles.emptyText}>No hay despachos creados para este lote</Text>
               <Text style={styles.emptySubtext}>Crea tu primer despacho usando el formulario</Text>
             </View>
           ) : (
@@ -379,6 +353,8 @@ export const CreacionDespachoPakingScreen: FC<props> = ({ navigation }) => {
               keyExtractor={(item) => item.id.toString()}
               scrollEnabled={false}
               contentContainerStyle={styles.despachosList}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
             />
           )}
         </View>

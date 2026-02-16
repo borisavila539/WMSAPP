@@ -96,6 +96,9 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
         const orderActualizada = { ...order, tallas: tallasActualizadas };
         const detalle = generarDetlleTallasPendientesIniciar(orderActualizada);
         const tallasPendientes = orderActualizada.tallas.filter(t => t.estadoOP < EstadoOp.Iniciado);
+        const baseMateria = WMSState.itemId.split(" ")[3];
+        const articuloOP = order.itemIdEstilo.split(" ")[3];
+       
 
         if (!esUsuarioValido) {
             Alert.alert("Alerta", "Usuario invalido para esta acción.")
@@ -105,6 +108,15 @@ export const ConsultaInicioPorOPsBaseScreen: FC<Props> = ({ navigation }) => {
             Alert.alert("No hay tallas pendientes para iniciar.");
             return;
         }
+        if (baseMateria !== articuloOP) {
+            Alert.alert(
+                "Error de validación",
+                `El artículo de la OP (${articuloOP}) no coincide con el artículo de la base (${baseMateria}). No se puede iniciar la OP.`,
+                [{ text: "Aceptar" }]
+            );
+            return;
+        }
+    
         const orderTosend = {
             ...orderActualizada,
             tallas: tallasPendientes

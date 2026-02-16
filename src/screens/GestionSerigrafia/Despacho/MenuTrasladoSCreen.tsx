@@ -15,6 +15,7 @@ export const MenuTrasladoSCreen: FC<props> = ({ navigation }) => {
         let tmp: ScreensInterface[] = [
             { Name: 'Gestionar Diarios', Screen: 'CrearDiariosCreen', image: require('../../../assets/GestionDiario.png') },
             { Name: 'Crear Traslados', Screen: 'ConsultaCreacionTrasladosScreen', image: require('../../../assets/CreacionTraslado.png') },
+            { Name: 'Consultar Traslados', Screen: 'ConsultaTrasladoCreadosScreen', image: require('../../../assets/ConsultaTraslado.png') },
             { Name: 'Despacho', Screen: 'CreacionDespachoPakingScreen', image: require('../../../assets/CrearDespacho.png') },
            { Name: 'Recibir Despacho', Screen: 'EscorgerTrasladoParaRecibirScreen', image: require('../../../assets/RecibirTraslado.png') },
         ]

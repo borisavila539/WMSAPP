@@ -1,3 +1,4 @@
+
 import type { StackScreenProps } from "@react-navigation/stack"
 import { type FC, useContext, useEffect, useRef, useState } from "react"
 
@@ -6,6 +7,7 @@ import {
   Alert,
   Dimensions,
   FlatList,
+  Modal,
   RefreshControl,
   StyleSheet,
   Text,
@@ -22,24 +24,9 @@ import { WMSApiSerigrafia } from "../../../../api/WMSApiSerigrafia"
 import type { TrasladoDespachoDTO } from "../../../../interfaces/Serigrafia/TrasladoDespachoDTO"
 import SoundPlayer from "react-native-sound-player"
 import { UsuarioValidoPorAccion } from "../../../../interfaces/Serigrafia/UsuarioValidoPorAccion"
-
-export interface IDespachoLinesPacking {
-  id: number
-  despachoId?: number | null
-  prodMasterId?: string | null
-  prodId?: string | null
-  itemId?: string | null
-  box?: number | null
-  size?: string | null
-  colorId?: string | null
-  qty?: number | null
-  packing?: boolean | null
-  userPacking?: string | null
-  packingDateTime?: Date | null
-  receive?: boolean | null
-  userReceive?: string | null
-  receiveDateTime?: Date | null
-}
+import { ConsultaLoteInterface } from "../../../../interfaces/Serigrafia/Lote"
+import { Dropdown } from "react-native-element-dropdown"
+import { IDespachoLinesPacking } from "../../../../interfaces/Serigrafia/IDespachoLinesPacking"
 
 interface PackingRequestDTO {
   DespachoId: number
@@ -68,12 +55,59 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
   const [despachoTrasladodata, setDespachoTrasladodata] = useState<TrasladoDespachoDTO[]>([])
   const [trasladosExpanded, setTrasladosExpanded] = useState<boolean>(!isSmallDevice)
 
+  // Estado para modo eliminar traslados
+  const [modoEliminar, setModoEliminar] = useState<boolean>(false)
+
+  // Estado para modal agregar traslado
+  const [modalAgregarVisible, setModalAgregarVisible] = useState<boolean>(false)
+  const [loteSeleccionadoDespacho, setLoteSeleccionadoDespacho] = useState<string | null>(null)
+  const [trasladosDisponibles, setTrasladosDisponibles] = useState<TrasladoDespachoDTO[]>([])
+  const [loadingTrasladosDisponibles, setLoadingTrasladosDisponibles] = useState<boolean>(false)
+  const [dataLote, setDataLote] = useState<ConsultaLoteInterface[]>([])
   const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
   const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
+  const totalPendientePrimeras = pendiente.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 1) return total + (item.qty ?? 0)
+    return total
+  }, 0)
 
-  const allpacked = data.length > 0 && data.every((item) => item.packing);
-  const trasladosEnviados = despachoTrasladodata.every((traslado) => traslado.statusId === 1)
-  const isDisabled = allpacked && !trasladosEnviados;
+  const totalPendienteSegundas = pendiente.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 2) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const totalEscaneadoPrimeras = escaneado.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 1) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const totalEscaneadoSegundas = escaneado.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 2) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const isTrasladoCompletamentePikeado = (tras: TrasladoDespachoDTO) =>
+    data
+      .filter(d => d.itemId === tras.itemId)
+      .every(d => d.packing)
+
+  const isTrasladoEnviado = (tras: TrasladoDespachoDTO) => tras.statusId === 1 || tras.statusId === 2
+
+  const isDisabled = despachoTrasladodata.some(
+    (tras) => isTrasladoCompletamentePikeado(tras) && !isTrasladoEnviado(tras)
+  )
+
+  const totaldtrasladoEnviados = despachoTrasladodata.filter((tras) => tras.statusId === 0 &&
+    data
+      .filter(d => d.itemId === tras.itemId)
+      .every(d => d.packing)).length
+
+
+
 
   const PlaySound = (estado: string) => {
     try {
@@ -83,6 +117,19 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
     }
   }
 
+  const getLote = async () => {
+    try {
+      const resp = await WMSApiSerigrafia.get<ConsultaLoteInterface[]>("GetLote")
+      setDataLote(resp.data)
+
+      if (resp.data.length > 0) {
+        setLoteSeleccionadoDespacho(resp.data[0].itemseasonid)
+      }
+    } catch (error) {
+      Alert.alert("Error al obtener los lotes")
+    } finally {
+    }
+  }
   const scanRegex = /^OP-\d{8}\s\d{3},\d+$/
 
   const parseScan = (raw: string): { prodMasterId: string; box: number } | null => {
@@ -104,7 +151,6 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
         `GetDespachoLinesByIdAEnviar/${WMSState.SRGDespachoId}`,
       )
       setData(resp.data)
-
       const data1: IDespachoLinesPacking[] = []
       const data2: IDespachoLinesPacking[] = []
 
@@ -206,12 +252,16 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
       return
     }
     if (loading) return
+    const dataToSend = despachoTrasladodata.filter(tras => tras.statusId === 0 &&
+      data
+        .filter(d => d.itemId === tras.itemId)
+        .every(d => d.packing)
+    );
 
     setLoading(true)
-    await WMSApiSerigrafia.post(`EnviarDespacho/${WMSState.SRGDespachoId}`, despachoTrasladodata).then(async (response) => {
-      Alert.alert("Éxito", "El despacho ha sido recibido correctamente.", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ])
+    await WMSApiSerigrafia.post(`EnviarDespacho/${WMSState.SRGDespachoId}`, dataToSend).then(async (response) => {
+      Alert.alert("Éxito", "Los traslados se enviaron corectamente correctamente.")
+      await getDespachoTrasladoData()
       await getData()
     }
     ).catch((error) => {
@@ -222,11 +272,118 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
     })
   }
 
+  // --- Logica de eliminar traslado ---
+  const confirmarEliminarTraslado = (traslado: TrasladoDespachoDTO) => {
+    Alert.alert(
+      "Confirmar eliminacion",
+      `¿Esta seguro de eliminar el traslado ${traslado.transferId} (${traslado.itemId})?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => eliminarTraslado(traslado),
+        },
+      ],
+    )
+  }
+
+  const eliminarTraslado = async (traslado: TrasladoDespachoDTO) => {
+    try {
+      setLoading(true)
+      await WMSApiSerigrafia.post(
+        `EliminarTrasladoDespacho`, traslado,
+      );
+      await Promise.all([getDespachoTrasladoData(), getData()])
+    } catch (error: any) {
+      const msg = error?.response?.data ?? "Error al eliminar traslado."
+      Alert.alert("Error", String(msg))
+    } finally {
+      setLoading(false)
+      if (despachoTrasladodata.length <= 1) setModoEliminar(false)
+    }
+  }
+
+  // --- Logica de agregar traslado ---
+  const getTrasladosDisponibles = async (lote: string) => {
+    setLoadingTrasladosDisponibles(true)
+    try {
+      const resp = await WMSApiSerigrafia.get<TrasladoDespachoDTO[]>(`GetTrasladoParaDespachoPorLote/${lote}`)
+      setTrasladosDisponibles(resp.data)
+    } catch (err) {
+      console.log("Error fetching traslados disponibles", err)
+      setTrasladosDisponibles([])
+    } finally {
+      setLoadingTrasladosDisponibles(false)
+    }
+  }
+
+  useEffect(() => {
+    getLote()
+  }, [])
+
+  const agregarTraslado = async (traslado: TrasladoDespachoDTO) => {
+
+    try {
+      setLoading(true)
+      const yaExisteElTraslado = despachoTrasladodata.some((tras) => tras.transferId === traslado.transferId)
+      if (yaExisteElTraslado) {
+        Alert.alert("Error", "Ya exite en traslado en el despacho agregue otro")
+        return
+      }
+      await WMSApiSerigrafia.post(
+        `AgregarTrasladoDespacho/${WMSState.SRGDespachoId}`,
+        traslado,
+      )
+      await Promise.all([getDespachoTrasladoData(), getData()])
+      // Quitar del listado disponible
+      setTrasladosDisponibles((prev) =>
+        prev.filter((t) => t.transferId !== traslado.transferId),
+      )
+    } catch (error: any) {
+      const msg = error?.response?.data ?? "Error al agregar traslado."
+      Alert.alert("Error", String(msg))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const abrirModalAgregar = () => {
+    setLoteSeleccionadoDespacho(null)
+    setTrasladosDisponibles([])
+    setModalAgregarVisible(true)
+  }
+
   const handleScanChange = (text: string) => {
     setSearchText(text)
     const trimmed = text.trim()
     if (scanRegex.test(trimmed)) {
       sendPacking(trimmed)
+    }
+  }
+  const getStatusStyle = (statusId: number) => {
+    switch (statusId) {
+      case 0: // Creado
+        return { backgroundColor: '#e4e2d9' } // amarillo
+      case 1: // Eviado
+        return { backgroundColor: '#22C55E' } // verde
+      case 3: // Recibido
+        return { backgroundColor: '#4ea4ebf5' } // rojo
+      default:
+        return { backgroundColor: '#9CA3AF' } // gris
+    }
+  }
+
+  const getStatusTextStyle = (statusId: number) => {
+    switch (statusId) {
+      case 0: // Creado (fondo claro)
+        return { color: "#000000" }
+      case 1: // Enviado (verde)
+        return { color: "#FFFFFF" }
+      case 3: // Recibido (azul)
+        return { color: "#FFFFFF" }
+      default: // Gris
+        return { color: "#FFFFFF" }
     }
   }
 
@@ -237,9 +394,15 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
       return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
     }
 
+    const isSegunda = Number(item.boxCategoryId) === 2
+
     const getCardColor = () => {
-      if (!item.packing) return "#FF9800"
-      return "#4CAF50"
+      if (isSegunda) {
+        // Segundas: tonos distintos para diferenciar
+        return item.packing ? "#7B1FA2" : "#AB47BC" // morado oscuro / morado claro
+      }
+      // Primeras: colores originales
+      return item.packing ? "#4CAF50" : "#FF9800"
     }
 
     return (
@@ -250,13 +413,15 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
             <View style={styles.badge}>
               <Text style={styles.badgeText}>Caja {item.box}</Text>
             </View>
-            <View style={styles.viewItemId}>
-              <Text style={styles.itemId} numberOfLines={1}>{item.itemId}</Text>
-            </View>
+
           </View>
 
           <View style={styles.cardContent}>
             <View style={styles.infoGrid}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Articulo</Text>
+                <Text style={styles.infoValue}>{item.itemId}</Text>
+              </View>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Talla</Text>
                 <Text style={styles.infoValue}>{item.size}</Text>
@@ -268,6 +433,10 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Color</Text>
                 <Text style={styles.infoValue} numberOfLines={1}>{item.colorId}</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>categoria</Text>
+                <Text style={styles.infoValue} numberOfLines={1}>{item.boxCategoryId}</Text>
               </View>
               {item.packing && (
                 <View style={styles.infoItem}>
@@ -288,38 +457,85 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
 
       <Header texto1="" texto2="Enviar Despacho" texto3={`Numero de Despacho: ${WMSState.SRGDespachoId}`} />
       {/* Traslados colapsable */}
-      {despachoTrasladodata.length > 0 && (
-        <View style={styles.trasladosSection}>
-          <TouchableOpacity
-            style={styles.trasladosHeader}
-            onPress={() => setTrasladosExpanded(!trasladosExpanded)}
-          >
-            <View style={styles.trasladosHeaderLeft}>
-              <Icon name="exchange-alt" size={isSmallDevice ? 10 : 12} color="#1976D2" />
-              <Text style={styles.trasladosHeaderText}>
-                Traslados ({despachoTrasladodata.length})
-              </Text>
-            </View>
-            <Icon
-              name={trasladosExpanded ? "chevron-up" : "chevron-down"}
-              size={isSmallDevice ? 10 : 12}
-              color="#757575"
-            />
-          </TouchableOpacity>
+      <View style={styles.trasladosSection}>
+        <TouchableOpacity
+          style={styles.trasladosHeader}
+          onPress={() => setTrasladosExpanded(!trasladosExpanded)}
+        >
+          <View style={styles.trasladosHeaderLeft}>
+            <Icon name="exchange-alt" size={isSmallDevice ? 10 : 12} color="#1976D2" />
+            <Text style={styles.trasladosHeaderText}>
+              Traslados ({despachoTrasladodata.length})
+            </Text>
+          </View>
+          <Icon
+            name={trasladosExpanded ? "chevron-up" : "chevron-down"}
+            size={isSmallDevice ? 10 : 12}
+            color="#757575"
+          />
+        </TouchableOpacity>
 
-          {trasladosExpanded && (
-            <View style={styles.trasladosContent}>
-              <View style={styles.trasladosChips}>
-                {despachoTrasladodata.map((traslado, index) => (
-                  <View key={index} style={styles.trasladoChip}>
-                    <Text style={styles.trasladoChipText}>{traslado.transferId}</Text>
-                  </View>
-                ))}
-              </View>
+        {trasladosExpanded && (
+          <View style={styles.trasladosContent}>
+            {/* Botones Eliminar / Agregar */}
+            <View style={styles.trasladosActions}>
+              <TouchableOpacity
+                style={[
+                  styles.trasladoActionBtn,
+                  modoEliminar ? styles.trasladoActionBtnActive : styles.trasladoActionBtnDelete,
+                ]}
+                onPress={() => setModoEliminar(!modoEliminar)}
+              >
+                <Icon
+                  name={modoEliminar ? "times" : "trash-alt"}
+                  size={isSmallDevice ? 10 : 12}
+                  color={modoEliminar ? "#FFFFFF" : "#D32F2F"}
+                />
+                <Text
+                  style={[
+                    styles.trasladoActionBtnText,
+                    { color: modoEliminar ? "#FFFFFF" : "#D32F2F" },
+                  ]}
+                >
+                  {modoEliminar ? "Cancelar" : "Eliminar"}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.trasladoActionBtn, styles.trasladoActionBtnAdd]}
+                onPress={abrirModalAgregar}
+              >
+                <Icon name="plus" size={isSmallDevice ? 10 : 12} color="#2E7D32" />
+                <Text style={[styles.trasladoActionBtnText, { color: "#2E7D32" }]}>
+                  Agregar
+                </Text>
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
-      )}
+
+            {/* Chips de traslados */}
+            <View style={styles.trasladosChips}>
+              {despachoTrasladodata.map((traslado, index) => (
+                <View key={index} style={[styles.trasladoChip, getStatusStyle(traslado.statusId), modoEliminar && styles.trasladoChipDeleteMode]}>
+                  <View>
+                    <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.transferId}</Text>
+                    <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.itemId}</Text>
+                    <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>Total Uni: {traslado.montoTraslado}</Text>
+                  </View>
+                  {modoEliminar && (
+                    <TouchableOpacity
+                      style={styles.trasladoChipDeleteBtn}
+                      onPress={() => confirmarEliminarTraslado(traslado)}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                      <Icon name="times-circle" size={isSmallDevice ? 14 : 16} color="#D32F2F" solid />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
 
       {/* Barra de busqueda compacta */}
       <View style={styles.searchContainer}>
@@ -354,9 +570,15 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
         <View style={styles.listColumn}>
           <View style={[styles.columnHeader, { backgroundColor: "#FFF3E0" }]}>
             <Icon name="clock" size={isSmallDevice ? 10 : 12} color="#FF9800" />
-            <Text style={[styles.columnTitle, { color: "#E65100" }]}>
-              Pendiente ({pendiente.length})
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.columnTitle, { color: "#E65100" }]}>
+                Pendiente ({pendiente.length})
+              </Text>
+              <View style={styles.totalsRow}>
+                <Text style={styles.totalLabel}>1ra: <Text style={styles.totalValue}>{totalPendientePrimeras}</Text></Text>
+                <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>2da: <Text style={styles.totalValue}>{totalPendienteSegundas}</Text></Text>
+              </View>
+            </View>
           </View>
           <FlatList
             data={pendiente}
@@ -380,9 +602,15 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
         <View style={styles.listColumn}>
           <View style={[styles.columnHeader, { backgroundColor: "#E8F5E9" }]}>
             <Icon name="check-circle" size={isSmallDevice ? 10 : 12} color="#4CAF50" />
-            <Text style={[styles.columnTitle, { color: "#2E7D32" }]}>
-              Escaneado ({escaneado.length})
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.columnTitle, { color: "#2E7D32" }]}>
+                Escaneado ({escaneado.length})
+              </Text>
+              <View style={styles.totalsRow}>
+                <Text style={styles.totalLabel}>1ra: <Text style={styles.totalValue}>{totalEscaneadoPrimeras}</Text></Text>
+                <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>2da: <Text style={styles.totalValue}>{totalEscaneadoSegundas}</Text></Text>
+              </View>
+            </View>
           </View>
           <FlatList
             data={escaneado}
@@ -422,13 +650,118 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
                 color={isDisabled ? "#FFFFFF" : "#2E7D32"}
               />
               <Text style={[styles.footerButtonText, { color: isDisabled ? "#FFFFFF" : "#2E7D32" }]}>
-                Enviar despacho
+                Enviar traslados ({totaldtrasladoEnviados})
               </Text>
             </View>
           )}
         </TouchableOpacity>
       </View>
 
+      {/* Modal Agregar Traslado */}
+      <Modal
+        visible={modalAgregarVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalAgregarVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {/* Header del modal */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Agregar Traslado</Text>
+              <TouchableOpacity
+                onPress={() => setModalAgregarVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Icon name="times" size={isSmallDevice ? 16 : 20} color="#757575" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Dropdown de lote - usando componente nativo en lugar de Dropdown externo */}
+            <View style={styles.modalDropdownSection}>
+              <Text style={styles.modalSectionLabel}>Seleccione un lote</Text>
+
+              <Dropdown
+                data={dataLote.filter((lote) => lote.itemseasonid)}
+                labelField="name"
+                valueField="itemseasonid"
+                placeholder="Seleccione un lote"
+                value={loteSeleccionadoDespacho}
+                onChange={(item) => {
+                  setLoteSeleccionadoDespacho(item.itemseasonid)
+                  getTrasladosDisponibles(item.itemseasonid)
+                }}
+                style={styles.modalDropdown}
+                placeholderStyle={styles.modalDropdownPlaceholder}
+                selectedTextStyle={styles.modalDropdownSelectedText}
+                inputSearchStyle={styles.modalDropdownInputSearch}
+                itemTextStyle={{ color: "black" }}
+              />
+            </View>
+
+            {/* Lista de traslados disponibles */}
+            <View style={styles.modalListSection}>
+              <Text style={styles.modalSectionLabel}>
+                Traslados disponibles {trasladosDisponibles.length > 0 ? `(${trasladosDisponibles.length})` : ""}
+              </Text>
+
+              {loadingTrasladosDisponibles ? (
+                <View style={styles.modalLoadingContainer}>
+                  <ActivityIndicator size="small" color="#1976D2" />
+                  <Text style={styles.modalLoadingText}>Cargando traslados...</Text>
+                </View>
+              ) : trasladosDisponibles.length === 0 ? (
+                <View style={styles.modalEmptyContainer}>
+                  <Icon name="inbox" size={isSmallDevice ? 24 : 32} color="#BDBDBD" />
+                  <Text style={styles.modalEmptyText}>
+                    {loteSeleccionadoDespacho
+                      ? "No hay traslados disponibles para este lote"
+                      : "Seleccione un lote para ver traslados"}
+                  </Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={trasladosDisponibles}
+                  keyExtractor={(item, index) => `${item.transferId}-${index}`}
+                  style={styles.modalScrollList}
+                  showsVerticalScrollIndicator
+                  nestedScrollEnabled
+                  renderItem={({ item: traslado }) => (
+                    <View style={styles.modalTrasladoItem}>
+                      <View style={styles.modalTrasladoInfo}>
+                        <Text style={styles.modalTrasladoId}>{traslado.transferId}</Text>
+                        <Text style={styles.modalTrasladoDetail}>{traslado.itemId}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.modalTrasladoAddBtn}
+                        onPress={() => agregarTraslado(traslado)}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <>
+                            <Icon name="plus" size={isSmallDevice ? 10 : 12} color="#FFFFFF" />
+                            <Text style={styles.modalTrasladoAddBtnText}>Agregar</Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                />
+              )}
+            </View>
+
+            {/* Boton cerrar */}
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setModalAgregarVisible(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -499,11 +832,55 @@ const styles = StyleSheet.create({
     paddingHorizontal: isSmallDevice ? 6 : 10,
     paddingVertical: isSmallDevice ? 2 : 4,
     borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: isSmallDevice ? 4 : 6,
+  },
+  trasladoChipDeleteMode: {
+    backgroundColor: "#FFEBEE",
+    borderWidth: 1,
+    borderColor: "#FFCDD2",
   },
   trasladoChipText: {
     fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
     fontWeight: "600",
     color: "#1565C0",
+  },
+  trasladoChipDeleteBtn: {
+    marginLeft: isSmallDevice ? 2 : 4,
+  },
+
+  // Botones de accion en traslados
+  trasladosActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: isSmallDevice ? 6 : 8,
+    marginBottom: isSmallDevice ? 4 : 6,
+  },
+  trasladoActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: isSmallDevice ? 3 : 4,
+    paddingHorizontal: isSmallDevice ? 8 : 12,
+    paddingVertical: isSmallDevice ? 4 : 6,
+    borderRadius: isSmallDevice ? 6 : 8,
+    borderWidth: 1,
+  },
+  trasladoActionBtnDelete: {
+    borderColor: "#FFCDD2",
+    backgroundColor: "#FFF5F5",
+  },
+  trasladoActionBtnActive: {
+    borderColor: "#D32F2F",
+    backgroundColor: "#D32F2F",
+  },
+  trasladoActionBtnAdd: {
+    borderColor: "#C8E6C9",
+    backgroundColor: "#F1F8E9",
+  },
+  trasladoActionBtnText: {
+    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
+    fontWeight: "600",
   },
 
   // Busqueda
@@ -566,6 +943,19 @@ const styles = StyleSheet.create({
   columnTitle: {
     fontSize: isSmallDevice ? 12 : isTablet ? 16 : 14,
     fontWeight: "600",
+  },
+  totalsRow: {
+    flexDirection: "row",
+    gap: isSmallDevice ? 6 : 10,
+    marginTop: 1,
+  },
+  totalLabel: {
+    fontSize: isSmallDevice ? 10 : isTablet ? 13 : 11,
+    color: "#E65100",
+    fontWeight: "500",
+  },
+  totalValue: {
+    fontWeight: "700",
   },
   listContent: {
     paddingVertical: isSmallDevice ? 2 : 4,
@@ -691,5 +1081,153 @@ const styles = StyleSheet.create({
   footerButtonText: {
     fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
     fontWeight: "700",
+  },
+
+  // Modal Agregar Traslado
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: isSmallDevice ? 12 : 20,
+  },
+  modalContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: isSmallDevice ? 10 : 14,
+    width: "100%",
+    maxHeight: "80%",
+    padding: isSmallDevice ? 12 : 20,
+    overflow: "hidden",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: isSmallDevice ? 12 : 16,
+    paddingBottom: isSmallDevice ? 8 : 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  modalTitle: {
+    fontSize: isSmallDevice ? 16 : isTablet ? 20 : 18,
+    fontWeight: "700",
+    color: "#1976D2",
+  },
+  modalDropdownSection: {
+    marginBottom: isSmallDevice ? 12 : 16,
+  },
+  modalSectionLabel: {
+    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
+    fontWeight: "600",
+    color: "#424242",
+    marginBottom: isSmallDevice ? 4 : 6,
+  },
+  modalDropdown: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: isSmallDevice ? 6 : 8,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    paddingHorizontal: isSmallDevice ? 10 : 14,
+    paddingVertical: isSmallDevice ? 10 : 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalDropdownPlaceholder: {
+    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
+    color: "#9E9E9E",
+  },
+  modalDropdownSelectedText: {
+    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
+    color: "#212121",
+    fontWeight: "500",
+  },
+  modalDropdownInputSearch: {
+    height: isSmallDevice ? 36 : 40,
+    fontSize: isSmallDevice ? 13 : 15,
+  },
+  modalListSection: {
+    flexShrink: 1,
+    minHeight: isSmallDevice ? 80 : 100,
+  },
+  modalLoadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: isSmallDevice ? 20 : 30,
+  },
+  modalLoadingText: {
+    fontSize: isSmallDevice ? 12 : 14,
+    color: "#757575",
+  },
+  modalEmptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: isSmallDevice ? 6 : 8,
+    paddingVertical: isSmallDevice ? 20 : 30,
+  },
+  modalEmptyText: {
+    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
+    color: "#9E9E9E",
+    textAlign: "center",
+  },
+  modalScrollList: {
+    flexGrow: 0,
+    marginTop: isSmallDevice ? 4 : 6,
+  },
+  modalTrasladoItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: isSmallDevice ? 6 : 8,
+    padding: isSmallDevice ? 8 : 12,
+    marginBottom: isSmallDevice ? 4 : 6,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  modalTrasladoInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  modalTrasladoId: {
+    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
+    fontWeight: "700",
+    color: "#1565C0",
+  },
+  modalTrasladoDetail: {
+    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
+    color: "#757575",
+    marginTop: 2,
+  },
+  modalTrasladoAddBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: isSmallDevice ? 3 : 4,
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: isSmallDevice ? 10 : 14,
+    paddingVertical: isSmallDevice ? 6 : 8,
+    borderRadius: isSmallDevice ? 6 : 8,
+  },
+  modalTrasladoAddBtnText: {
+    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  modalCloseBtn: {
+    marginTop: isSmallDevice ? 12 : 16,
+    backgroundColor: "#F5F5F5",
+    borderRadius: isSmallDevice ? 6 : 8,
+    paddingVertical: isSmallDevice ? 10 : 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  modalCloseBtnText: {
+    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
+    fontWeight: "600",
+    color: "#424242",
   },
 })

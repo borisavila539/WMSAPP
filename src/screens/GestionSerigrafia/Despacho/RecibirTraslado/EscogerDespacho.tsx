@@ -20,6 +20,7 @@ import { WMSContext } from "../../../../context/WMSContext"
 import { useFocusEffect } from "@react-navigation/native"
 import { ConsultaLoteInterface } from "../../../../interfaces/Serigrafia/Lote"
 import { Dropdown } from "react-native-element-dropdown"
+import { getEstadoTextoReceived } from "../../../../interfaces/Serigrafia/Enums/EstadosDespacho"
 
 
 type props = StackScreenProps<RootStackParams, "EscorgerTrasladoParaRecibirScreen">
@@ -94,8 +95,7 @@ export const EscorgerTrasladoParaRecibirScreen: FC<props> = ({ navigation }) => 
 
         return despachosEnviados.filter((despacho) => {
             if (despacho.id.toString().includes(query)) return true
-            if (despacho.truck.toLowerCase().includes(query)) return true
-            if (despacho.driver.toLowerCase().includes(query)) return true
+            if (despacho.descripcion.toLowerCase().includes(query)) return true
             return false
         })
     }, [despachosEnviados, searchQuery])
@@ -168,18 +168,13 @@ export const EscorgerTrasladoParaRecibirScreen: FC<props> = ({ navigation }) => 
 
                     <View style={styles.despachoInfo}>
                         <View style={styles.despachoInfoRow}>
-                            <Text style={styles.despachoLabel}>Camión:</Text>
-                            <Text style={styles.despachoValue}>{item.truck}</Text>
+                            <Text style={styles.despachoLabel}>Descripción:</Text>
+                            <Text style={styles.despachoValue}>{item.descripcion}</Text>
                         </View>
 
                         <View style={styles.despachoInfoRow}>
-                            <Text style={styles.despachoLabel}>Chofer:</Text>
-                            <Text style={styles.despachoValue}>{item.driver}</Text>
-                        </View>
-
-                        <View style={styles.despachoInfoRow}>
-                            <Text style={styles.despachoLabel}>Tienda destino:</Text>
-                            <Text style={styles.despachoValue}>{item.store}</Text>
+                            <Text style={styles.despachoLabel}>Alcmacen de Destino:</Text>
+                            <Text style={styles.despachoValue}>{22}</Text>
                         </View>
 
                         {item.createdBy && (
@@ -191,9 +186,9 @@ export const EscorgerTrasladoParaRecibirScreen: FC<props> = ({ navigation }) => 
 
                     </View>
 
-                    <View style={[styles.statusBadge, getStatusStyle(item.statusId)]}>
-                        <Text style={[styles.statusText, getStatusTextStyle(item.statusId)]}>
-                            {getStatusLabel(item.statusId)}
+                    <View style={[styles.statusBadge, getStatusStyle(item.received)]}>
+                        <Text style={[styles.statusText, getStatusTextStyle(item.received)]}>
+                            {getEstadoTextoReceived(item.received)}
                         </Text>
                     </View>
 
