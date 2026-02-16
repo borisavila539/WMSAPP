@@ -132,7 +132,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       const resp = await WMSApiSerigrafia.get<ArticulosParaTrasladoInterface[]>(`GetArticulosDisponibleParaTraslado/${loteId}`,)
       setDataArticulos(resp.data ?? [])
     } catch (error) {
-      Alert.alert("Error al obtener los artículos para traslado")
+      Alert.alert("Alerta", "Selecione un lote que tenga traslados disponibles")
       setDataArticulos([])
     }
 
@@ -162,6 +162,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
 
   useEffect(() => {
     if (selectedLote) {
+      setSelectedArticles([]) // Limpiar selección al cambiar de lote
       getArticulosParaTraslado(selectedLote)
     }
   }, [selectedLote])
@@ -225,7 +226,6 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
 
   const obtenerTallasPorArticulo = async (articulo: ArticulosParaTrasladoInterface): Promise<TallaDetalle[]> => {
     const resp = await WMSApiSerigrafia.get<LineasTrasladoDTO[]>(`GetLineasDeTraslado/${articulo.itemId}`)
-
     return resp.data.map((l) => ({
       sizedId: l.sizeId,
       cantidad: l.cantidadDisponible,
@@ -270,6 +270,8 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       Alert.alert("Por favor selecciona al menos un artículo")
       return
     }
+    setArticuloGenericoSegundas("") // Limpiar selección de artículo genérico al iniciar el proceso
+    setDiarioSeleccionadoPorTipo({ 1: null, 2: null, 3: null }) // Limpiar selección de diarios al iniciar el proceso
 
     // Obtener artículos seleccionados
     const articulos = dataArticulos.filter((art) => selectedArticles.includes(art.itemId))
@@ -287,23 +289,27 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
   }
 
   const confirmarTraslado = async () => {
-    const hayPrimerasYSegundas =
-  !!diarioSeleccionadoPorTipo[1]?.journalid &&
-  !!diarioSeleccionadoPorTipo[2]?.journalid;
-    
-    if (!hayPrimerasYSegundas){
-      return Alert.alert("Alerta","debe de seleccionarse los diarios de primeras y segundas")
+    const hayDiarioPrimerasSelecionado = !!diarioSeleccionadoPorTipo[1]?.journalid;
+    const hayDiarioSegundasSelecionado = !!diarioSeleccionadoPorTipo[2]?.journalid;
+    const hayPrimeras = articulosConTallas.some(art => art.tallas?.some(t => t.seleccionada && Number(t.productType) === 1))
+    const haySegundas = articulosConTallas.some(art => art.tallas?.some(t => t.seleccionada && Number(t.productType) === 2))
+
+    if (!hayDiarioPrimerasSelecionado && hayPrimeras) {
+      return Alert.alert("Alerta", "debe de seleccionarse los diarios de primeras")
+    }
+    if (!hayDiarioSegundasSelecionado && haySegundas) {
+      return Alert.alert("Alerta", "debe de seleccionarse los diarios de segundas")
     }
 
-    if(!articuloGenericoSegundas){
-      return Alert.alert("Alerta","debe de seleccionarse articulo Generico")
+    if (!articuloGenericoSegundas && haySegundas) {
+      return Alert.alert("Alerta", "debe de seleccionarse articulo Generico")
     }
 
     try {
 
-            const dataTraslado = articulosConTallas.flatMap((art) =>
+      const dataTraslado = articulosConTallas.flatMap((art) =>
         art
-          .tallas!.filter((t) => t.seleccionada && t.cantidad > 0 && Number(t.productType)==1) 
+          .tallas!.filter((t) => t.seleccionada && t.cantidad > 0 && Number(t.productType) == 1)
           .map((t) => ({
             itemId: art.itemId,
             color: art.color ?? "",
@@ -318,7 +324,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       )
       const dataToSend = articulosConTallas.flatMap((art) =>
         art
-          .tallas!.filter((t) => t.seleccionada && t.cantidad > 0) 
+          .tallas!.filter((t) => t.seleccionada && t.cantidad > 0)
           .map((t) => ({
             itemId: art.itemId,
             color: art.color ?? "",
@@ -331,7 +337,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
             tipoDiario: diarioSeleccionadoPorTipo[t.productType]?.journalnameid || "",
           })),
       )
-    
+
       const diarioLineasSegundas: DiarioLineasDTO = {
         journalId: diarioSeleccionadoPorTipo[2]?.journalid || "",
         lineas: dataToSend
@@ -350,12 +356,12 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       }
 
 
-        const diarioLineasPrimeras: DiarioLineasDTO = {
+      const diarioLineasPrimeras: DiarioLineasDTO = {
         journalId: diarioSeleccionadoPorTipo[1]?.journalid || "",
         lineas: dataToSend
           .filter(d => Number(d.productType) === 2)
           .map(d => ({
-          itemId: d.itemId,
+            itemId: d.itemId,
             site: "1",
             wareHouse: "40",
             color: d.color,
@@ -367,20 +373,23 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
           })),
       }
 
-
-      const respDiarioPrimeras = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasPrimeras);
-      const errorDiairoPrimeras = !respDiarioPrimeras.data.includes("OK")
-      if (errorDiairoPrimeras) {
-        Alert.alert("Error" + respDiarioPrimeras.data)
-      } else {
-        Alert.alert("Se añadio linea a diairo primeras")
+      if (hayPrimeras) {
+        const respDiarioPrimeras = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasPrimeras);
+        const errorDiairoPrimeras = !respDiarioPrimeras.data.includes("OK")
+        if (errorDiairoPrimeras) {
+          Alert.alert("Error" + respDiarioPrimeras.data)
+        } else {
+          Alert.alert("Se añadio linea a diairo primeras")
+        }
       }
-      const respDiarioSegundas = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasSegundas);
-      const errorDiarioSegundas = !respDiarioSegundas.data.includes("OK")
-      if (errorDiarioSegundas) {
-        Alert.alert("Error" + respDiarioSegundas.data)
-      } else {
-       Alert.alert("Se añadio linea a diairo segundas")
+      if (haySegundas) {
+        const respDiarioSegundas = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasSegundas);
+        const errorDiarioSegundas = !respDiarioSegundas.data.includes("OK")
+        if (errorDiarioSegundas) {
+          Alert.alert("Error" + respDiarioSegundas.data)
+        } else {
+          Alert.alert("Se añadio linea a diairo segundas")
+        }
       }
 
       const respCrearTraslado = await WMSApiSerigrafia.post('CrearTraslado', dataTraslado);
@@ -388,7 +397,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       if (erroTraslado) {
         Alert.alert("Error" + respCrearTraslado.data)
       } else {
-        Alert.alert("Exito","El traslado se creo correctamente")
+        Alert.alert("Exito", "El traslado se creo correctamente")
       }
 
 
@@ -403,7 +412,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       console.error("Error al crear la traslado: \n", error)
       Alert.alert("Error", "No se pudo crear el traslado")
     }
-   
+
   }
 
   const getProductTypeName = (type: number): string => {
@@ -602,9 +611,9 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
               activeOpacity={1}
               onPress={() => setShowArticuloGenericoModal(false)}
             >
-<View style={styles.articuloGenericoModalContent}>
+              <View style={styles.articuloGenericoModalContent}>
                 <Text style={styles.articuloGenericoModalTitle}>Selecciona Artículo Genérico</Text>
-                
+
                 {isLoadingArticulosGenericos ? (
                   <View style={styles.loadingContainer}>
                     <Text style={styles.loadingText}>Cargando artículos...</Text>
@@ -762,7 +771,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
                                               updateTallaCantidad(articulo.itemId, talla.sizedId, text)
                                             }
                                             keyboardType="numeric"
-                                            editable={talla.seleccionada}
+                                            editable={false}
                                             selectTextOnFocus
                                             placeholder="0"
                                           />
@@ -1312,7 +1321,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginHorizontal: 4,
   },
-tipoDiarioArrow: {
+  tipoDiarioArrow: {
     fontSize: 10,
     color: "#999",
   },

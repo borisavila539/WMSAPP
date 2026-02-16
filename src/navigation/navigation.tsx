@@ -85,6 +85,7 @@ import { CrearDiariosCreen } from '../screens/GestionSerigrafia/Despacho/CrearDi
 import { DespachoEnviarTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/EnviarTralados/DespachoEnviarTraslado';
 import { DespachoRecibirTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/DespachoRecibirTraslado';
 import { EscorgerTrasladoParaRecibirScreen} from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/EscogerDespacho';
+import { ConsultaTrasladoCreadosScreen } from '../screens/GestionSerigrafia/Despacho/TrasladosCreados/ConsultaTrasladosCreados';
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -174,6 +175,7 @@ export type RootStackParams = {
     DespachoEnviarTrasladoScreen: undefined,
     DespachoRecibirTrasladoScreen: undefined,
     EscorgerTrasladoParaRecibirScreen: undefined,
+    ConsultaTrasladoCreadosScreen: undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -296,6 +298,7 @@ export const Navigation = () => {
             <Stack.Screen name= 'DespachoEnviarTrasladoScreen' options={{title: 'DespachoEnviarTrasladoScreen'}} component={DespachoEnviarTrasladoScreen} />
             <Stack.Screen name= 'DespachoRecibirTrasladoScreen' options={{title: 'DespachoRecibirTrasladoScreen'}} component={DespachoRecibirTrasladoScreen} />
             <Stack.Screen name= 'EscorgerTrasladoParaRecibirScreen' options={{title: 'EscorgerTrasladoParaRecibirScreen'}} component={EscorgerTrasladoParaRecibirScreen} />
+            <Stack.Screen name= 'ConsultaTrasladoCreadosScreen' options={{title: 'ConsultaTrasladoCreadosScreen'}} component={ConsultaTrasladoCreadosScreen} />
         </Stack.Navigator>
     )
 }

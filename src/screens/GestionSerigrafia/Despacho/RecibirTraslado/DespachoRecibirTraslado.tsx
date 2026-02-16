@@ -21,30 +21,13 @@ import { WMSApiSerigrafia } from "../../../../api/WMSApiSerigrafia"
 import type { TrasladoDespachoDTO } from "../../../../interfaces/Serigrafia/TrasladoDespachoDTO"
 import SoundPlayer from "react-native-sound-player"
 import { UsuarioValidoPorAccion } from "../../../../interfaces/Serigrafia/UsuarioValidoPorAccion"
+import { IDespachoLinesPacking } from "../../../../interfaces/Serigrafia/IDespachoLinesPacking"
 
-export interface IDespachoLinesPacking {
-  id: number
-  despachoId?: number | null
-  prodMasterId?: string | null
-  prodId?: string | null
-  itemId?: string | null
-  box?: number | null
-  size?: string | null
-  colorId?: string | null
-  qty?: number | null
-  packing?: boolean | null
-  userPacking?: string | null
-  packingDateTime?: Date | null
-  receive?: boolean | null
-  userReceive?: string | null
-  receiveDateTime?: Date | null
-}
-
-interface PackingRequestDTO {
+interface ReceivingRequestDTO {
   DespachoId: number
   ProdMasterId: string
   Box: number
-  UserPacking: string
+  userReceive: string
 }
 
 type props = StackScreenProps<RootStackParams, "DespachoRecibirTrasladoScreen">
@@ -68,11 +51,50 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
   const [despachoTrasladodata, setDespachoTrasladodata] = useState<TrasladoDespachoDTO[]>([])
   const [trasladosExpanded, setTrasladosExpanded] = useState<boolean>(!isSmallDevice)
 
-  const allReceived = data.length > 0 && data.every((item) => item.receive);
+ // const isDisabled = data.length > 0 && data.every((item) => item.receive);
 
   const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
   const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
 
+  const totalPendientePrimeras = pendiente.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 1) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const totalPendienteSegundas = pendiente.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 2) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const totalEscaneadoPrimeras = escaneado.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 1) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const totalEscaneadoSegundas = escaneado.reduce((total, item) => {
+    const cat = Number(item.boxCategoryId)
+    if (cat === 2) return total + (item.qty ?? 0)
+    return total
+  }, 0)
+
+  const isTrasladoCompletamentePikeado = (tras: TrasladoDespachoDTO) =>
+    data
+      .filter(d => d.itemId === tras.itemId)
+      .every(d => d.receive)
+
+  const isTrasladoEnviado = (tras: TrasladoDespachoDTO) => tras.statusId === 2
+
+  const isDisabled = despachoTrasladodata.some(
+    (tras) => isTrasladoCompletamentePikeado(tras) && !isTrasladoEnviado(tras)
+  )
+  const totaldtrasladoRecibido = despachoTrasladodata.filter((tras) => tras.statusId === 1 &&
+    data
+      .filter(d => d.itemId === tras.itemId)
+      .every(d => d.receive)).length
+ 
   const PlaySound = (estado: string) => {
     try {
       SoundPlayer.playSoundFile(estado, "mp3")
@@ -80,24 +102,25 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
       console.log(err)
     }
   }
-    const getUsuarioValido = async () => {
-      setData([]);
-      const validoEnviar = "R";
-      try {
-        const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
-          `GetUsuariosPorAccion/${validoEnviar}`
-        );
-        setUsuariosValidos(resp.data)
-      } catch (err) {
-        console.log("Error fetching data", err);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-  
-    useEffect(() => {
-      getUsuarioValido();
-    }, []);
+
+  const getUsuarioValido = async () => {
+    setData([]);
+    const validoEnviar = "R";
+    try {
+      const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
+        `GetUsuariosPorAccion/${validoEnviar}`
+      );
+      setUsuariosValidos(resp.data)
+    } catch (err) {
+      console.log("Error fetching data", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    getUsuarioValido();
+  }, []);
 
   const scanRegex = /^OP-\d{8}\s\d{3},\d+$/
 
@@ -162,17 +185,20 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
     }
   }
   const changeTransferStatus = async () => {
-     if (!esUsuarioValido) {
+    if (!esUsuarioValido) {
       Alert.alert("Alerta", "Usuario invalido para esta acción.")
       return
     }
     if (loading) return
-
+    const dataToSend = despachoTrasladodata.filter(tras => tras.statusId == 1 &&
+      data
+        .filter(d => d.itemId === tras.itemId)
+        .every(d => d.receive)
+    );
     setLoading(true)
-    await WMSApiSerigrafia.post(`RecibirDespacho/${WMSState.SRGDespachoId}`, despachoTrasladodata).then(async (response) => {
-      Alert.alert("Éxito", "El despacho ha sido recibido correctamente.", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ])
+    await WMSApiSerigrafia.post(`RecibirDespacho/${WMSState.SRGDespachoId}`, dataToSend).then(async (response) => {
+      Alert.alert("Éxito", "Los traslados han sido recibidos correctamente.")
+      await getDespachoTrasladoData()
       await getData()
     }
     ).catch((error) => {
@@ -198,11 +224,11 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
 
     setLoading(true)
     try {
-      const packingRequest: PackingRequestDTO = {
+      const packingRequest: ReceivingRequestDTO = {
         DespachoId: WMSState.SRGDespachoId,
         ProdMasterId: parsed.prodMasterId,
         Box: parsed.box,
-        UserPacking: WMSState.usuario,
+        userReceive: WMSState.usuario,
       }
 
       await WMSApiSerigrafia.post("SetReceiveAsync", packingRequest)
@@ -218,6 +244,30 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
       requestAnimationFrame(() => textInputRef.current?.focus())
     }
   }
+  const getStatusStyle = (statusId: number) => {
+    switch (statusId) {
+      case 0: // Creado
+        return { backgroundColor: '#e4e2d9' } // amarillo
+      case 1: // Enviado
+        return { backgroundColor: '#22C55E' } // verde
+      case 2: // ecibido
+        return { backgroundColor: '#3f96be' } // rojo
+      default:
+        return { backgroundColor: '#9CA3AF' } // gris
+    }
+  }
+  const getStatusTextStyle = (statusId: number) => {
+    switch (statusId) {
+      case 0: // Creado (fondo claro)
+        return { color: "#000000" }
+      case 1: // Enviado (verde)
+        return { color: "#FFFFFF" }
+      case 3: // Recibido (azul)
+        return { color: "#FFFFFF" }
+      default: // Gris
+        return { color: "#FFFFFF" }
+    }
+  }
 
   const handleScanChange = (text: string) => {
     setSearchText(text)
@@ -228,16 +278,22 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
   }
 
   const renderItem = (item: IDespachoLinesPacking) => {
+
     const formatDate = (date: Date | null | undefined): string => {
       if (!date) return "N/A"
       const d = new Date(date)
       return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
     }
-
+    const isSegunda = Number(item.boxCategoryId) === 2
     const getCardColor = () => {
-      if (!item.receive) return "#4CAF50"
-      return "#3B82F6"
+      if (isSegunda) {
+        // Segundas: tonos distintos para diferenciar
+        return item.receive ? "#7B1FA2" : "#AB47BC" // morado oscuro / morado claro
+      }
+      // Primeras: colores originales
+      return item.receive ? "#5e93e2" : "#4CAF50"
     }
+
 
     return (
       <View style={styles.cardContainer}>
@@ -252,6 +308,10 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
           <View style={styles.cardContent}>
             <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Articulo</Text>
+                <Text style={styles.infoValue}>{item.itemId}</Text>
+              </View>
+              <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Talla</Text>
                 <Text style={styles.infoValue}>{item.size}</Text>
               </View>
@@ -262,6 +322,10 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Color</Text>
                 <Text style={styles.infoValue} numberOfLines={1}>{item.colorId}</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>categoria</Text>
+                <Text style={styles.infoValue} numberOfLines={1}>{item.boxCategoryId}</Text>
               </View>
               {item.receive && (
                 <View style={styles.infoItem}>
@@ -305,8 +369,10 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
             <View style={styles.trasladosContent}>
               <View style={styles.trasladosChips}>
                 {despachoTrasladodata.map((traslado, index) => (
-                  <View key={index} style={styles.trasladoChip}>
-                    <Text style={styles.trasladoChipText}>{traslado.transferId}</Text>
+                  <View key={index} style={[styles.trasladoChip, getStatusStyle(traslado.statusId)]}>
+                    <Text style={[styles.trasladoChipText,getStatusTextStyle(traslado.statusId)]}>{traslado.transferId}</Text>
+                    <Text style={[styles.trasladoChipText,getStatusTextStyle(traslado.statusId)]}>{traslado.itemId}</Text>
+                    <Text style={[styles.trasladoChipText,getStatusTextStyle(traslado.statusId)]}>Total Uni: {traslado.montoTraslado}</Text>
                   </View>
                 ))}
               </View>
@@ -351,6 +417,10 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
             <Text style={[styles.columnTitle, { color: "#E65100" }]}>
               Pendiente ({pendiente.length})
             </Text>
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalLabel}>1ra: <Text style={styles.totalValue}>{totalPendientePrimeras}</Text></Text>
+              <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>2da: <Text style={styles.totalValue}>{totalPendienteSegundas}</Text></Text>
+            </View>
           </View>
           <FlatList
             data={pendiente}
@@ -378,6 +448,10 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
             <Text style={[styles.columnTitle, { color: "#6085ff" }]}>
               Escaneado ({escaneado.length})
             </Text>
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalLabel}>1ra: <Text style={styles.totalValue}>{totalEscaneadoPrimeras}</Text></Text>
+              <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>2da: <Text style={styles.totalValue}>{totalEscaneadoSegundas}</Text></Text>
+            </View>
           </View>
           <FlatList
             data={escaneado}
@@ -394,31 +468,31 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
             }
           />
         </View>
-      </View> 
+      </View>
 
       {/* Footer flotante (sin franja) */}
       <View style={styles.footer} pointerEvents="box-none">
         <TouchableOpacity
           style={[
             styles.footerButton,
-            allReceived ? styles.footerButtonEnabled : styles.footerButtonDisabled,
+            isDisabled ? styles.footerButtonEnabled : styles.footerButtonDisabled,
             loading && styles.footerButtonLoading,
           ]}
           onPress={changeTransferStatus}
-          disabled={!allReceived || loading}
+          disabled={!isDisabled || loading}
           activeOpacity={0.85}
         >
           {loading ? (
-            <ActivityIndicator size="small" color={allReceived ? "#FFFFFF" : "#3B82F6"} />
+            <ActivityIndicator size="small" color={isDisabled ? "#FFFFFF" : "#3B82F6"} />
           ) : (
             <View style={styles.footerButtonContent}>
               <Icon
                 name="check-double"
                 size={isSmallDevice ? 14 : 16}
-                color={allReceived ? "#FFFFFF" : "#3B82F6"}
+                color={isDisabled ? "#FFFFFF" : "#3B82F6"}
               />
-              <Text style={[styles.footerButtonText, { color: allReceived ? "#FFFFFF" : "#3B82F6" }]}>
-                Recibir despacho
+              <Text style={[styles.footerButtonText, { color: isDisabled ? "#FFFFFF" : "#3B82F6" }]}>
+                 Recibir traslados ({totaldtrasladoRecibido})
               </Text>
             </View>
           )}
@@ -431,6 +505,19 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
 }
 
 const styles = StyleSheet.create({
+  totalsRow: {
+    flexDirection: "row",
+    gap: isSmallDevice ? 6 : 10,
+    marginTop: 1,
+  },
+  totalLabel: {
+    fontSize: isSmallDevice ? 10 : isTablet ? 13 : 11,
+    color: "#E65100",
+    fontWeight: "500",
+  },
+  totalValue: {
+    fontWeight: "700",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

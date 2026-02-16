@@ -4,4 +4,5 @@ export interface ArticulosParaTrasladoInterface {
   loteId: string
   cantidadDisponible: number 
   locationId: string
+  productType: number
 }
