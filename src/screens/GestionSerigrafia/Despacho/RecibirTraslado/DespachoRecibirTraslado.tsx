@@ -27,7 +27,7 @@ interface ReceivingRequestDTO {
   DespachoId: number
   ProdMasterId: string
   Box: number
-  userReceive: string
+  UserPacking: string
 }
 
 type props = StackScreenProps<RootStackParams, "DespachoRecibirTrasladoScreen">
@@ -228,7 +228,7 @@ export const DespachoRecibirTrasladoScreen: FC<props> = ({ navigation }) => {
         DespachoId: WMSState.SRGDespachoId,
         ProdMasterId: parsed.prodMasterId,
         Box: parsed.box,
-        userReceive: WMSState.usuario,
+        UserPacking: (WMSState as any)?.usuario ?? (WMSState as any)?.UserName ?? "Usuario Demo",
       }
 
       await WMSApiSerigrafia.post("SetReceiveAsync", packingRequest)
