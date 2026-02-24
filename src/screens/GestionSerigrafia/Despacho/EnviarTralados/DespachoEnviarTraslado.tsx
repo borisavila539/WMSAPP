@@ -1,12 +1,12 @@
-
 import type { StackScreenProps } from "@react-navigation/stack"
-import { type FC, useContext, useEffect, useRef, useState } from "react"
+import React, { type FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
+  InteractionManager,
   Modal,
   RefreshControl,
   StyleSheet,
@@ -41,486 +41,539 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window")
 const isSmallDevice = SCREEN_WIDTH < 400 // PDAs Zebra ~320-380px
 const isTablet = SCREEN_WIDTH >= 600
 
-export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
-  const [searchText, setSearchText] = useState<string>("")
-  const textInputRef = useRef<TextInput>(null)
+const scanRegex = /^OP-\d{8}\s\d{3},\d+$/
 
-  const [loading, setLoading] = useState<boolean>(false)
-  const [data, setData] = useState<IDespachoLinesPacking[]>([])
-  const [pendiente, setPendiente] = useState<IDespachoLinesPacking[]>([])
-  const [escaneado, setEscaneado] = useState<IDespachoLinesPacking[]>([])
-  const [refreshing, setRefreshing] = useState(false)
+function parseScan(raw: string): { prodMasterId: string; box: number } | null {
+  const v = raw.trim()
+  const m = v.match(/^(OP-\d{8}\s\d{3}),(\d+)$/)
+  if (!m) return null
+  const prodMasterId = m[1]
+  const box = Number(m[2])
+  if (!prodMasterId || !Number.isFinite(box)) return null
+  return { prodMasterId, box }
+}
+
+function PlaySound(estado: string) {
+  try {
+    SoundPlayer.playSoundFile(estado, "mp3")
+  } catch {
+    // noop
+  }
+}
+
+const Info = React.memo(({ label, value }: { label: string; value: string }) => {
+  return (
+    <View style={styles.infoItem}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
+  )
+})
+
+/** Card memoizada para reducir re-renders */
+const ItemCard = React.memo(
+  ({ item }: { item: IDespachoLinesPacking }) => {
+    const formatDate = (date: Date | null | undefined): string => {
+      if (!date) return "N/A"
+      const d = new Date(date as any)
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+    }
+
+    const isSegunda = Number(item.boxCategoryId) === 2
+
+    const bg = isSegunda
+      ? item.packing
+        ? "#7B1FA2"
+        : "#AB47BC"
+      : item.packing
+        ? "#4CAF50"
+        : "#FF9800"
+
+    return (
+      <View style={styles.cardContainer}>
+        <View style={[styles.card, { backgroundColor: bg }]}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.productId} numberOfLines={1}>
+              {item.prodMasterId}
+            </Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>Caja {item.box}</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoGrid}>
+            <Info label="Articulo" value={String(item.itemId)} />
+            <Info label="Talla" value={String(item.size)} />
+            <Info label="Cant" value={String(item.qty ?? 0)} />
+            <Info label="Color" value={String(item.colorId)} />
+            <Info label="Categoria" value={String(item.boxCategoryId)} />
+            {item.packing && <Info label="Fecha" value={formatDate(item.packingDateTime)} />}
+          </View>
+        </View>
+      </View>
+    )
+  },
+  (prev, next) => {
+    const a = prev.item
+    const b = next.item
+    return (
+      a.id === b.id &&
+      a.packing === b.packing &&
+      a.packingDateTime === b.packingDateTime &&
+      a.qty === b.qty &&
+      a.boxCategoryId === b.boxCategoryId
+    )
+  }
+)
+
+export const DespachoEnviarTrasladoScreen: FC<props> = () => {
   const { WMSState } = useContext(WMSContext)
 
+  // Texto del input (UI)
+  const [scanText, setScanText] = useState<string>("")
+  const inputRef = useRef<TextInput>(null)
+
+  // Lock anti doble-scan (ref) + estado para spinner
+  const busyRef = useRef(false)
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const [refreshing, setRefreshing] = useState(false)
+
+  // Fuente única: data
+  const [data, setData] = useState<IDespachoLinesPacking[]>([])
   const [despachoTrasladodata, setDespachoTrasladodata] = useState<TrasladoDespachoDTO[]>([])
   const [trasladosExpanded, setTrasladosExpanded] = useState<boolean>(!isSmallDevice)
 
   // Estado para modo eliminar traslados
   const [modoEliminar, setModoEliminar] = useState<boolean>(false)
 
-  // Estado para modal agregar traslado
+  // Modal agregar traslado
   const [modalAgregarVisible, setModalAgregarVisible] = useState<boolean>(false)
   const [loteSeleccionadoDespacho, setLoteSeleccionadoDespacho] = useState<string | null>(null)
   const [trasladosDisponibles, setTrasladosDisponibles] = useState<TrasladoDespachoDTO[]>([])
   const [loadingTrasladosDisponibles, setLoadingTrasladosDisponibles] = useState<boolean>(false)
   const [dataLote, setDataLote] = useState<ConsultaLoteInterface[]>([])
-  const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([]);
-  const esUsuarioValido = usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario)
-  const totalPendientePrimeras = pendiente.reduce((total, item) => {
-    const cat = Number(item.boxCategoryId)
-    if (cat === 1) return total + (item.qty ?? 0)
-    return total
-  }, 0)
 
-  const totalPendienteSegundas = pendiente.reduce((total, item) => {
-    const cat = Number(item.boxCategoryId)
-    if (cat === 2) return total + (item.qty ?? 0)
-    return total
-  }, 0)
-
-  const totalEscaneadoPrimeras = escaneado.reduce((total, item) => {
-    const cat = Number(item.boxCategoryId)
-    if (cat === 1) return total + (item.qty ?? 0)
-    return total
-  }, 0)
-
-  const totalEscaneadoSegundas = escaneado.reduce((total, item) => {
-    const cat = Number(item.boxCategoryId)
-    if (cat === 2) return total + (item.qty ?? 0)
-    return total
-  }, 0)
-
-  const isTrasladoCompletamentePikeado = (tras: TrasladoDespachoDTO) =>
-    data
-      .filter(d => d.itemId === tras.itemId)
-      .every(d => d.packing)
-
-  const isTrasladoEnviado = (tras: TrasladoDespachoDTO) => tras.statusId === 1 || tras.statusId === 2
-
-  const isDisabled = despachoTrasladodata.some(
-    (tras) => isTrasladoCompletamentePikeado(tras) && !isTrasladoEnviado(tras)
+  const [usuariosValidos, setUsuariosValidos] = useState<UsuarioValidoPorAccion[]>([])
+  const esUsuarioValido = useMemo(
+    () => usuariosValidos.some((u) => u.codigoEmpleado === WMSState.usuario),
+    [usuariosValidos, WMSState.usuario]
   )
 
-  const totaldtrasladoEnviados = despachoTrasladodata.filter((tras) => tras.statusId === 0 &&
-    data
-      .filter(d => d.itemId === tras.itemId)
-      .every(d => d.packing)).length
+  // ========= Derivados rápidos (1 solo pase) =========
+  const { pendiente, escaneado, totals, itemIndexByKey, packingAllByItemId } = useMemo(() => {
+    const p: IDespachoLinesPacking[] = []
+    const e: IDespachoLinesPacking[] = []
+    const idx = new Map<string, number>()
 
+    let p1 = 0,
+      p2 = 0,
+      e1 = 0,
+      e2 = 0
 
+    // Para saber si itemId está completamente "packing"
+    const countByItem = new Map<number, { total: number; packed: number }>()
 
+    for (let i = 0; i < data.length; i++) {
+      const it = data[i]
+      idx.set(`${it.prodMasterId}|${it.box}`, i)
 
-  const PlaySound = (estado: string) => {
-    try {
-      SoundPlayer.playSoundFile(estado, "mp3")
-    } catch (err) {
-      console.log(err)
-    }
-  }
+      const qty = it.qty ?? 0
+      const cat = Number(it.boxCategoryId)
 
-  const getLote = async () => {
-    try {
-      const resp = await WMSApiSerigrafia.get<ConsultaLoteInterface[]>("GetLote")
-      setDataLote(resp.data)
-
-      if (resp.data.length > 0) {
-        setLoteSeleccionadoDespacho(resp.data[0].itemseasonid)
+      if (it.packing) {
+        e.push(it)
+        if (cat === 1) e1 += qty
+        else if (cat === 2) e2 += qty
+      } else {
+        p.push(it)
+        if (cat === 1) p1 += qty
+        else if (cat === 2) p2 += qty
       }
-    } catch (error) {
-      Alert.alert("Error al obtener los lotes")
-    } finally {
+
+      const k = Number(it.itemId)
+      const prev = countByItem.get(k) ?? { total: 0, packed: 0 }
+      prev.total += 1
+      if (it.packing) prev.packed += 1
+      countByItem.set(k, prev)
     }
-  }
-  const scanRegex = /^OP-\d{8}\s\d{3},\d+$/
 
-  const parseScan = (raw: string): { prodMasterId: string; box: number } | null => {
-    const v = raw.trim()
-    const m = v.match(/^(OP-\d{8}\s\d{3}),(\d+)$/)
-    if (!m) return null
-
-    const prodMasterId = m[1]
-    const box = Number(m[2])
-
-    if (!prodMasterId || !Number.isFinite(box)) return null
-    return { prodMasterId, box }
-  }
-
-
-  const getData = async () => {
-    try {
-      const resp = await WMSApiSerigrafia.get<IDespachoLinesPacking[]>(
-        `GetDespachoLinesByIdAEnviar/${WMSState.SRGDespachoId}`,
-      )
-      setData(resp.data)
-      const data1: IDespachoLinesPacking[] = []
-      const data2: IDespachoLinesPacking[] = []
-
-      resp.data.forEach((element) => {
-        if (element.packing) data2.push(element)
-        else data1.push(element)
-      })
-
-      setPendiente(data1)
-      setEscaneado(data2)
-    } catch (err) {
-      console.log(err)
+    const all = new Map<number, boolean>()
+    for (const [k, v] of countByItem) {
+      all.set(k, v.total > 0 && v.total === v.packed)
     }
-  }
-  const getUsuarioValido = async () => {
-    setData([]);
-    const validoEnviar = "E";
+
+    return {
+      pendiente: p,
+      escaneado: e,
+      totals: { p1, p2, e1, e2 },
+      itemIndexByKey: idx,
+      packingAllByItemId: all,
+    }
+  }, [data])
+
+  const isTrasladoEnviado = useCallback((tras: TrasladoDespachoDTO) => tras.statusId === 1 || tras.statusId === 2, [])
+
+  const isDisabled = useMemo(() => {
+    // habilita botón si hay traslados "completos" pero aún no enviados
+    return despachoTrasladodata.some(
+      (t) => packingAllByItemId.get(Number(t.itemId)) === true && !isTrasladoEnviado(t)
+    )
+  }, [despachoTrasladodata, packingAllByItemId, isTrasladoEnviado])
+
+  const totaldtrasladoEnviados = useMemo(() => {
+    // contador de traslados listos para enviar (status 0 + completo)
+    return despachoTrasladodata.filter(
+      (t) => t.statusId === 0 && packingAllByItemId.get(Number(t.itemId)) === true
+    ).length
+  }, [despachoTrasladodata, packingAllByItemId])
+
+  // ========= Fetchers =========
+  const getData = useCallback(async () => {
+    const resp = await WMSApiSerigrafia.get<IDespachoLinesPacking[]>(
+      `GetDespachoLinesByIdAEnviar/${WMSState.SRGDespachoId}`
+    )
+    setData(resp.data)
+  }, [WMSState.SRGDespachoId])
+
+  const getDespachoTrasladoData = useCallback(async () => {
+    const resp = await WMSApiSerigrafia.get<TrasladoDespachoDTO[]>(
+      `GetDespachoTrasladosById/${WMSState.SRGDespachoId}`
+    )
+    setDespachoTrasladodata(resp.data)
+  }, [WMSState.SRGDespachoId])
+
+  const getUsuarioValido = useCallback(async () => {
+    const validoEnviar = "E"
     try {
       const resp = await WMSApiSerigrafia.get<UsuarioValidoPorAccion[]>(
         `GetUsuariosPorAccion/${validoEnviar}`
-      );
-      setUsuariosValidos(resp.data)
-    } catch (err) {
-      console.log("Error fetching data", err);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    getUsuarioValido();
-  }, []);
-
-  const getDespachoTrasladoData = async () => {
-    try {
-      const resp = await WMSApiSerigrafia.get<TrasladoDespachoDTO[]>(
-        `GetDespachoTrasladosById/${WMSState.SRGDespachoId}`,
       )
-      setDespachoTrasladodata(resp.data)
-    } catch (err) {
-      console.log(err)
+      setUsuariosValidos(resp.data)
+    } catch {
+      // noop
     }
-  }
-
-  useEffect(() => {
-    getDespachoTrasladoData()
-    getData()
-    const id = setTimeout(() => textInputRef.current?.focus(), 300)
-    return () => clearTimeout(id)
   }, [])
 
-  const onRefresh = async () => {
+  const getLote = useCallback(async () => {
+    try {
+      const resp = await WMSApiSerigrafia.get<ConsultaLoteInterface[]>("GetLote")
+      setDataLote(resp.data)
+      if (resp.data.length > 0) setLoteSeleccionadoDespacho(resp.data[0].itemseasonid)
+    } catch {
+      Alert.alert("Error al obtener los lotes")
+    }
+  }, [])
+
+  useEffect(() => {
+    getUsuarioValido()
+    getLote()
+  }, [getUsuarioValido, getLote])
+
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      getDespachoTrasladoData()
+      getData()
+      setTimeout(() => inputRef.current?.focus(), 150)
+    })
+    return () => task.cancel()
+  }, [getData, getDespachoTrasladoData])
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true)
     try {
       await Promise.all([getData(), getDespachoTrasladoData()])
     } finally {
       setRefreshing(false)
     }
-  }
+  }, [getData, getDespachoTrasladoData])
 
-  const sendPacking = async (rawCode: string) => {
-    if (loading) return
+  // ========= sendPacking ultra rápido (optimistic + rollback) =========
+  const sendPacking = useCallback(
+    async (rawCode: string) => {
+      if (busyRef.current) return
 
-    const clean = rawCode.trim()
-    if (!scanRegex.test(clean)) return
+      const clean = rawCode.trim()
+      if (!scanRegex.test(clean)) return
 
-    const parsed = parseScan(clean)
-    if (!parsed) {
-      PlaySound("error")
-      return
-    }
-
-    setLoading(true)
-    try {
-      const packingRequest: PackingRequestDTO = {
-        DespachoId: WMSState.SRGDespachoId,
-        ProdMasterId: parsed.prodMasterId,
-        Box: parsed.box,
-        UserPacking: (WMSState as any)?.usuario ?? (WMSState as any)?.UserName ?? "Usuario Demo",
+      const parsed = parseScan(clean)
+      if (!parsed) {
+        PlaySound("error")
+        return
       }
 
-      await WMSApiSerigrafia.post("SetPacking", packingRequest)
+      // UI inmediata
+      setScanText("")
+      requestAnimationFrame(() => inputRef.current?.focus())
 
-      await getData()
-      PlaySound("success")
-    } catch (error) {
-      console.log(error)
-      PlaySound("error")
-    } finally {
-      setLoading(false)
-      setSearchText("")
-      requestAnimationFrame(() => textInputRef.current?.focus())
-    }
-  }
+      const key = `${parsed.prodMasterId}|${parsed.box}`
+      const index = itemIndexByKey.get(key)
 
-  const changeTransferStatus = async () => {
+      // optimistic update
+      let prevSnapshot: IDespachoLinesPacking | null = null
+      if (index !== undefined) {
+        setData((prev) => {
+          const cur = prev[index]
+          if (!cur || cur.packing) return prev
+          prevSnapshot = cur
+          const next = prev.slice()
+          next[index] = { ...cur, packing: true, packingDateTime: new Date() as any }
+          return next
+        })
+      }
+
+      busyRef.current = true
+      setLoading(true)
+
+      try {
+        const packingRequest: PackingRequestDTO = {
+          DespachoId: WMSState.SRGDespachoId,
+          ProdMasterId: parsed.prodMasterId,
+          Box: parsed.box,
+          UserPacking: (WMSState as any)?.usuario ?? (WMSState as any)?.UserName ?? "Usuario Demo",
+        }
+
+        const resp = await WMSApiSerigrafia.post("SetPacking", packingRequest)
+
+        // Si tu API devuelve 0/1, valida aquí:
+         if (Number(resp.data) <= 0) {
+          PlaySound("error")
+         } else{        PlaySound("success")}
+
+
+
+        // Si no pudimos hacer optimistic porque no encontramos el item, refrescamos UNA vez.
+        if (index === undefined) {
+          await getData()
+        }
+      } catch (error) {
+        PlaySound("error")
+
+        // rollback si hicimos optimistic
+        if (index !== undefined) {
+          setData((prev) => {
+            const cur = prev[index]
+            if (!cur) return prev
+            const next = prev.slice()
+            if (prevSnapshot) next[index] = prevSnapshot
+            else next[index] = { ...cur, packing: false, packingDateTime: null as any }
+            return next
+          })
+        }
+      } finally {
+        busyRef.current = false
+        setLoading(false)
+      }
+    },
+    [WMSState.SRGDespachoId, itemIndexByKey, getData]
+  )
+
+  const handleScanChange = useCallback(
+    (text: string) => {
+      setScanText(text)
+      const trimmed = text.trim()
+      if (scanRegex.test(trimmed)) {
+        sendPacking(trimmed)
+      }
+    },
+    [sendPacking]
+  )
+
+  // ========= Enviar traslados =========
+  const changeTransferStatus = useCallback(async () => {
     if (!esUsuarioValido) {
       Alert.alert("Alerta", "Usuario invalido para esta acción.")
       return
     }
-    if (loading) return
-    const dataToSend = despachoTrasladodata.filter(tras => tras.statusId === 0 &&
-      data
-        .filter(d => d.itemId === tras.itemId)
-        .every(d => d.packing)
-    );
+    if (busyRef.current) return
 
+    const dataToSend = despachoTrasladodata.filter(
+      (t) => t.statusId === 0 && packingAllByItemId.get(Number(t.itemId)) === true
+    )
+    if (dataToSend.length === 0) return
+
+    busyRef.current = true
     setLoading(true)
-    await WMSApiSerigrafia.post(`EnviarDespacho/${WMSState.SRGDespachoId}`, dataToSend).then(async (response) => {
-      Alert.alert("Éxito", "Los traslados se enviaron corectamente correctamente.")
-      await getDespachoTrasladoData()
-      await getData()
-    }
-    ).catch((error) => {
-      const errorMessage = "Error al enviar despacho." + error.response.data
-      Alert.alert("Error", errorMessage)
-    }).finally(() => {
-      setLoading(false)
-    })
-  }
 
-  // --- Logica de eliminar traslado ---
-  const confirmarEliminarTraslado = (traslado: TrasladoDespachoDTO) => {
+    try {
+      await WMSApiSerigrafia.post(`EnviarDespacho/${WMSState.SRGDespachoId}`, dataToSend)
+      Alert.alert("Éxito", "Los traslados se enviaron correctamente.")
+      await Promise.all([getDespachoTrasladoData(), getData()])
+    } catch (error: any) {
+      const errorMessage = "Error al enviar despacho. " + (error?.response?.data ?? "")
+      Alert.alert("Error", errorMessage)
+    } finally {
+      busyRef.current = false
+      setLoading(false)
+    }
+  }, [WMSState.SRGDespachoId, despachoTrasladodata, packingAllByItemId, esUsuarioValido, getData, getDespachoTrasladoData])
+
+  // ========= Eliminar traslado =========
+  const confirmarEliminarTraslado = useCallback((traslado: TrasladoDespachoDTO) => {
     Alert.alert(
       "Confirmar eliminacion",
       `¿Esta seguro de eliminar el traslado ${traslado.transferId} (${traslado.itemId})?`,
       [
         { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: () => eliminarTraslado(traslado),
-        },
-      ],
+        { text: "Eliminar", style: "destructive", onPress: () => eliminarTraslado(traslado) },
+      ]
     )
-  }
+  }, [])
 
-  const eliminarTraslado = async (traslado: TrasladoDespachoDTO) => {
-    try {
+  const eliminarTraslado = useCallback(
+    async (traslado: TrasladoDespachoDTO) => {
+      if (busyRef.current) return
+      busyRef.current = true
       setLoading(true)
-      await WMSApiSerigrafia.post(
-        `EliminarTrasladoDespacho`, traslado,
-      );
-      await Promise.all([getDespachoTrasladoData(), getData()])
-    } catch (error: any) {
-      const msg = error?.response?.data ?? "Error al eliminar traslado."
-      Alert.alert("Error", String(msg))
-    } finally {
-      setLoading(false)
-      if (despachoTrasladodata.length <= 1) setModoEliminar(false)
-    }
-  }
+      try {
+        await WMSApiSerigrafia.post(`EliminarTrasladoDespacho`, traslado)
+        await Promise.all([getDespachoTrasladoData(), getData()])
+      } catch (error: any) {
+        const msg = error?.response?.data ?? "Error al eliminar traslado."
+        Alert.alert("Error", String(msg))
+      } finally {
+        busyRef.current = false
+        setLoading(false)
+        if (despachoTrasladodata.length <= 1) setModoEliminar(false)
+      }
+    },
+    [getData, getDespachoTrasladoData, despachoTrasladodata.length]
+  )
 
-  // --- Logica de agregar traslado ---
-  const getTrasladosDisponibles = async (lote: string) => {
+  // ========= Agregar traslado =========
+  const getTrasladosDisponibles = useCallback(async (lote: string) => {
     setLoadingTrasladosDisponibles(true)
     try {
-      const resp = await WMSApiSerigrafia.get<TrasladoDespachoDTO[]>(`GetTrasladoParaDespachoPorLote/${lote}`)
+      const resp = await WMSApiSerigrafia.get<TrasladoDespachoDTO[]>(
+        `GetTrasladoParaDespachoPorLote/${lote}`
+      )
       setTrasladosDisponibles(resp.data)
-    } catch (err) {
-      console.log("Error fetching traslados disponibles", err)
+    } catch {
       setTrasladosDisponibles([])
     } finally {
       setLoadingTrasladosDisponibles(false)
     }
-  }
-
-  useEffect(() => {
-    getLote()
   }, [])
 
-  const agregarTraslado = async (traslado: TrasladoDespachoDTO) => {
+  const agregarTraslado = useCallback(
+    async (traslado: TrasladoDespachoDTO) => {
+      if (busyRef.current) return
 
-    try {
-      setLoading(true)
-      const yaExisteElTraslado = despachoTrasladodata.some((tras) => tras.transferId === traslado.transferId)
+      const yaExisteElTraslado = despachoTrasladodata.some((t) => t.transferId === traslado.transferId)
       if (yaExisteElTraslado) {
-        Alert.alert("Error", "Ya exite en traslado en el despacho agregue otro")
+        Alert.alert("Error", "Ya existe ese traslado en el despacho, agregue otro.")
         return
       }
-      await WMSApiSerigrafia.post(
-        `AgregarTrasladoDespacho/${WMSState.SRGDespachoId}`,
-        traslado,
-      )
-      await Promise.all([getDespachoTrasladoData(), getData()])
-      // Quitar del listado disponible
-      setTrasladosDisponibles((prev) =>
-        prev.filter((t) => t.transferId !== traslado.transferId),
-      )
-    } catch (error: any) {
-      const msg = error?.response?.data ?? "Error al agregar traslado."
-      Alert.alert("Error", String(msg))
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  const abrirModalAgregar = () => {
+      busyRef.current = true
+      setLoading(true)
+      try {
+        await WMSApiSerigrafia.post(`AgregarTrasladoDespacho/${WMSState.SRGDespachoId}`, traslado)
+        await Promise.all([getDespachoTrasladoData(), getData()])
+
+        // quitar del listado
+        setTrasladosDisponibles((prev) => prev.filter((t) => t.transferId !== traslado.transferId))
+      } catch (error: any) {
+        const msg = error?.response?.data ?? "Error al agregar traslado."
+        Alert.alert("Error", String(msg))
+      } finally {
+        busyRef.current = false
+        setLoading(false)
+      }
+    },
+    [WMSState.SRGDespachoId, despachoTrasladodata, getData, getDespachoTrasladoData]
+  )
+
+  const abrirModalAgregar = useCallback(() => {
     setLoteSeleccionadoDespacho(null)
     setTrasladosDisponibles([])
     setModalAgregarVisible(true)
-  }
+  }, [])
 
-  const handleScanChange = (text: string) => {
-    setSearchText(text)
-    const trimmed = text.trim()
-    if (scanRegex.test(trimmed)) {
-      sendPacking(trimmed)
-    }
-  }
-  const getStatusStyle = (statusId: number) => {
+  // ========= FlatList optimizaciones =========
+  const keyExtractor = useCallback((item: IDespachoLinesPacking) => String(item.id), [])
+  const renderRow = useCallback(({ item }: { item: IDespachoLinesPacking }) => <ItemCard item={item} />, [])
+
+  const getStatusStyle = useCallback((statusId: number) => {
     switch (statusId) {
-      case 0: // Creado
-        return { backgroundColor: '#e4e2d9' } // amarillo
-      case 1: // Eviado
-        return { backgroundColor: '#22C55E' } // verde
-      case 3: // Recibido
-        return { backgroundColor: '#4ea4ebf5' } // rojo
+      case 0:
+        return { backgroundColor: "#e4e2d9" }
+      case 1:
+        return { backgroundColor: "#22C55E" }
+      case 3:
+        return { backgroundColor: "#4ea4ebf5" }
       default:
-        return { backgroundColor: '#9CA3AF' } // gris
+        return { backgroundColor: "#9CA3AF" }
     }
-  }
+  }, [])
 
-  const getStatusTextStyle = (statusId: number) => {
+  const getStatusTextStyle = useCallback((statusId: number) => {
     switch (statusId) {
-      case 0: // Creado (fondo claro)
+      case 0:
         return { color: "#000000" }
-      case 1: // Enviado (verde)
-        return { color: "#FFFFFF" }
-      case 3: // Recibido (azul)
-        return { color: "#FFFFFF" }
-      default: // Gris
+      case 1:
+      case 3:
+      default:
         return { color: "#FFFFFF" }
     }
-  }
-
-  const renderItem = (item: IDespachoLinesPacking) => {
-    const formatDate = (date: Date | null | undefined): string => {
-      if (!date) return "N/A"
-      const d = new Date(date)
-      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
-    }
-
-    const isSegunda = Number(item.boxCategoryId) === 2
-
-    const getCardColor = () => {
-      if (isSegunda) {
-        // Segundas: tonos distintos para diferenciar
-        return item.packing ? "#7B1FA2" : "#AB47BC" // morado oscuro / morado claro
-      }
-      // Primeras: colores originales
-      return item.packing ? "#4CAF50" : "#FF9800"
-    }
-
-    return (
-      <View style={styles.cardContainer}>
-        <View style={[styles.card, { backgroundColor: getCardColor() }]}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.productId} numberOfLines={1}>{item.prodMasterId}</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>Caja {item.box}</Text>
-            </View>
-
-          </View>
-
-          <View style={styles.cardContent}>
-            <View style={styles.infoGrid}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Articulo</Text>
-                <Text style={styles.infoValue}>{item.itemId}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Talla</Text>
-                <Text style={styles.infoValue}>{item.size}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Cant</Text>
-                <Text style={styles.infoValue}>{item.qty}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Color</Text>
-                <Text style={styles.infoValue} numberOfLines={1}>{item.colorId}</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>categoria</Text>
-                <Text style={styles.infoValue} numberOfLines={1}>{item.boxCategoryId}</Text>
-              </View>
-              {item.packing && (
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Fecha</Text>
-                  <Text style={styles.infoValue}>{formatDate(item.packingDateTime)}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-      </View>
-    )
-  }
+  }, [])
 
   return (
     <View style={styles.container}>
-      {/* Header compacto */}
-
       <Header texto1="" texto2="Enviar Despacho" texto3={`Numero de Despacho: ${WMSState.SRGDespachoId}`} />
+
       {/* Traslados colapsable */}
       <View style={styles.trasladosSection}>
-        <TouchableOpacity
-          style={styles.trasladosHeader}
-          onPress={() => setTrasladosExpanded(!trasladosExpanded)}
-        >
+        <TouchableOpacity style={styles.trasladosHeader} onPress={() => setTrasladosExpanded((s) => !s)}>
           <View style={styles.trasladosHeaderLeft}>
             <Icon name="exchange-alt" size={isSmallDevice ? 10 : 12} color="#1976D2" />
-            <Text style={styles.trasladosHeaderText}>
-              Traslados ({despachoTrasladodata.length})
-            </Text>
+            <Text style={styles.trasladosHeaderText}>Traslados ({despachoTrasladodata.length})</Text>
           </View>
-          <Icon
-            name={trasladosExpanded ? "chevron-up" : "chevron-down"}
-            size={isSmallDevice ? 10 : 12}
-            color="#757575"
-          />
+          <Icon name={trasladosExpanded ? "chevron-up" : "chevron-down"} size={isSmallDevice ? 10 : 12} color="#757575" />
         </TouchableOpacity>
 
         {trasladosExpanded && (
           <View style={styles.trasladosContent}>
-            {/* Botones Eliminar / Agregar */}
+            {/* Botones */}
             <View style={styles.trasladosActions}>
               <TouchableOpacity
                 style={[
                   styles.trasladoActionBtn,
                   modoEliminar ? styles.trasladoActionBtnActive : styles.trasladoActionBtnDelete,
                 ]}
-                onPress={() => setModoEliminar(!modoEliminar)}
+                onPress={() => setModoEliminar((s) => !s)}
               >
-                <Icon
-                  name={modoEliminar ? "times" : "trash-alt"}
-                  size={isSmallDevice ? 10 : 12}
-                  color={modoEliminar ? "#FFFFFF" : "#D32F2F"}
-                />
-                <Text
-                  style={[
-                    styles.trasladoActionBtnText,
-                    { color: modoEliminar ? "#FFFFFF" : "#D32F2F" },
-                  ]}
-                >
+                <Icon name={modoEliminar ? "times" : "trash-alt"} size={isSmallDevice ? 10 : 12} color={modoEliminar ? "#FFFFFF" : "#D32F2F"} />
+                <Text style={[styles.trasladoActionBtnText, { color: modoEliminar ? "#FFFFFF" : "#D32F2F" }]}>
                   {modoEliminar ? "Cancelar" : "Eliminar"}
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.trasladoActionBtn, styles.trasladoActionBtnAdd]}
-                onPress={abrirModalAgregar}
-              >
+              <TouchableOpacity style={[styles.trasladoActionBtn, styles.trasladoActionBtnAdd]} onPress={abrirModalAgregar}>
                 <Icon name="plus" size={isSmallDevice ? 10 : 12} color="#2E7D32" />
-                <Text style={[styles.trasladoActionBtnText, { color: "#2E7D32" }]}>
-                  Agregar
-                </Text>
+                <Text style={[styles.trasladoActionBtnText, { color: "#2E7D32" }]}>Agregar</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Chips de traslados */}
+            {/* Chips */}
             <View style={styles.trasladosChips}>
               {despachoTrasladodata.map((traslado, index) => (
-                <View key={index} style={[styles.trasladoChip, getStatusStyle(traslado.statusId), modoEliminar && styles.trasladoChipDeleteMode]}>
+                <View
+                  key={`${traslado.transferId}-${index}`}
+                  style={[
+                    styles.trasladoChip,
+                    getStatusStyle(traslado.statusId),
+                    modoEliminar && styles.trasladoChipDeleteMode,
+                  ]}
+                >
                   <View>
                     <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.transferId}</Text>
                     <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.itemId}</Text>
                     <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>Total Uni: {traslado.montoTraslado}</Text>
                   </View>
+
                   {modoEliminar && (
                     <TouchableOpacity
                       style={styles.trasladoChipDeleteBtn}
@@ -537,13 +590,13 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
         )}
       </View>
 
-      {/* Barra de busqueda compacta */}
+      {/* Scan input */}
       <View style={styles.searchContainer}>
         <View style={styles.inputWrapper}>
           <Icon name="barcode" size={isSmallDevice ? 14 : 16} color="#757575" />
           <TextInput
-            ref={textInputRef}
-            value={searchText}
+            ref={inputRef}
+            value={scanText}
             onChangeText={handleScanChange}
             style={styles.input}
             placeholder="Escanear..."
@@ -552,21 +605,22 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
             blurOnSubmit={false}
             autoCorrect={false}
             autoCapitalize="none"
-            onBlur={() => requestAnimationFrame(() => textInputRef.current?.focus())}
+            onBlur={() => {
+              if (!modalAgregarVisible && !loading) requestAnimationFrame(() => inputRef.current?.focus())
+            }}
           />
           {loading && <ActivityIndicator size="small" color="#4CAF50" />}
-          {searchText.length > 0 && !loading && (
-            <TouchableOpacity onPress={() => setSearchText("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          {!!scanText.length && !loading && (
+            <TouchableOpacity onPress={() => setScanText("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Icon name="times" size={isSmallDevice ? 12 : 14} color="#757575" />
             </TouchableOpacity>
           )}
         </View>
-
       </View>
 
-      {/* Listas - Layout adaptivo */}
+      {/* Listas */}
       <View style={styles.listsContainer}>
-        {/* Columna Pendiente */}
+        {/* Pendiente */}
         <View style={styles.listColumn}>
           <View style={[styles.columnHeader, { backgroundColor: "#FFF3E0" }]}>
             <Icon name="clock" size={isSmallDevice ? 10 : 12} color="#FF9800" />
@@ -575,30 +629,35 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
                 Pendiente ({pendiente.length})
               </Text>
               <View style={styles.totalsRow}>
-                <Text style={styles.totalLabel}>1ra: <Text style={styles.totalValue}>{totalPendientePrimeras}</Text></Text>
-                <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>2da: <Text style={styles.totalValue}>{totalPendienteSegundas}</Text></Text>
+                <Text style={styles.totalLabel}>
+                  1ra: <Text style={styles.totalValue}>{totals.p1}</Text>
+                </Text>
+                <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>
+                  2da: <Text style={styles.totalValue}>{totals.p2}</Text>
+                </Text>
               </View>
             </View>
           </View>
+
           <FlatList
             data={pendiente}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => renderItem(item)}
+            keyExtractor={keyExtractor}
+            renderItem={renderRow}
+            removeClippedSubviews
+            initialNumToRender={12}
+            maxToRenderPerBatch={12}
+            windowSize={7}
+            updateCellsBatchingPeriod={50}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={["#FF9800"]}
-              />
-            }
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#FF9800"]} />}
           />
         </View>
 
         <View style={styles.divider} />
 
-        {/* Columna Escaneado */}
+        {/* Escaneado */}
         <View style={styles.listColumn}>
           <View style={[styles.columnHeader, { backgroundColor: "#E8F5E9" }]}>
             <Icon name="check-circle" size={isSmallDevice ? 10 : 12} color="#4CAF50" />
@@ -607,28 +666,34 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
                 Escaneado ({escaneado.length})
               </Text>
               <View style={styles.totalsRow}>
-                <Text style={styles.totalLabel}>1ra: <Text style={styles.totalValue}>{totalEscaneadoPrimeras}</Text></Text>
-                <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>2da: <Text style={styles.totalValue}>{totalEscaneadoSegundas}</Text></Text>
+                <Text style={styles.totalLabel}>
+                  1ra: <Text style={styles.totalValue}>{totals.e1}</Text>
+                </Text>
+                <Text style={[styles.totalLabel, { color: "#7B1FA2" }]}>
+                  2da: <Text style={styles.totalValue}>{totals.e2}</Text>
+                </Text>
               </View>
             </View>
           </View>
+
           <FlatList
             data={escaneado}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => renderItem(item)}
+            keyExtractor={keyExtractor}
+            renderItem={renderRow}
+            removeClippedSubviews
+            initialNumToRender={12}
+            maxToRenderPerBatch={12}
+            windowSize={7}
+            updateCellsBatchingPeriod={50}
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={["#4CAF50"]}
-              />
-            }
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#4CAF50"]} />}
           />
         </View>
       </View>
-      {/* Footer flotante (sin franja) */}
+
+      {/* Footer */}
       <View style={styles.footer} pointerEvents="box-none">
         <TouchableOpacity
           style={[
@@ -644,11 +709,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
             <ActivityIndicator size="small" color={isDisabled ? "#FFFFFF" : "#2E7D32"} />
           ) : (
             <View style={styles.footerButtonContent}>
-              <Icon
-                name="check-double"
-                size={isSmallDevice ? 14 : 16}
-                color={isDisabled ? "#FFFFFF" : "#2E7D32"}
-              />
+              <Icon name="check-double" size={isSmallDevice ? 14 : 16} color={isDisabled ? "#FFFFFF" : "#2E7D32"} />
               <Text style={[styles.footerButtonText, { color: isDisabled ? "#FFFFFF" : "#2E7D32" }]}>
                 Enviar traslados ({totaldtrasladoEnviados})
               </Text>
@@ -666,21 +727,15 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            {/* Header del modal */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Agregar Traslado</Text>
-              <TouchableOpacity
-                onPress={() => setModalAgregarVisible(false)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
+              <TouchableOpacity onPress={() => setModalAgregarVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Icon name="times" size={isSmallDevice ? 16 : 20} color="#757575" />
               </TouchableOpacity>
             </View>
 
-            {/* Dropdown de lote - usando componente nativo en lugar de Dropdown externo */}
             <View style={styles.modalDropdownSection}>
               <Text style={styles.modalSectionLabel}>Seleccione un lote</Text>
-
               <Dropdown
                 data={dataLote.filter((lote) => lote.itemseasonid)}
                 labelField="name"
@@ -699,7 +754,6 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
               />
             </View>
 
-            {/* Lista de traslados disponibles */}
             <View style={styles.modalListSection}>
               <Text style={styles.modalSectionLabel}>
                 Traslados disponibles {trasladosDisponibles.length > 0 ? `(${trasladosDisponibles.length})` : ""}
@@ -726,6 +780,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
                   style={styles.modalScrollList}
                   showsVerticalScrollIndicator
                   nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
                   renderItem={({ item: traslado }) => (
                     <View style={styles.modalTrasladoItem}>
                       <View style={styles.modalTrasladoInfo}>
@@ -752,11 +807,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
               )}
             </View>
 
-            {/* Boton cerrar */}
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => setModalAgregarVisible(false)}
-            >
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setModalAgregarVisible(false)}>
               <Text style={styles.modalCloseBtnText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -767,27 +818,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = ({ navigation }) => {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-
-  // Header compacto
-  headerCompact: {
-    backgroundColor: "#1976D2",
-    paddingHorizontal: isSmallDevice ? 8 : 12,
-    paddingVertical: isSmallDevice ? 6 : 10,
-  },
-  headerTitle: {
-    fontSize: isSmallDevice ? 16 : isTablet ? 20 : 18,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  headerSubtitle: {
-    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
-    color: "rgba(255,255,255,0.85)",
-    marginTop: 1,
-  },
+  container: { flex: 1, backgroundColor: "#F5F5F5" },
 
   // Traslados
   trasladosSection: {
@@ -805,52 +836,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: isSmallDevice ? 8 : 12,
     paddingVertical: isSmallDevice ? 6 : 8,
   },
-  trasladosHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: isSmallDevice ? 4 : 6,
-  },
-  trasladosHeaderText: {
-    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
-    fontWeight: "600",
-    color: "#1976D2",
-  },
+  trasladosHeaderLeft: { flexDirection: "row", alignItems: "center", gap: isSmallDevice ? 4 : 6 },
+  trasladosHeaderText: { fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13, fontWeight: "600", color: "#1976D2" },
   trasladosContent: {
     paddingHorizontal: isSmallDevice ? 8 : 12,
     paddingBottom: isSmallDevice ? 6 : 8,
     borderTopWidth: 1,
     borderTopColor: "#F0F0F0",
   },
-  trasladosChips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: isSmallDevice ? 4 : 6,
-    marginTop: isSmallDevice ? 4 : 6,
-  },
-  trasladoChip: {
-    backgroundColor: "#E3F2FD",
-    paddingHorizontal: isSmallDevice ? 6 : 10,
-    paddingVertical: isSmallDevice ? 2 : 4,
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: isSmallDevice ? 4 : 6,
-  },
-  trasladoChipDeleteMode: {
-    backgroundColor: "#FFEBEE",
-    borderWidth: 1,
-    borderColor: "#FFCDD2",
-  },
-  trasladoChipText: {
-    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
-    fontWeight: "600",
-    color: "#1565C0",
-  },
-  trasladoChipDeleteBtn: {
-    marginLeft: isSmallDevice ? 2 : 4,
-  },
-
-  // Botones de accion en traslados
   trasladosActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -866,24 +859,25 @@ const styles = StyleSheet.create({
     borderRadius: isSmallDevice ? 6 : 8,
     borderWidth: 1,
   },
-  trasladoActionBtnDelete: {
-    borderColor: "#FFCDD2",
-    backgroundColor: "#FFF5F5",
-  },
-  trasladoActionBtnActive: {
-    borderColor: "#D32F2F",
-    backgroundColor: "#D32F2F",
-  },
-  trasladoActionBtnAdd: {
-    borderColor: "#C8E6C9",
-    backgroundColor: "#F1F8E9",
-  },
-  trasladoActionBtnText: {
-    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
-    fontWeight: "600",
-  },
+  trasladoActionBtnDelete: { borderColor: "#FFCDD2", backgroundColor: "#FFF5F5" },
+  trasladoActionBtnActive: { borderColor: "#D32F2F", backgroundColor: "#D32F2F" },
+  trasladoActionBtnAdd: { borderColor: "#C8E6C9", backgroundColor: "#F1F8E9" },
+  trasladoActionBtnText: { fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12, fontWeight: "600" },
 
-  // Busqueda
+  trasladosChips: { flexDirection: "row", flexWrap: "wrap", gap: isSmallDevice ? 4 : 6, marginTop: isSmallDevice ? 4 : 6 },
+  trasladoChip: {
+    paddingHorizontal: isSmallDevice ? 6 : 10,
+    paddingVertical: isSmallDevice ? 2 : 4,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: isSmallDevice ? 4 : 6,
+  },
+  trasladoChipDeleteMode: { backgroundColor: "#FFEBEE", borderWidth: 1, borderColor: "#FFCDD2" },
+  trasladoChipText: { fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12, fontWeight: "600" },
+  trasladoChipDeleteBtn: { marginLeft: isSmallDevice ? 2 : 4 },
+
+  // Input scan
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -903,75 +897,22 @@ const styles = StyleSheet.create({
     borderColor: "#E0E0E0",
     gap: isSmallDevice ? 6 : 8,
   },
-  input: {
-    flex: 1,
-    fontSize: isSmallDevice ? 14 : isTablet ? 17 : 15,
-    color: "#212121",
-    paddingVertical: 0,
-  },
-  sendButton: {
-    backgroundColor: "#4CAF50",
-    borderRadius: isSmallDevice ? 6 : 8,
-    width: isSmallDevice ? 36 : isTablet ? 48 : 42,
-    height: isSmallDevice ? 36 : isTablet ? 48 : 42,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sendButtonDisabled: {
-    backgroundColor: "#BDBDBD",
-  },
+  input: { flex: 1, fontSize: isSmallDevice ? 14 : isTablet ? 17 : 15, color: "#212121", paddingVertical: 0 },
 
   // Listas
-  listsContainer: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  listColumn: {
-    flex: 1,
-  },
-  divider: {
-    width: 1,
-    backgroundColor: "#E0E0E0",
-  },
-  columnHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: isSmallDevice ? 4 : 6,
-    paddingVertical: isSmallDevice ? 6 : 8,
-  },
-  columnTitle: {
-    fontSize: isSmallDevice ? 12 : isTablet ? 16 : 14,
-    fontWeight: "600",
-  },
-  totalsRow: {
-    flexDirection: "row",
-    gap: isSmallDevice ? 6 : 10,
-    marginTop: 1,
-  },
-  totalLabel: {
-    fontSize: isSmallDevice ? 10 : isTablet ? 13 : 11,
-    color: "#E65100",
-    fontWeight: "500",
-  },
-  totalValue: {
-    fontWeight: "700",
-  },
-  listContent: {
-    paddingVertical: isSmallDevice ? 2 : 4,
-  },
+  listsContainer: { flex: 1, flexDirection: "row", paddingBottom: isSmallDevice ? 56 : 64 },
+  listColumn: { flex: 1 },
+  divider: { width: 1, backgroundColor: "#E0E0E0" },
+  columnHeader: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: isSmallDevice ? 4 : 6, paddingVertical: isSmallDevice ? 6 : 8, paddingHorizontal: 8 },
+  columnTitle: { fontSize: isSmallDevice ? 12 : isTablet ? 16 : 14, fontWeight: "600" },
+  totalsRow: { flexDirection: "row", gap: isSmallDevice ? 6 : 10, marginTop: 1 },
+  totalLabel: { fontSize: isSmallDevice ? 10 : isTablet ? 13 : 11, color: "#E65100", fontWeight: "500" },
+  totalValue: { fontWeight: "700" },
+  listContent: { paddingVertical: isSmallDevice ? 2 : 4 },
 
-  // Cards compactas
-  cardContainer: {
-    width: "100%",
-    alignItems: "center",
-    paddingVertical: isSmallDevice ? 2 : 3,
-  },
-  card: {
-    width: "94%",
-    borderRadius: isSmallDevice ? 6 : 10,
-    padding: isSmallDevice ? 8 : isTablet ? 14 : 10,
-  },
+  // Cards
+  cardContainer: { width: "100%", alignItems: "center", paddingVertical: isSmallDevice ? 2 : 3 },
+  card: { width: "94%", borderRadius: isSmallDevice ? 6 : 10, padding: isSmallDevice ? 8 : isTablet ? 14 : 10 },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -981,21 +922,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },
-  productId: {
-    flex: 1,
-    fontSize: isSmallDevice ? 13 : isTablet ? 17 : 15,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  viewItemId: {
-    flexDirection: "row",
-    flexWrap: "nowrap",
-  },
-  itemId: {
-    fontSize: isSmallDevice ? 13 : isTablet ? 17 : 15,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
+  productId: { flex: 1, fontSize: isSmallDevice ? 13 : isTablet ? 17 : 15, fontWeight: "700", color: "#FFFFFF" },
   badge: {
     backgroundColor: "rgba(255, 255, 255, 0.25)",
     paddingHorizontal: isSmallDevice ? 6 : 10,
@@ -1003,35 +930,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginLeft: 4,
   },
-  badgeText: {
-    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  cardContent: {},
-  infoGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: isSmallDevice ? 4 : 6,
-  },
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: isSmallDevice ? 2 : 4,
-    minWidth: isSmallDevice ? "45%" : "40%",
-  },
-  infoLabel: {
-    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
-    color: "rgba(255, 255, 255, 0.75)",
-    fontWeight: "500",
-  },
-  infoValue: {
-    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
-    color: "#FFFFFF",
-    fontWeight: "600",
-    flexShrink: 1,
-  },
-  // Footer flotante
+  badgeText: { fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12, fontWeight: "600", color: "#FFFFFF" },
+
+  infoGrid: { flexDirection: "row", flexWrap: "wrap", gap: isSmallDevice ? 4 : 6 },
+  infoItem: { flexDirection: "row", alignItems: "center", gap: isSmallDevice ? 2 : 4, minWidth: isSmallDevice ? "45%" : "40%" },
+  infoLabel: { fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12, color: "rgba(255, 255, 255, 0.75)", fontWeight: "500" },
+  infoValue: { fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13, color: "#FFFFFF", fontWeight: "600", flexShrink: 1 },
+
+  // Footer
   footer: {
     position: "absolute",
     left: 0,
@@ -1039,10 +945,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: isSmallDevice ? 8 : 12,
     paddingVertical: isSmallDevice ? 8 : 10,
-    backgroundColor: "transparent", // <- clave: sin franja
-    // sin borderTop
+    backgroundColor: "transparent",
   },
-
   footerButton: {
     alignSelf: "center",
     width: "94%",
@@ -1052,38 +956,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1.5,
     borderColor: "#53e75a",
-
-    // sombra ligera opcional para que el botón se distinga sobre los cards
     elevation: 2,
   },
+  footerButtonEnabled: { backgroundColor: "#3db843", opacity: 1 },
+  footerButtonDisabled: { backgroundColor: "transparent", opacity: 0.35 },
+  footerButtonLoading: { opacity: 0.85 },
+  footerButtonContent: { flexDirection: "row", alignItems: "center", gap: 8 },
+  footerButtonText: { fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14, fontWeight: "700" },
 
-  footerButtonEnabled: {
-    backgroundColor: "#3db843",
-    opacity: 1,
-  },
-
-  // deshabilitado: transparente (se “ve” la lista detrás del botón)
-  footerButtonDisabled: {
-    backgroundColor: "transparent",
-    opacity: 0.35,
-  },
-
-  footerButtonLoading: {
-    opacity: 0.85,
-  },
-
-  footerButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-
-  footerButtonText: {
-    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
-    fontWeight: "700",
-  },
-
-  // Modal Agregar Traslado
+  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -1108,20 +989,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
   },
-  modalTitle: {
-    fontSize: isSmallDevice ? 16 : isTablet ? 20 : 18,
-    fontWeight: "700",
-    color: "#1976D2",
-  },
-  modalDropdownSection: {
-    marginBottom: isSmallDevice ? 12 : 16,
-  },
-  modalSectionLabel: {
-    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
-    fontWeight: "600",
-    color: "#424242",
-    marginBottom: isSmallDevice ? 4 : 6,
-  },
+  modalTitle: { fontSize: isSmallDevice ? 16 : isTablet ? 20 : 18, fontWeight: "700", color: "#1976D2" },
+  modalDropdownSection: { marginBottom: isSmallDevice ? 12 : 16 },
+  modalSectionLabel: { fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13, fontWeight: "600", color: "#424242", marginBottom: isSmallDevice ? 4 : 6 },
   modalDropdown: {
     backgroundColor: "#F5F5F5",
     borderRadius: isSmallDevice ? 6 : 8,
@@ -1133,50 +1003,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  modalDropdownPlaceholder: {
-    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
-    color: "#9E9E9E",
-  },
-  modalDropdownSelectedText: {
-    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
-    color: "#212121",
-    fontWeight: "500",
-  },
-  modalDropdownInputSearch: {
-    height: isSmallDevice ? 36 : 40,
-    fontSize: isSmallDevice ? 13 : 15,
-  },
-  modalListSection: {
-    flexShrink: 1,
-    minHeight: isSmallDevice ? 80 : 100,
-  },
-  modalLoadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: isSmallDevice ? 20 : 30,
-  },
-  modalLoadingText: {
-    fontSize: isSmallDevice ? 12 : 14,
-    color: "#757575",
-  },
-  modalEmptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: isSmallDevice ? 6 : 8,
-    paddingVertical: isSmallDevice ? 20 : 30,
-  },
-  modalEmptyText: {
-    fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13,
-    color: "#9E9E9E",
-    textAlign: "center",
-  },
-  modalScrollList: {
-    flexGrow: 0,
-    marginTop: isSmallDevice ? 4 : 6,
-  },
+  modalDropdownPlaceholder: { fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14, color: "#9E9E9E" },
+  modalDropdownSelectedText: { fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14, color: "#212121", fontWeight: "500" },
+  modalDropdownInputSearch: { height: isSmallDevice ? 36 : 40, fontSize: isSmallDevice ? 13 : 15 },
+
+  modalListSection: { flexShrink: 1, minHeight: isSmallDevice ? 80 : 100 },
+  modalLoadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", gap: 8, paddingVertical: isSmallDevice ? 20 : 30 },
+  modalLoadingText: { fontSize: isSmallDevice ? 12 : 14, color: "#757575" },
+  modalEmptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", gap: isSmallDevice ? 6 : 8, paddingVertical: isSmallDevice ? 20 : 30 },
+  modalEmptyText: { fontSize: isSmallDevice ? 12 : isTablet ? 15 : 13, color: "#9E9E9E", textAlign: "center" },
+  modalScrollList: { flexGrow: 0, marginTop: isSmallDevice ? 4 : 6 },
+
   modalTrasladoItem: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1188,20 +1025,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-  modalTrasladoInfo: {
-    flex: 1,
-    marginRight: 8,
-  },
-  modalTrasladoId: {
-    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
-    fontWeight: "700",
-    color: "#1565C0",
-  },
-  modalTrasladoDetail: {
-    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
-    color: "#757575",
-    marginTop: 2,
-  },
+  modalTrasladoInfo: { flex: 1, marginRight: 8 },
+  modalTrasladoId: { fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14, fontWeight: "700", color: "#1565C0" },
+  modalTrasladoDetail: { fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12, color: "#757575", marginTop: 2 },
   modalTrasladoAddBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -1211,11 +1037,7 @@ const styles = StyleSheet.create({
     paddingVertical: isSmallDevice ? 6 : 8,
     borderRadius: isSmallDevice ? 6 : 8,
   },
-  modalTrasladoAddBtnText: {
-    fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
+  modalTrasladoAddBtnText: { fontSize: isSmallDevice ? 11 : isTablet ? 14 : 12, fontWeight: "600", color: "#FFFFFF" },
   modalCloseBtn: {
     marginTop: isSmallDevice ? 12 : 16,
     backgroundColor: "#F5F5F5",
@@ -1225,9 +1047,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-  modalCloseBtnText: {
-    fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14,
-    fontWeight: "600",
-    color: "#424242",
-  },
+  modalCloseBtnText: { fontSize: isSmallDevice ? 13 : isTablet ? 16 : 14, fontWeight: "600", color: "#424242" },
 })
