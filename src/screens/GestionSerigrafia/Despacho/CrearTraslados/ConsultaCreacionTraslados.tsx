@@ -1,5 +1,3 @@
-
-
 import { type FC, useState, useEffect, useContext } from "react"
 import {
   Alert,
@@ -34,6 +32,7 @@ interface TallaDetalle {
   seleccionada: boolean
   cantidadDisponible: number
   productType: number // 1 = primeras, 2 = segundas, 3 = terceras
+  tieneConErrores: number // 0 = no tiene diario de segundas, 1 = tiene diario de segundas
 }
 
 interface ArticuloConTallas extends ArticulosParaTrasladoInterface {
@@ -94,6 +93,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
   const [showArticuloGenericoModal, setShowArticuloGenericoModal] = useState(false)
   const [articulosGenericosDisponibles, setArticulosGenericosDisponibles] = useState<ArticulosGenericosSegundas[]>([])
   const [isLoadingArticulosGenericos, setIsLoadingArticulosGenericos] = useState(false)
+
 
 
   const getTipoDiario = async (productType: number) => {
@@ -224,6 +224,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
     )
   }
 
+
   const obtenerTallasPorArticulo = async (articulo: ArticulosParaTrasladoInterface): Promise<TallaDetalle[]> => {
     const resp = await WMSApiSerigrafia.get<LineasTrasladoDTO[]>(`GetLineasDeTraslado/${articulo.itemId}`)
     return resp.data.map((l) => ({
@@ -232,6 +233,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       seleccionada: true,
       cantidadDisponible: l.cantidadDisponible,
       productType: l.productType ?? 1, // Valor por defecto 1 si no viene
+      tieneConErrores: l.tieneConErrores ?? 0, // Valor por defecto 0 si no viene
     }))
   }
 
@@ -291,59 +293,78 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
   const confirmarTraslado = async () => {
     const hayDiarioPrimerasSelecionado = !!diarioSeleccionadoPorTipo[1]?.journalid;
     const hayDiarioSegundasSelecionado = !!diarioSeleccionadoPorTipo[2]?.journalid;
-    const hayPrimeras = articulosConTallas.some(art => art.tallas?.some(t => t.seleccionada && Number(t.productType) === 1))
-    const haySegundas = articulosConTallas.some(art => art.tallas?.some(t => t.seleccionada && Number(t.productType) === 2))
 
-    if (!hayDiarioPrimerasSelecionado && hayPrimeras) {
+    const hayPrimerasQueRequierenDiario = articulosConTallas.some((art) =>
+      art.tallas?.some(
+        (t) =>
+          t.seleccionada &&
+          t.cantidad > 0 &&
+          Number(t.productType) === 1 &&
+          Number(t.tieneConErrores) !== 1,
+      ),
+    )
+
+    const haySegundasQueRequierenDiario = articulosConTallas.some((art) =>
+      art.tallas?.some(
+        (t) =>
+          t.seleccionada &&
+          t.cantidad > 0 &&
+          Number(t.productType) === 2 &&
+          Number(t.tieneConErrores) !== 1,
+      ),
+    )
+
+
+    if (!hayDiarioPrimerasSelecionado && hayPrimerasQueRequierenDiario) {
       return Alert.alert("Alerta", "debe de seleccionarse los diarios de primeras")
     }
-    if (!hayDiarioSegundasSelecionado && haySegundas) {
+
+    if (!hayDiarioSegundasSelecionado && haySegundasQueRequierenDiario) {
       return Alert.alert("Alerta", "debe de seleccionarse los diarios de segundas")
     }
 
-    if (!articuloGenericoSegundas && haySegundas) {
+    if (!articuloGenericoSegundas && haySegundasQueRequierenDiario) {
       return Alert.alert("Alerta", "debe de seleccionarse articulo Generico")
     }
 
     try {
 
-      const dataTraslado = articulosConTallas.flatMap((art) =>
-        art
-          .tallas!.filter((t) => t.seleccionada && t.cantidad > 0 && Number(t.productType) == 1)
-          .map((t) => ({
-            itemId: art.itemId,
-            color: art.color ?? "",
-            loteId: art.loteId ?? "",
-            locationId: art.locationId ?? "",
-            sizeId: t.sizedId,
-            cantidadDisponible: t.cantidadDisponible,
-            cantidadEnviar: t.cantidad,
-            productType: t.productType,
-            tipoDiario: diarioSeleccionadoPorTipo[t.productType]?.journalnameid || "",
-          })),
-      )
-      const dataToSend = articulosConTallas.flatMap((art) =>
-        art
-          .tallas!.filter((t) => t.seleccionada && t.cantidad > 0)
-          .map((t) => ({
-            itemId: art.itemId,
-            color: art.color ?? "",
-            loteId: art.loteId ?? "",
-            locationId: art.locationId ?? "",
-            sizeId: t.sizedId,
-            cantidadDisponible: t.cantidadDisponible,
-            cantidadEnviar: t.cantidad,
-            productType: t.productType,
-            tipoDiario: diarioSeleccionadoPorTipo[t.productType]?.journalnameid || "",
-          })),
-      )
+      
 
+      const dataToSend = articulosConTallas.flatMap((art) =>
+        art.tallas!
+          .filter((t) => t.seleccionada && t.cantidad > 0)
+          .map((t) => ({
+            itemId: art.itemId,
+            color: art.color ?? "",
+            loteId: art.loteId ?? "",
+            locationId: art.locationId ?? "",
+            sizeId: t.sizedId,
+            cantidadDisponible: t.cantidadDisponible,
+            cantidadEnviar: t.cantidad,
+            productType: t.productType,
+            tieneConErrores: t.tieneConErrores,
+            tipoDiario: diarioSeleccionadoPorTipo[t.productType]?.journalnameid || "",
+          })),
+      )
+      const dataTraslado = dataToSend.map((t) => ({
+        itemId: t.itemId,
+        color: t.color,
+        loteId: t.loteId,
+        locationId: t.locationId,
+        sizeId: t.sizeId,
+        cantidadDisponible: t.cantidadDisponible,
+        cantidadEnviar: t.cantidadEnviar,
+        productType: t.productType,
+        tipoDiario: Number(t.tieneConErrores) === 1 ? "" : t.tipoDiario,
+      }))
+      
       const diarioLineasSegundas: DiarioLineasDTO = {
         journalId: diarioSeleccionadoPorTipo[2]?.journalid || "",
         lineas: dataToSend
-          .filter(d => Number(d.productType) === 2)
-          .map(d => ({
-            itemId: articuloGenericoSegundas, // Usar el artículo genérico seleccionado
+          .filter((d) => Number(d.productType) === 2 && Number(d.tieneConErrores) !== 1)
+          .map((d) => ({
+            itemId: articuloGenericoSegundas,
             site: "1S",
             wareHouse: "SB2",
             color: "00",
@@ -355,12 +376,11 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
           })),
       }
 
-
       const diarioLineasPrimeras: DiarioLineasDTO = {
         journalId: diarioSeleccionadoPorTipo[1]?.journalid || "",
         lineas: dataToSend
-          .filter(d => Number(d.productType) === 2)
-          .map(d => ({
+          .filter((d) => Number(d.productType) === 1 && Number(d.tieneConErrores) !== 1)
+          .map((d) => ({
             itemId: d.itemId,
             site: "1",
             wareHouse: "40",
@@ -373,7 +393,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
           })),
       }
 
-      if (hayPrimeras) {
+      if (hayPrimerasQueRequierenDiario && diarioLineasPrimeras.lineas.length > 0) {
         const respDiarioPrimeras = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasPrimeras);
         const errorDiairoPrimeras = !respDiarioPrimeras.data.includes("OK")
         if (errorDiairoPrimeras) {
@@ -382,7 +402,8 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
           Alert.alert("Se añadio linea a diairo primeras")
         }
       }
-      if (haySegundas) {
+
+      if (haySegundasQueRequierenDiario && diarioLineasSegundas.lineas.length > 0) {
         const respDiarioSegundas = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasSegundas);
         const errorDiarioSegundas = !respDiarioSegundas.data.includes("OK")
         if (errorDiarioSegundas) {
@@ -680,116 +701,118 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
                           <Text style={styles.chipBlueSm}>Lote: {articulo.loteId || "SIN_LOTE"}</Text>
                           <Text style={styles.chipGraySm}>Color: {articulo.color || "SIN COLOR"}</Text>
                         </View>
-
                         {tallasPorTipo &&
                           Object.entries(tallasPorTipo)
                             .sort(([a], [b]) => Number(a) - Number(b))
-                            .map(([productType, tallas]) => (
-                              <View
-                                key={productType}
-                                style={[styles.productTypeCard, getProductTypeCardStyle(Number(productType))]}
-                              >
-                                <View style={styles.productTypeHeader}>
-                                  <Text
-                                    style={[styles.productTypeTitle, getProductTypeTitleStyle(Number(productType))]}
-                                  >
-                                    {getProductTypeName(Number(productType))}
-                                  </Text>
+                            .map(([productType, tallas]) => {
+                              const requiereDiarioEnGrupo = tallas.some(
+                                (t) => Number(t.tieneConErrores) !== 1,
+                              )
 
-                                  <TouchableOpacity
-                                    style={styles.tipoDiarioButton}
-                                    onPress={() => {
-                                      const pt = Number(productType)
-                                      getTipoDiario(pt)
-                                      setProductTypeSeleccionado(pt)
-                                      setShowTipoDiarioModal(true)
-                                    }}
-                                  >
-                                    <Text style={styles.tipoDiarioLabel}>Diario: </Text>
-                                    <Text style={styles.tipoDiarioValue}>
-                                      {diarioSeleccionadoPorTipo[Number(productType)]?.description || "Seleccionar"}
+                              return (
+                                <View
+                                  key={productType}
+                                  style={[styles.productTypeCard, getProductTypeCardStyle(Number(productType))]}
+                                >
+                                  <View style={styles.productTypeHeader}>
+                                    <Text style={[styles.productTypeTitle, getProductTypeTitleStyle(Number(productType))]}>
+                                      {getProductTypeName(Number(productType))}
                                     </Text>
 
-                                    <Text style={styles.tipoDiarioArrow}>▼</Text>
-                                  </TouchableOpacity>
-                                </View>
-
-                                {/* Selector de artículo genérico solo para Segundas */}
-                                {Number(productType) === 2 && (
-                                  <TouchableOpacity
-                                    style={styles.articuloGenericoButton}
-                                    onPress={() => {
-                                      getArticulosGenericosSegundas(articulo.itemId)
-                                      setShowArticuloGenericoModal(true)
-                                    }}
-                                  >
-                                    <Text style={styles.articuloGenericoLabel}>Art. Genérico: </Text>
-                                    <Text style={styles.articuloGenericoValue}>
-                                      {articuloGenericoSegundas || "Seleccionar"}
-                                    </Text>
-                                    <Text style={styles.articuloGenericoArrow}>▼</Text>
-                                  </TouchableOpacity>
-                                )}
-                                <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                                  <View style={styles.tallasTableContainer}>
-                                    {/* Primera fila: Checkboxes y nombres de tallas */}
-                                    <View style={styles.tallasHeaderRow}>
-                                      {tallas.map((talla) => (
-                                        <View key={talla.sizedId} style={styles.tallaColumn}>
-                                          <TouchableOpacity
-                                            style={[
-                                              styles.tallaCheckbox,
-                                              talla.seleccionada && styles.tallaCheckboxSelected,
-                                            ]}
-                                            onPress={() => toggleTallaSelection(articulo.itemId, talla.sizedId)}
-                                          >
-                                            {talla.seleccionada && <Text style={styles.tallaCheckboxCheck}>✓</Text>}
-                                          </TouchableOpacity>
-                                          <Text
-                                            style={[
-                                              styles.tallaTitleText,
-                                              !talla.seleccionada && styles.tallaLabelDisabled,
-                                            ]}
-                                          >
-                                            {talla.sizedId}
-                                          </Text>
-                                        </View>
-                                      ))}
-                                    </View>
-
-                                    {/* Segunda fila: Inputs de cantidad */}
-                                    <View style={styles.tallasInputRow}>
-                                      {tallas.map((talla) => (
-                                        <View key={talla.sizedId} style={styles.tallaColumn}>
-                                          <TextInput
-                                            style={[
-                                              styles.tallaCantidadInputTable,
-                                              !talla.seleccionada && styles.tallaCantidadInputDisabled,
-                                            ]}
-                                            value={talla.cantidad.toString()}
-                                            onChangeText={(text) =>
-                                              updateTallaCantidad(articulo.itemId, talla.sizedId, text)
-                                            }
-                                            keyboardType="numeric"
-                                            editable={false}
-                                            selectTextOnFocus
-                                            placeholder="0"
-                                          />
-                                          <Text
-                                            style={[
-                                              styles.tallaCantidadLabelTable,
-                                              !talla.seleccionada && styles.tallaLabelDisabled,
-                                            ]}
-                                          >
-                                            uds (disp: {talla.cantidadDisponible})
-                                          </Text>
-                                        </View>
-                                      ))}
-                                    </View>
+                                    {requiereDiarioEnGrupo && (
+                                      <TouchableOpacity
+                                        style={styles.tipoDiarioButton}
+                                        onPress={() => {
+                                          const pt = Number(productType)
+                                          getTipoDiario(pt)
+                                          setProductTypeSeleccionado(pt)
+                                          setShowTipoDiarioModal(true)
+                                        }}
+                                      >
+                                        <Text style={styles.tipoDiarioLabel}>Diario: </Text>
+                                        <Text style={styles.tipoDiarioValue}>
+                                          {diarioSeleccionadoPorTipo[Number(productType)]?.description || "Seleccionar"}
+                                        </Text>
+                                        <Text style={styles.tipoDiarioArrow}>▼</Text>
+                                      </TouchableOpacity>
+                                    )}
                                   </View>
-                                </ScrollView>
-                              </View>
-                            ))}
+
+                                  {Number(productType) === 2 && requiereDiarioEnGrupo && (
+                                    <TouchableOpacity
+                                      style={styles.articuloGenericoButton}
+                                      onPress={() => {
+                                        getArticulosGenericosSegundas(articulo.itemId)
+                                        setShowArticuloGenericoModal(true)
+                                      }}
+                                    >
+                                      <Text style={styles.articuloGenericoLabel}>Art. Genérico: </Text>
+                                      <Text style={styles.articuloGenericoValue}>
+                                        {articuloGenericoSegundas || "Seleccionar"}
+                                      </Text>
+                                      <Text style={styles.articuloGenericoArrow}>▼</Text>
+                                    </TouchableOpacity>
+                                  )}
+
+                                  <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                                    <View style={styles.tallasTableContainer}>
+                                      <View style={styles.tallasHeaderRow}>
+                                        {tallas.map((talla) => (
+                                          <View key={talla.sizedId} style={styles.tallaColumn}>
+                                            <TouchableOpacity
+                                              style={[
+                                                styles.tallaCheckbox,
+                                                talla.seleccionada && styles.tallaCheckboxSelected,
+                                              ]}
+                                              onPress={() => toggleTallaSelection(articulo.itemId, talla.sizedId)}
+                                            >
+                                              {talla.seleccionada && <Text style={styles.tallaCheckboxCheck}>✓</Text>}
+                                            </TouchableOpacity>
+                                            <Text
+                                              style={[
+                                                styles.tallaTitleText,
+                                                !talla.seleccionada && styles.tallaLabelDisabled,
+                                              ]}
+                                            >
+                                              {talla.sizedId}
+                                            </Text>
+                                          </View>
+                                        ))}
+                                      </View>
+
+                                      <View style={styles.tallasInputRow}>
+                                        {tallas.map((talla) => (
+                                          <View key={talla.sizedId} style={styles.tallaColumn}>
+                                            <TextInput
+                                              style={[
+                                                styles.tallaCantidadInputTable,
+                                                !talla.seleccionada && styles.tallaCantidadInputDisabled,
+                                              ]}
+                                              value={talla.cantidad.toString()}
+                                              onChangeText={(text) =>
+                                                updateTallaCantidad(articulo.itemId, talla.sizedId, text)
+                                              }
+                                              keyboardType="numeric"
+                                              editable={false}
+                                              selectTextOnFocus
+                                              placeholder="0"
+                                            />
+                                            <Text
+                                              style={[
+                                                styles.tallaCantidadLabelTable,
+                                                !talla.seleccionada && styles.tallaLabelDisabled,
+                                              ]}
+                                            >
+                                              uds (disp: {talla.cantidadDisponible})
+                                            </Text>
+                                          </View>
+                                        ))}
+                                      </View>
+                                    </View>
+                                  </ScrollView>
+                                </View>
+                              )
+                            })}
                       </View>
                     )
                   })}

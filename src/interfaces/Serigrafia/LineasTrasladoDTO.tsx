@@ -7,4 +7,5 @@ export interface LineasTrasladoDTO {
   cantidadDisponible:number
   cantidadEnviar:number
   sizeId:string
+  tieneConErrores: number
 }
