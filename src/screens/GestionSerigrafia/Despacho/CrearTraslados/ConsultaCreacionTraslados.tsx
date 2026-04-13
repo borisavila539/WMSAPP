@@ -1,4 +1,4 @@
-import { type FC, useState, useEffect, useContext } from "react"
+import { type FC, useState, useEffect, useContext, useCallback } from "react"
 import {
   Alert,
   SafeAreaView,
@@ -23,6 +23,7 @@ import type { LineasTrasladoDTO } from "../../../../interfaces/Serigrafia/Lineas
 import type { ConsultaLoteInterface } from "../../../../interfaces/Serigrafia/Lote"
 import { WMSContext } from "../../../../context/WMSContext"
 import { Diario } from "../../../../interfaces/Serigrafia/DiariosAbiertos"
+import { IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores } from "../../../../interfaces/Serigrafia/IM_WMS_SRG_RespustaGetEjecutarNotificadoConErrores"
 
 type props = StackScreenProps<RootStackParams, "ConsultaCreacionTrasladosScreen">
 
@@ -94,8 +95,6 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
   const [articulosGenericosDisponibles, setArticulosGenericosDisponibles] = useState<ArticulosGenericosSegundas[]>([])
   const [isLoadingArticulosGenericos, setIsLoadingArticulosGenericos] = useState(false)
 
-
-
   const getTipoDiario = async (productType: number) => {
     try {
       const resp = await WMSApiSerigrafia.get<Diario[]>(`GetDiariosAbiertosByDiarioId/${WMSState.usuario}/${productType}`,)
@@ -158,7 +157,8 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
 
   useEffect(() => {
     getLote()
-  }, [])
+    getEjecutarNotificacionConErrores();
+  }, [getEjecutarNotificacionConErrores])
 
   useEffect(() => {
     if (selectedLote) {
@@ -333,7 +333,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
 
       const dataToSend = articulosConTallas.flatMap((art) =>
         art.tallas!
-          .filter((t) => t.seleccionada && t.cantidad > 0)
+          .filter((t) => t.seleccionada && t.cantidad > 0 && t.productType == 1)
           .map((t) => ({
             itemId: art.itemId,
             color: art.color ?? "",
@@ -705,8 +705,9 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
                           Object.entries(tallasPorTipo)
                             .sort(([a], [b]) => Number(a) - Number(b))
                             .map(([productType, tallas]) => {
-                              const requiereDiarioEnGrupo = tallas.some(
-                                (t) => Number(t.tieneConErrores) !== 1,
+                              const tallasIrregulares = tallas.filter((t) => t.cantidadDisponible > 0 && Number(t.productType) !== 1)
+                              const requiereDiarioEnGrupo = tallasIrregulares.some(
+                                (t) => Number(t.tieneConErrores) !== 1 
                               )
 
                               return (
