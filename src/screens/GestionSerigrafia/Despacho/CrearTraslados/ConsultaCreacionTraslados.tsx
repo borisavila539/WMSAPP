@@ -157,8 +157,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
 
   useEffect(() => {
     getLote()
-    getEjecutarNotificacionConErrores();
-  }, [getEjecutarNotificacionConErrores])
+  }, [])
 
   useEffect(() => {
     if (selectedLote) {
