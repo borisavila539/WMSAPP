@@ -292,16 +292,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
   const confirmarTraslado = async () => {
     const hayDiarioPrimerasSelecionado = !!diarioSeleccionadoPorTipo[1]?.journalid;
     const hayDiarioSegundasSelecionado = !!diarioSeleccionadoPorTipo[2]?.journalid;
-
-    const hayPrimerasQueRequierenDiario = articulosConTallas.some((art) =>
-      art.tallas?.some(
-        (t) =>
-          t.seleccionada &&
-          t.cantidad > 0 &&
-          Number(t.productType) === 1 &&
-          Number(t.tieneConErrores) !== 1,
-      ),
-    )
+     
 
     const haySegundasQueRequierenDiario = articulosConTallas.some((art) =>
       art.tallas?.some(
@@ -314,7 +305,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
     )
 
 
-    if (!hayDiarioPrimerasSelecionado && hayPrimerasQueRequierenDiario) {
+    if (!hayDiarioPrimerasSelecionado && haySegundasQueRequierenDiario) {
       return Alert.alert("Alerta", "debe de seleccionarse los diarios de primeras")
     }
 
@@ -378,7 +369,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
       const diarioLineasPrimeras: DiarioLineasDTO = {
         journalId: diarioSeleccionadoPorTipo[1]?.journalid || "",
         lineas: dataToSend
-          .filter((d) => Number(d.productType) === 1 && Number(d.tieneConErrores) !== 1)
+          .filter((d) => Number(d.productType) === 2 && Number(d.tieneConErrores) !== 1)
           .map((d) => ({
             itemId: d.itemId,
             site: "1",
@@ -392,7 +383,7 @@ export const ConsultaCreacionTrasladosScreen: FC<props> = ({ navigation }) => {
           })),
       }
 
-      if (hayPrimerasQueRequierenDiario && diarioLineasPrimeras.lineas.length > 0) {
+      if (haySegundasQueRequierenDiario && diarioLineasPrimeras.lineas.length > 0) {
         const respDiarioPrimeras = await WMSApiSerigrafia.post('CrearDiarioLines', diarioLineasPrimeras);
         const errorDiairoPrimeras = !respDiarioPrimeras.data.includes("OK")
         if (errorDiairoPrimeras) {
