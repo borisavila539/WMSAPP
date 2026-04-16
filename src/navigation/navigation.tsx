@@ -86,6 +86,7 @@ import { DespachoEnviarTrasladoScreen } from '../screens/GestionSerigrafia/Despa
 import { DespachoRecibirTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/DespachoRecibirTraslado';
 import { EscorgerTrasladoParaRecibirScreen} from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/EscogerDespacho';
 import { ConsultaTrasladoCreadosScreen } from '../screens/GestionSerigrafia/Despacho/TrasladosCreados/ConsultaTrasladosCreados';
+import { ImpresionEtiquetasRollosScreen } from '../screens/ImpresionEtiquetasRollos/ImpresionEtiquetasRollosScreen';    
 
 export type RootStackParams = {
     LoginScreen: undefined,
@@ -176,6 +177,7 @@ export type RootStackParams = {
     DespachoRecibirTrasladoScreen: undefined,
     EscorgerTrasladoParaRecibirScreen: undefined,
     ConsultaTrasladoCreadosScreen: undefined,
+    ImpresionEtiquetasRollosScreen: undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -299,6 +301,8 @@ export const Navigation = () => {
             <Stack.Screen name= 'DespachoRecibirTrasladoScreen' options={{title: 'DespachoRecibirTrasladoScreen'}} component={DespachoRecibirTrasladoScreen} />
             <Stack.Screen name= 'EscorgerTrasladoParaRecibirScreen' options={{title: 'EscorgerTrasladoParaRecibirScreen'}} component={EscorgerTrasladoParaRecibirScreen} />
             <Stack.Screen name= 'ConsultaTrasladoCreadosScreen' options={{title: 'ConsultaTrasladoCreadosScreen'}} component={ConsultaTrasladoCreadosScreen} />
+            {/* Impresion de etiquetas rollos */}
+            <Stack.Screen name='ImpresionEtiquetasRollosScreen' options={{ title: 'ImpresionEtiquetasRollosScreen' }} component={ImpresionEtiquetasRollosScreen} /> 
         </Stack.Navigator>
     )
 }
