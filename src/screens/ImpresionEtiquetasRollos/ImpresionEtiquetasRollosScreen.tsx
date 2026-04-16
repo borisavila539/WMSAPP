@@ -1,5 +1,5 @@
 import { StackScreenProps } from '@react-navigation/stack'
-import React, { FC, memo, useCallback, useMemo, useState } from 'react'
+import React, { FC, memo, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
@@ -181,7 +181,7 @@ const RolloCard: FC<RolloCardProps> = memo(
         </View>
 
         <View style={styles.rowMini}>
-          <Text style={styles.miniLabel}>Prov</Text>
+          <Text style={styles.miniLabel}>#RP.</Text>
           <Text style={styles.miniValue} numberOfLines={1}>
             {item.numeroRolloProveedor}
           </Text>
@@ -235,8 +235,8 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
   const [cargando, setCargando] = useState(false)
   const [imprimiendo, setImprimiendo] = useState(false)
   const [rollos, setRollos] = useState<DetalleEtiquetaRolloInterface[]>([])
+  const [mostrarFiltros, setMostrarFiltros] = useState(true)
 
-  // selección optimizada
   const [allSelected, setAllSelected] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set())
@@ -252,6 +252,12 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
   const [filtroNumeroRollo, setFiltroNumeroRollo] = useState('')
   const [tipoTelaLocal, setTipoTelaLocal] = useState('')
   const [showTipoTelaDropdown, setShowTipoTelaDropdown] = useState(false)
+
+  useEffect(() => {
+    if (rollos.length === 0) {
+      setMostrarFiltros(true)
+    }
+  }, [rollos])
 
   const limpiarSeleccion = useCallback(() => {
     setAllSelected(false)
@@ -282,7 +288,7 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
     const filtrosApi =
       tipoTela === 'denim'
         ? [importacion, numProveedor, rolloProveedor, configuracion].filter(Boolean).length
-        : [importacion, color, cantidad].filter(Boolean).length
+        : [importacion, color, cantidad, configuracion, rolloProveedor].filter(Boolean).length
 
     const filtrosLocales = [filtroLote, filtroNumeroRollo, tipoTelaLocal].filter(Boolean).length
 
@@ -311,6 +317,7 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
     setFiltroNumeroRollo('')
     setTipoTelaLocal('')
     setRollos([])
+    setMostrarFiltros(true)
     limpiarSeleccion()
   }, [limpiarSeleccion])
 
@@ -321,13 +328,19 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
   }, [importacion])
 
   const getData = useCallback(async () => {
-    if (!importacion.trim()) {
-      setRollos([])
-      limpiarSeleccion()
+    const hayVaribalesDiferentesDeRolloProveedorONumeroImportacion =
+      rolloProveedor.trim() || importacion.trim()
+
+    if (!hayVaribalesDiferentesDeRolloProveedorONumeroImportacion) {
+      Alert.alert(
+        'Aviso',
+        'Ingresa al menos el número de importación o el número de rollo proveedor.',
+      )
       return
     }
 
     setCargando(true)
+
     try {
       const response = await WmSApi.get<DetalleEtiquetaRolloInterface[]>(
         'GetDetalleRolloAImprimir',
@@ -344,14 +357,17 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
         },
       )
 
-      if (response.data?.length === 0) {
+      const data = response.data ?? []
+
+      if (data.length === 0) {
         Alert.alert(
           'Aviso / No se encontraron rollos.',
           `*Revisa que la importacion pertejezca al tipo de tela seleccionado.\n*Revisa le numero de importacion.`,
         )
       }
 
-      setRollos(response.data ?? [])
+      setRollos(data)
+      setMostrarFiltros(data.length === 0)
       limpiarSeleccion()
       setFiltroLote('')
       setFiltroNumeroRollo('')
@@ -359,6 +375,7 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
     } catch (err) {
       console.log(err)
       setRollos([])
+      setMostrarFiltros(true)
       limpiarSeleccion()
       Alert.alert('Error', 'No se pudo obtener la información.')
     } finally {
@@ -505,7 +522,7 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
       <Header
         texto1="Etiquetas"
         texto2={`${rollosFiltrados.length} encontrados`}
-        texto3={filtrosActivos > 0 ? `${filtrosActivos} filtros` : ''}
+        texto3=""
       />
 
       <View style={styles.topSwitch}>
@@ -534,80 +551,116 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filtersBox}>
-        {tipoTela === 'denim' ? (
+      <TouchableOpacity
+        style={styles.toggleFiltersBtn}
+        onPress={() => setMostrarFiltros(prev => !prev)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.toggleFiltersLeft}>
+          <Icon
+            name={mostrarFiltros ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color={colors.primary}
+          />
+          <Text style={styles.toggleFiltersText}>
+            {mostrarFiltros ? 'Ocultar filtros' : 'Ver más filtros'}
+          </Text>
+        </View>
+
+        {filtrosActivos > 0 ? (
+          <View style={styles.filtersCountBadge}>
+            <Text style={styles.filtersCountBadgeText}>{filtrosActivos}</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+
+      {mostrarFiltros && (
+        <View style={styles.filtersBox}>
+          {tipoTela === 'denim' ? (
+            <View style={styles.filtersRow}>
+              <InputField
+                icon="file-text"
+                placeholder="IM0000"
+                value={importacion}
+                onChangeText={setImportacion}
+                onFocus={autocompletarImportacion}
+              />
+              <InputField
+                icon="hash"
+                placeholder="Rollo prov."
+                value={rolloProveedor}
+                onChangeText={setRolloProveedor}
+              />
+            </View>
+          ) : (
+            <>
+              <View style={styles.filtersRow}>
+                <InputField
+                  icon="file-text"
+                  placeholder="IM0000"
+                  value={importacion}
+                  onChangeText={setImportacion}
+                  onFocus={autocompletarImportacion}
+                />
+                <InputField
+                  icon="hash"
+                  placeholder="Rollo prov."
+                  value={rolloProveedor}
+                  onChangeText={setRolloProveedor}
+                />
+              </View>
+
+              <View style={styles.filtersRow}>
+                <InputField
+                  icon="activity"
+                  placeholder="Config."
+                  value={configuracion}
+                  onChangeText={setConfiguracion}
+                  keyboardType="numeric"
+                />
+                <InputField
+                  icon="droplet"
+                  placeholder="Color"
+                  value={color}
+                  onChangeText={setColor}
+                />
+              </View>
+            </>
+          )}
+
           <View style={styles.filtersRow}>
-            <InputField
-              icon="file-text"
-              placeholder="IM0000"
-              value={importacion}
-              onChangeText={setImportacion}
-              onFocus={autocompletarImportacion}
-            />
             <InputField
               icon="hash"
-              placeholder="Rollo prov."
-              value={rolloProveedor}
-              onChangeText={setRolloProveedor}
+              placeholder="No. rollo"
+              value={filtroNumeroRollo}
+              onChangeText={setFiltroNumeroRollo}
+            />
+            <DropdownField
+              label="Codigo de Artículo"
+              placeholder="Codigo de artículo"
+              value={tipoTelaLocal}
+              onPress={() => setShowTipoTelaDropdown(true)}
             />
           </View>
-        ) : (
-          <View style={styles.filtersRow}>
-            <InputField
-              icon="file-text"
-              placeholder="IM0000"
-              value={importacion}
-              onChangeText={setImportacion}
-              onFocus={autocompletarImportacion}
-            />
-            <InputField
-              icon="droplet"
-              placeholder="Color"
-              value={color}
-              onChangeText={setColor}
-            />
-            <InputField
-              icon="activity"
-              placeholder="Config."
-              value={configuracion}
-              onChangeText={setConfiguracion}
-              keyboardType="numeric"
-            />
+
+          <View style={styles.actionsRow}>
+            <TouchableOpacity style={styles.clearBtn} onPress={limpiarFiltros}>
+              <Icon name="x" size={14} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.searchBtn} onPress={getData} disabled={cargando}>
+              {cargando ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <Icon name="search" size={14} color="#FFF" />
+                  <Text style={styles.searchText}>Buscar</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.filtersRow}>
-          <InputField
-            icon="hash"
-            placeholder="No. rollo"
-            value={filtroNumeroRollo}
-            onChangeText={setFiltroNumeroRollo}
-          />
-          <DropdownField
-            label="Codigo de Artículo"
-            placeholder="Codigo de artículo"
-            value={tipoTelaLocal}
-            onPress={() => setShowTipoTelaDropdown(true)}
-          />
         </View>
-
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.clearBtn} onPress={limpiarFiltros}>
-            <Icon name="x" size={14} color={colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.searchBtn} onPress={getData} disabled={cargando}>
-            {cargando ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <>
-                <Icon name="search" size={14} color="#FFF" />
-                <Text style={styles.searchText}>Buscar</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      </View>
+      )}
 
       <FlatList
         data={rows}
@@ -680,7 +733,7 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
         >
           <TouchableOpacity activeOpacity={1} style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Tipo de tela</Text>
+              <Text style={styles.modalTitle}>Código de artículo</Text>
               <TouchableOpacity onPress={() => setShowTipoTelaDropdown(false)}>
                 <Icon name="x" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
@@ -750,6 +803,44 @@ const styles = StyleSheet.create({
   },
   switchTextActive: {
     color: '#FFF',
+  },
+
+  toggleFiltersBtn: {
+    minHeight: 40,
+    marginHorizontal: 8,
+    marginBottom: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  toggleFiltersLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  toggleFiltersText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  filtersCountBadge: {
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: 6,
+    borderRadius: 11,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filtersCountBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.primary,
   },
 
   filtersBox: {
