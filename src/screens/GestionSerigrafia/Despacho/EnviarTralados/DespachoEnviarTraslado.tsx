@@ -27,6 +27,7 @@ import { UsuarioValidoPorAccion } from "../../../../interfaces/Serigrafia/Usuari
 import { ConsultaLoteInterface } from "../../../../interfaces/Serigrafia/Lote"
 import { Dropdown } from "react-native-element-dropdown"
 import { IDespachoLinesPacking } from "../../../../interfaces/Serigrafia/IDespachoLinesPacking"
+import { ScrollView } from "react-native-gesture-handler"
 
 interface PackingRequestDTO {
   DespachoId: number
@@ -193,14 +194,14 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
         else if (cat === 2) p2 += qty
       }
 
-      const k = Number(it.itemId)
+      const k = it.itemId
       const prev = countByItem.get(k) ?? { total: 0, packed: 0 }
       prev.total += 1
       if (it.packing) prev.packed += 1
       countByItem.set(k, prev)
     }
 
-    const all = new Map<number, boolean>()
+    const all = new Map<string, boolean>()
     for (const [k, v] of countByItem) {
       all.set(k, v.total > 0 && v.total === v.packed)
     }
@@ -214,19 +215,17 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
     }
   }, [data])
 
-  const isTrasladoEnviado = useCallback((tras: TrasladoDespachoDTO) => tras.statusId === 1 || tras.statusId === 2, [])
-
   const isDisabled = useMemo(() => {
     // habilita botón si hay traslados "completos" pero aún no enviados
     return despachoTrasladodata.some(
-      (t) => packingAllByItemId.get(Number(t.itemId)) === true && !isTrasladoEnviado(t)
+      (t) => packingAllByItemId.get(t.itemId) === true && t.statusId === 0
     )
-  }, [despachoTrasladodata, packingAllByItemId, isTrasladoEnviado])
+  }, [despachoTrasladodata, packingAllByItemId])
 
-  const totaldtrasladoEnviados = useMemo(() => {
+  const totaltrasladosparaEnviados = useMemo(() => {
     // contador de traslados listos para enviar (status 0 + completo)
     return despachoTrasladodata.filter(
-      (t) => t.statusId === 0 && packingAllByItemId.get(Number(t.itemId)) === true
+      (t) => packingAllByItemId.get(t.itemId) === true && t.statusId === 0  
     ).length
   }, [despachoTrasladodata, packingAllByItemId])
 
@@ -236,6 +235,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
       `GetDespachoLinesByIdAEnviar/${WMSState.SRGDespachoId}`
     )
     setData(resp.data)
+
   }, [WMSState.SRGDespachoId])
 
   const getDespachoTrasladoData = useCallback(async () => {
@@ -243,6 +243,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
       `GetDespachoTrasladosById/${WMSState.SRGDespachoId}`
     )
     setDespachoTrasladodata(resp.data)
+
   }, [WMSState.SRGDespachoId])
 
   const getUsuarioValido = useCallback(async () => {
@@ -338,9 +339,9 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
         const resp = await WMSApiSerigrafia.post("SetPacking", packingRequest)
 
         // Si tu API devuelve 0/1, valida aquí:
-         if (Number(resp.data) <= 0) {
+        if (Number(resp.data) <= 0) {
           PlaySound("error")
-         } else{        PlaySound("success")}
+        } else { PlaySound("success") }
 
 
 
@@ -390,7 +391,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
     if (busyRef.current) return
 
     const dataToSend = despachoTrasladodata.filter(
-      (t) => t.statusId === 0 && packingAllByItemId.get(Number(t.itemId)) === true
+      (t) => t.statusId === 0 && packingAllByItemId.get(t.itemId) === true
     )
     if (dataToSend.length === 0) return
 
@@ -558,34 +559,38 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
             </View>
 
             {/* Chips */}
-            <View style={styles.trasladosChips}>
-              {despachoTrasladodata.map((traslado, index) => (
-                <View
-                  key={`${traslado.transferId}-${index}`}
-                  style={[
-                    styles.trasladoChip,
-                    getStatusStyle(traslado.statusId),
-                    modoEliminar && styles.trasladoChipDeleteMode,
-                  ]}
-                >
-                  <View>
-                    <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.transferId}</Text>
-                    <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.itemId}</Text>
-                    <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>Total Uni: {traslado.montoTraslado}</Text>
-                  </View>
+            <ScrollView
+              style={{ maxHeight: 300 }}
+              showsVerticalScrollIndicator={true}>
+              <View style={styles.trasladosChips}>
+                {despachoTrasladodata.map((traslado, index) => (
+                  <View
+                    key={`${traslado.transferId}-${index}`}
+                    style={[
+                      styles.trasladoChip,
+                      getStatusStyle(traslado.statusId),
+                      modoEliminar && styles.trasladoChipDeleteMode,
+                    ]}
+                  >
+                    <View>
+                      <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.transferId}</Text>
+                      <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>{traslado.itemId}</Text>
+                      <Text style={[styles.trasladoChipText, getStatusTextStyle(traslado.statusId)]}>Total Uni: {traslado.montoTraslado}</Text>
+                    </View>
 
-                  {modoEliminar && (
-                    <TouchableOpacity
-                      style={styles.trasladoChipDeleteBtn}
-                      onPress={() => confirmarEliminarTraslado(traslado)}
-                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    >
-                      <Icon name="times-circle" size={isSmallDevice ? 14 : 16} color="#D32F2F" solid />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))}
-            </View>
+                    {modoEliminar && (
+                      <TouchableOpacity
+                        style={styles.trasladoChipDeleteBtn}
+                        onPress={() => confirmarEliminarTraslado(traslado)}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <Icon name="times-circle" size={isSmallDevice ? 14 : 16} color="#D32F2F" solid />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
           </View>
         )}
       </View>
@@ -711,7 +716,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
             <View style={styles.footerButtonContent}>
               <Icon name="check-double" size={isSmallDevice ? 14 : 16} color={isDisabled ? "#FFFFFF" : "#2E7D32"} />
               <Text style={[styles.footerButtonText, { color: isDisabled ? "#FFFFFF" : "#2E7D32" }]}>
-                Enviar traslados ({totaldtrasladoEnviados})
+                Enviar traslados ({totaltrasladosparaEnviados})
               </Text>
             </View>
           )}
