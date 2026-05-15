@@ -12,6 +12,8 @@ export interface TallaInterface {
     talla: string;
     cantidadSolicitada: number;
     cantidadPreparada: number;
-    cantidadEmpacada: number;
+    cantidadEmpacada: number
+    cantidadPrimeras: number;
+    cantidadIrregulares: number;
     estadoOP: number;
 }

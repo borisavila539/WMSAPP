@@ -1,11 +1,157 @@
 
-
-import { useState, useMemo, useEffect, useCallback, memo } from "react"
-import type { ConsultaOpsPorBaseInterface } from "../../../interfaces/Serigrafia/OpPorBaseInterface"
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import React, { memo, useCallback, useMemo, useState } from "react"
+import type {
+  ConsultaOpsPorBaseInterface,
+  TallaInterface,
+} from "../../../interfaces/Serigrafia/OpPorBaseInterface"
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native"
 import { EstadoOp } from "../../../interfaces/Serigrafia/Enums/EstadoOP"
-import { Dropdown } from "react-native-element-dropdown"
 
+type OrderCardProps = {
+  order: ConsultaOpsPorBaseInterface
+  onPress: (tallasActualizadas: ConsultaOpsPorBaseInterface["tallas"]) => void
+  OnAjustar: (tallasActualizadas: ConsultaOpsPorBaseInterface["tallas"]) => void
+  labelButton1?: string
+  labelButton2?: string
+  labelButton3?: string
+  pantalla?: string
+  seEstaEnviandoInfo: boolean
+  ejecutarNotificacionConErrores: boolean
+}
+
+const toInt = (value: string) => {
+  const n = Number.parseInt(value, 10)
+  return Number.isNaN(n) ? 0 : n
+}
+
+const getColorByEstado = (estado?: EstadoOp) => {
+  switch (estado) {
+    case EstadoOp.Liberado:
+      return "#fef3c7"
+    case EstadoOp.Iniciado:
+      return "#b3cff0"
+    case EstadoOp.NotificadoTerminado:
+      return "#d1fae5"
+    case EstadoOp.Terminado:
+      return "#c7c5c5"
+    default:
+      return "#ffffff"
+  }
+}
+
+const getBorderByEstado = (estado?: EstadoOp) => {
+  switch (estado) {
+    case EstadoOp.Liberado:
+      return "#f59e0b"
+    case EstadoOp.Iniciado:
+      return "#51a2ff"
+    case EstadoOp.NotificadoTerminado:
+      return "#10b981"
+    case EstadoOp.Terminado:
+      return "#d1d5db"
+    default:
+      return "#d1d5db"
+  }
+}
+
+const EditableCell = memo(function EditableCell({
+  value,
+  editable,
+  onChangeText,
+  backgroundColor,
+  borderColor,
+  disabledStyle,
+}: {
+  value: string
+  editable: boolean
+  onChangeText: (value: string) => void
+  backgroundColor?: string
+  borderColor?: string
+  disabledStyle?: boolean
+}) {
+  return (
+    <TextInput
+      style={[
+        styles.sizeInput,
+        disabledStyle && styles.texAreaDisabled,
+        editable && backgroundColor && borderColor
+          ? {
+              backgroundColor,
+              borderColor,
+              borderWidth: 2,
+            }
+          : undefined,
+      ]}
+      value={value}
+      onChangeText={onChangeText}
+      keyboardType="numeric"
+      textAlign="center"
+      editable={editable}
+    />
+  )
+})
+
+const ReadOnlyCell = memo(function ReadOnlyCell({
+  value,
+  backgroundColor,
+  borderColor,
+}: {
+  value: string | number
+  backgroundColor?: string
+  borderColor?: string
+}) {
+  return (
+    <View
+      style={[
+        styles.readOnlyCell,
+        backgroundColor && borderColor
+          ? {
+              backgroundColor,
+              borderColor,
+            }
+          : undefined,
+      ]}
+    >
+      <Text style={styles.readOnlyText}>{value}</Text>
+    </View>
+  )
+})
+
+const HeaderSizeCell = memo(function HeaderSizeCell({
+  talla,
+  backgroundColor,
+  borderColor,
+}: {
+  talla: string
+  backgroundColor?: string
+  borderColor?: string
+}) {
+  return (
+    <View
+      style={[
+        styles.sizeHeaderCell,
+        backgroundColor && borderColor
+          ? {
+              backgroundColor,
+              borderWidth: 2,
+              borderColor,
+              borderRadius: 6,
+              paddingVertical: 4,
+            }
+          : undefined,
+      ]}
+    >
+      <Text style={styles.sizeHeader}>{talla}</Text>
+    </View>
+  )
+})
 
 export const OrderCard = memo(function OrderCard({
   order,
@@ -16,99 +162,72 @@ export const OrderCard = memo(function OrderCard({
   labelButton3,
   pantalla,
   seEstaEnviandoInfo,
-}: {
-  order: ConsultaOpsPorBaseInterface
-  onPress: (tallasActualizadas: typeof order.tallas) => void
-  OnAjustar: (tallasActualizadas: typeof order.tallas) => void
-  labelButton1?: string
-  labelButton2?: string
-  labelButton3?: string
-  pantalla?: string
-  seEstaEnviandoInfo: boolean
-}) {
-  
+  ejecutarNotificacionConErrores,
+}: OrderCardProps) {
   const [tallas, setTallas] = useState(() => order.tallas.map((t) => ({ ...t })))
-  const [estado, setEstado] = useState<EstadoOp>(order.estadoOp)
-
   const isIniciarPantalla = pantalla === "IniciarOP"
   const isTerminarPantalla = pantalla === "TerminarOP"
+  const currentEstado = order.estadoOp
 
-  const getColorByEstadoTalla = useCallback((estadoTalla: EstadoOp) => {
-    switch (estadoTalla) {
-      case EstadoOp.Liberado:
-        return "#fef3c7" // amarillo suave
-      case EstadoOp.Iniciado:
-        return "#d1fae5" // verde suave
-      case EstadoOp.NotificadoTerminado:
-        return "#ffcccc" // rojo suave
-      case EstadoOp.Terminado:
-        return "#c7c5c5" 
-      default:
-        return "#ffffff" // blanco por defecto
-    }
-  }, [])
+  const totalPreparado = useMemo(
+    () => tallas.reduce((acc, t) => acc + t.cantidadPreparada, 0),
+    [tallas]
+  )
 
-  const getBorderColorByEstadoTalla = useCallback((estadoTalla: EstadoOp) => {
-    switch (estadoTalla) {
-      case EstadoOp.Liberado:
-        return "#f59e0b" // amarillo
-      case EstadoOp.Iniciado:
-        return "#10b981" // verde
-      case EstadoOp.NotificadoTerminado:
-        return "#ff4d4d" // rojo
-      case EstadoOp.Terminado:
-        return "#d1d5db"
-      default:
-        return "#d1d5db" // gris por defecto
-    }
-  }, [])
+  const totalEmpacado = useMemo(
+    () => tallas.reduce((acc, t) => acc + t.cantidadPrimeras + t.cantidadIrregulares, 0),
+    [tallas]
+  )
 
-  const updatePreparadoSize = useCallback((index: number, value: string) => {
-    setTallas((prev) => {
-      const updated = [...prev]
-      updated[index] = {
-        ...updated[index],
-        cantidadPreparada: Number.isNaN(Number.parseInt(value)) ? 0 : Number.parseInt(value),
-      }
-      return updated
-    })
-  }, [])
+  const totalSolicitado = useMemo(
+    () => tallas.reduce((acc, t) => acc + t.cantidadSolicitada, 0),
+    [tallas]
+  )
 
-    const updateEmpacadoSize = useCallback((index: number, value: string) => {
-    setTallas((prev) => {
-      const updated = [...prev]
-      updated[index] = {
-        ...updated[index],
-        cantidadEmpacada: Number.isNaN(Number.parseInt(value)) ? 0 : Number.parseInt(value),
-      }
-      return updated
-    })
-  }, [])
+  const isComplete = isIniciarPantalla
+    ? totalPreparado === totalSolicitado
+    : totalEmpacado === totalSolicitado
 
-  const totalPreparado = useMemo(() => tallas.reduce((acc, t) => acc + t.cantidadPreparada, 0), [tallas])
-  const totalEmpacado = useMemo(() => tallas.reduce((acc, t) => acc + t.cantidadEmpacada, 0), [tallas])
-  const totalSolicitado = useMemo(() => tallas.reduce((acc, t) => acc + t.cantidadSolicitada, 0), [tallas])
-  const isComplePantallaIniciar = totalPreparado === totalSolicitado
-  const isComplePantallaTerminar = totalEmpacado === totalSolicitado
-  const isComplete = isIniciarPantalla? isComplePantallaIniciar:isComplePantallaTerminar
+  const isDisableIniciado = useMemo(
+    () => tallas.every((t) => (t.estadoOP ?? 0) >= EstadoOp.Iniciado),
+    [tallas]
+  )
 
-  function handleReset(): void {
-    setTallas(order.tallas.map((t) => ({ ...t, cantidadPreparada: 0})))
-  }
+  const isDisableTerminado = useMemo(
+    () => tallas.every((t) => (t.estadoOP ?? 0) >= EstadoOp.NotificadoTerminado),
+    [tallas]
+  )
 
+  const isDisabled = useMemo(() => {
+    if (seEstaEnviandoInfo) return true
+    if (isIniciarPantalla) return isDisableIniciado
+    if (isTerminarPantalla) return isDisableTerminado
+    return false
+  }, [
+    seEstaEnviandoInfo,
+    isIniciarPantalla,
+    isTerminarPantalla,
+    isDisableIniciado,
+    isDisableTerminado,
+  ])
 
-  const currentEstado = estado ?? order.estadoOp
+  const isDisabledPreparadoEmpacado = useMemo(() => {
+    if (seEstaEnviandoInfo) return true
+    if (isIniciarPantalla) return isDisableIniciado
+    if (isTerminarPantalla) return true
+    return false
+  }, [seEstaEnviandoInfo, isIniciarPantalla, isTerminarPantalla, isDisableIniciado])
 
   const colorbyStatusOp = useMemo(() => {
     switch (currentEstado) {
       case EstadoOp.Liberado:
         return "#f59e0b"
       case EstadoOp.Iniciado:
-        return "#10b981"
+        return "#b3cff0"
       case EstadoOp.NotificadoTerminado:
-        return "rgba(255, 77, 77, 0.64)"
+        return "#10b981"
       case EstadoOp.Terminado:
-        return "#ff4d4dff"
+        return "#d1d5db"
       default:
         return "#d1d5db"
     }
@@ -119,68 +238,67 @@ export const OrderCard = memo(function OrderCard({
       case EstadoOp.Liberado:
         return "#fef3c7ff"
       case EstadoOp.Iniciado:
+        return "#b3cff0"
+      case EstadoOp.NotificadoTerminado:
         return "#d1fae5"
       case EstadoOp.Terminado:
-        return "#ffccccff"
+        return "#c7c5c5"
       default:
         return "#f3f4f6"
     }
   }, [currentEstado])
 
-  const isDisableIniciado = useMemo(() => {
-    return tallas.every((t) => (t.estadoOP?? 0) >= EstadoOp.Iniciado)
-  },[tallas])
+  const tallasConEstilo = useMemo(() => {
+    return tallas.map((t) => {
+      const backgroundColor = getColorByEstado(t.estadoOP)
+      const borderColor =
+        isTerminarPantalla &&
+        t.cantidadPrimeras + t.cantidadIrregulares !== t.cantidadSolicitada
+          ? "#ff4d4d"
+          : getBorderByEstado(t.estadoOP)
 
-  const isDisableTerminado = useMemo( 
-    () => {
-      return tallas.every((t)=> (t.estadoOP??0) >= EstadoOp.NotificadoTerminado)
-    },[tallas]
+      return {
+        ...t,
+        backgroundColor,
+        borderColor,
+      }
+    })
+  }, [tallas, isTerminarPantalla])
+
+  const updateTallaField = useCallback(
+    (index: number, field: keyof TallaInterface, value: string) => {
+      setTallas((prev) => {
+        const updated = [...prev]
+        updated[index] = {
+          ...updated[index],
+          [field]: toInt(value),
+        }
+        return updated
+      })
+    },
+    []
   )
 
+  const handleReset = useCallback(() => {
+    setTallas(
+      order.tallas.map((t) => ({
+        ...t,
+        cantidadPreparada: 0,
+        cantidadPrimeras: 0,
+        cantidadIrregulares: 0,
+      }))
+    )
+  }, [order.tallas])
 
-
-  const isDisabled = useMemo(() => {
-    if (seEstaEnviandoInfo) return true
-
-    if (isIniciarPantalla){
-      return isDisableIniciado
-    }
-
-    if (isTerminarPantalla){
-      return isDisableTerminado
-    }
-
-    return false
-  },[
-    seEstaEnviandoInfo,
-    isIniciarPantalla,
-    isTerminarPantalla,
-    isDisableIniciado,
-    isDisableTerminado
-  ])
-
-
-
-  const isDisabledPreparadoEmpacado = useMemo(()=> {
-    if (seEstaEnviandoInfo) return true
-
-    if (isIniciarPantalla){
-      return isDisableIniciado
-    }
-
-    if (isTerminarPantalla){
-      return true
-    }
-
-    return false
-  },[
-    seEstaEnviandoInfo,
-    isIniciarPantalla,
-    isTerminarPantalla,
-    isDisableIniciado,
-  ])
   return (
     <View style={styles.orderCard}>
+      {seEstaEnviandoInfo && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#10b981" />
+          <Text style={styles.loadingText}>Enviando información...</Text>
+        </View>
+      )}
+
       <View style={[styles.statusIndicator, { backgroundColor: colorbyStatusOp }]} />
 
       <View style={styles.cardContent}>
@@ -190,92 +308,109 @@ export const OrderCard = memo(function OrderCard({
             <Text style={styles.articleCode}>{order.itemIdEstilo}</Text>
             <Text style={styles.colorId}>{order.colorName}</Text>
           </View>
+
           <View
             style={[
               styles.statusBadge,
               {
-                backgroundColor: isComplete ? "#d1fae5" : "#fed7aa",
-                borderColor: isComplete ? "#10b981" : "#f59e0b",
+                backgroundColor: isComplete ? "#6bf1ac" : "#fed7aa",
+                borderColor: isComplete ? "#195742" : "#ffb25b",
               },
             ]}
           >
             <Text style={[styles.statusText, { color: isComplete ? "#065f46" : "#92400e" }]}>
-              {isIniciarPantalla? totalPreparado:totalEmpacado}/{totalSolicitado}
+              {isIniciarPantalla ? totalPreparado : totalEmpacado}/{totalSolicitado}
             </Text>
           </View>
         </View>
-        
 
         <View style={styles.divider} />
 
         <View style={styles.sizesContainer}>
           <View style={styles.sizeRow}>
             <Text style={styles.rowLabel}>Talla</Text>
-            {tallas.map((t, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.sizeHeaderCell,
-                  t.estadoOP
-                    ? {
-                        backgroundColor: getColorByEstadoTalla(t.estadoOP),
-                        borderWidth: 2,
-                        borderColor: getBorderColorByEstadoTalla(t.estadoOP),
-                        borderRadius: 6,
-                        paddingVertical: 4,
-                      }
-                    : {},
-                ]}
-              >
-                <Text style={styles.sizeHeader}>{t.talla}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.sizeRow}>
-            <Text style={styles.rowLabel}>{isIniciarPantalla ? "Solicitado" : "Iniciado"}</Text>
-            {tallas.map((t, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.readOnlyCell,
-                  t.estadoOP
-                    ? {
-                        backgroundColor: getColorByEstadoTalla(t.estadoOP),
-                        borderColor: getBorderColorByEstadoTalla(t.estadoOP),
-                      }
-                    : {},
-                ]}
-              >
-                <Text style={styles.readOnlyText}>{t.cantidadSolicitada}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.sizeRow}>
-            <Text style={styles.rowLabel}>{isIniciarPantalla ? "Preparado" : "Empacado"}</Text>
-            {tallas.map((t, i) => (
-              <TextInput
-                key={i}
-                style={[
-                  styles.sizeInput,
-                  isDisabledPreparadoEmpacado && styles.texAreaDisabled,
-                  !isDisabledPreparadoEmpacado && t.estadoOP
-                    ? {
-                        backgroundColor: getColorByEstadoTalla(t.estadoOP),
-                        borderColor: getBorderColorByEstadoTalla(t.estadoOP),
-                        borderWidth: 2,
-                      }
-                    : undefined,
-                ]}
-                value={isIniciarPantalla? t.cantidadPreparada.toString(): t.cantidadEmpacada.toString()}
-                onChangeText={(value) => isIniciarPantalla? updatePreparadoSize(i, value):updateEmpacadoSize(i,value)}
-                keyboardType="numeric"
-                textAlign="center"
-                editable={!isDisabledPreparadoEmpacado}
+            {tallasConEstilo.map((t, i) => (
+              <HeaderSizeCell
+                key={`${t.talla}-${i}`}
+                talla={t.talla}
+                backgroundColor={t.estadoOP ? t.backgroundColor : undefined}
+                borderColor={t.estadoOP ? t.borderColor : undefined}
               />
             ))}
           </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.sizeRow}>
+            <Text style={styles.rowLabel}>{isIniciarPantalla ? "Solicitado" : "Iniciado"}</Text>
+            {tallasConEstilo.map((t, i) => (
+              <ReadOnlyCell
+                key={`${t.talla}-readonly-${i}`}
+                value={t.cantidadSolicitada}
+                backgroundColor={t.estadoOP ? t.backgroundColor : undefined}
+                borderColor={t.estadoOP ? t.borderColor : undefined}
+              />
+            ))}
+          </View>
+
+          {isIniciarPantalla ? (
+            <View style={styles.sizeRow}>
+              <Text style={styles.rowLabel}>Preparado</Text>
+              {tallasConEstilo.map((t, i) => (
+                <EditableCell
+                  key={`${t.talla}-prep-${i}`}
+                  value={t.cantidadPreparada.toString()}
+                  onChangeText={(value) => updateTallaField(i, "cantidadPreparada", value)}
+                  editable={!isDisabledPreparadoEmpacado}
+                  disabledStyle={isDisabledPreparadoEmpacado}
+                  backgroundColor={t.backgroundColor}
+                  borderColor={t.borderColor}
+                />
+              ))}
+            </View>
+          ) : (
+            <>
+              <View style={styles.sizeRow}>
+                <Text style={styles.rowLabel}>
+                  {ejecutarNotificacionConErrores ? "Primeras" : "Empacado"}
+                </Text>
+                {tallasConEstilo.map((t, i) => (
+                  <EditableCell
+                    key={`${t.talla}-emp-${i}`}
+                    value={
+                      ejecutarNotificacionConErrores
+                        ? t.cantidadPrimeras.toString()
+                        : (t.cantidadPrimeras + t.cantidadIrregulares).toString()
+                    }
+                    onChangeText={(value) => updateTallaField(i, "cantidadPrimeras", value)}
+                    editable={!isDisabledPreparadoEmpacado}
+                    disabledStyle={isDisabledPreparadoEmpacado}
+                    backgroundColor={t.backgroundColor}
+                    borderColor={t.borderColor}
+                  />
+                ))}
+              </View>
+
+              {ejecutarNotificacionConErrores && (
+                <View style={styles.sizeRow}>
+                  <Text style={styles.rowLabel}>Irregulares</Text>
+                  {tallasConEstilo.map((t, i) => (
+                    <EditableCell
+                      key={`${t.talla}-irr-${i}`}
+                      value={t.cantidadIrregulares?.toString() ?? "0"}
+                      onChangeText={(value) =>
+                        updateTallaField(i, "cantidadIrregulares", value)
+                      }
+                      editable={!isDisabledPreparadoEmpacado}
+                      disabledStyle={isDisabledPreparadoEmpacado}
+                      backgroundColor={t.backgroundColor}
+                      borderColor={t.borderColor}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
+          )}
         </View>
 
         <View style={styles.buttonContainer}>
@@ -300,9 +435,13 @@ export const OrderCard = memo(function OrderCard({
           <TouchableOpacity
             style={[
               isIniciarPantalla ? styles.button2 : styles.button2PantlaTerminado,
-              isDisabled && (isIniciarPantalla ? styles.buttonDisabled2 : styles.buttonDisabled2Terminado),
+              isDisabled
+                ? isIniciarPantalla
+                  ? styles.buttonDisabled2
+                  : styles.buttonDisabled2Terminado
+                : undefined,
             ]}
-            onPress = {() => onPress(tallas)}
+            onPress={() => onPress(tallas)}
             activeOpacity={0.8}
             disabled={isDisabled}
           >
@@ -315,6 +454,20 @@ export const OrderCard = memo(function OrderCard({
 })
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    borderRadius: 12,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+  },
   orderCard: {
     backgroundColor: "#ffffff",
     borderRadius: 12,
@@ -333,6 +486,7 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     padding: 16,
+    position: "relative",
   },
   cardHeader: {
     flexDirection: "row",
@@ -451,13 +605,13 @@ const styles = StyleSheet.create({
   },
   labelButton3: {
     flex: 1,
-    backgroundColor: "#f3bd67ff",
+    backgroundColor: "#fa8383",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#fa838318",
   },
   borrarButtonText: {
     color: "#374151",
@@ -467,12 +621,12 @@ const styles = StyleSheet.create({
   },
   button2: {
     flex: 1,
-    backgroundColor: "#10b981",
+    backgroundColor: "#51a2ff",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: "center",
-    shadowColor: "#10b981",
+    shadowColor: "#b0d2f8",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -480,12 +634,12 @@ const styles = StyleSheet.create({
   },
   button2PantlaTerminado: {
     flex: 1,
-    backgroundColor: "#f34646ff",
+    backgroundColor: "#10b981",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: "center",
-    shadowColor: "#a36464ff",
+    shadowColor: "#a1f1d7",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -504,7 +658,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   buttonDisabled3: {
-    backgroundColor: "#f3bd6750",
+    backgroundColor: "#fa838350",
     opacity: 0.6,
     shadowOpacity: 0,
     elevation: 0,
@@ -516,7 +670,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   buttonDisabled2Terminado: {
-    backgroundColor: "#ffccccff",
+    backgroundColor: "#10b98150",
     opacity: 0.6,
     shadowOpacity: 0,
     elevation: 0,
