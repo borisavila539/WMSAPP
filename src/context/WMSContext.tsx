@@ -27,6 +27,9 @@ export interface WMSState {
     itemId: string,
     lote: string,
     SRGDespachoId: number,
+    PurchId: string,
+    NumeroOPPakingList: string
+    TieneDiarioRecepcion: number
 }
 
 //Estado inicial
@@ -43,6 +46,7 @@ export const WMSInitialState: WMSState = {
     DespachoID: 0,
     usuarioAlmacen: 0,
     ProdID: '',
+    PurchId: '',
     Box: 0,
     ubicaciones: [],
     devolucion: {
@@ -62,6 +66,8 @@ export const WMSInitialState: WMSState = {
     itemId: '',
     lote: '',
     SRGDespachoId: 0,
+    NumeroOPPakingList: '',
+    TieneDiarioRecepcion: 0
 }
 
 export interface WMSContextProps {
@@ -78,6 +84,9 @@ export interface WMSContextProps {
     changeDespachoID: (DespachoID: number) => void
     changeUsuarioAlmacen: (UsuarioAlmacen: number) => void
     changeProdID: (ProdID: string) => void
+    changePurchId: (PurchId: string) => void
+    changeTieneDiarioRecepcion: (TieneDiarioRecepcion: number) => void
+    changeNumeroOPPakingList: (NumeroOPPakingList: string) => void
     changeBox: (Box: number) => void
     changeUbicaciones: (ubicaciones: UbicacionesInterface[]) => void
     changeDevolucion: (devolucion: DevolucionesInterface) => void
@@ -133,8 +142,17 @@ export const WMSProvider = ({ children }: any) => {
     const changeProdID = (ProdId: string) => {
         dispatch({ type: 'changeProdID', payload: ProdId })
     }
+    const changePurchId = (PurchId: string) => {
+        dispatch({ type: 'changePurchId', payload: PurchId })
+    }
     const changeBox = (Box: number) => {
         dispatch({ type: 'changeBox', payload: Box })
+    }
+    const changeNumeroOPPakingList = (NumeroOPPakingList: string) => {
+        dispatch({ type: 'changeNumeroOPPakingList', payload: NumeroOPPakingList })
+    }
+    const changeTieneDiarioRecepcion = (TieneDiarioRecepcion: number) => {
+        dispatch({ type: 'changeTieneDiarioRecepcion', payload: TieneDiarioRecepcion })
     }
 
     const changeTelaJournalId = (telaJournal: string) => {
@@ -187,7 +205,10 @@ export const WMSProvider = ({ children }: any) => {
                 changeReceptionTelaVendroll,
                 changeItemId,
                 changeLote,
-                changeSRGDespachoId
+                changeSRGDespachoId,
+                changePurchId,
+                changeNumeroOPPakingList,
+                changeTieneDiarioRecepcion
             }}
         >
             {children}

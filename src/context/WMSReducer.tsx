@@ -25,6 +25,9 @@ type WMSAction =
     | { type: 'changeItemId', payload: string }
     | { type: 'changeLote', payload: string }
     | { type: 'changeSRGDespachoId', payload:number}
+    | { type: 'changePurchId', payload: string }
+    | { type: 'changeNumeroOPPakingList', payload: string }
+    | { type: 'changeTieneDiarioRecepcion', payload: number }
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -94,6 +97,16 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
                 ...state,
                 ProdID: action.payload
             }
+        case "changePurchId":
+            return {
+                ...state,
+                PurchId: action.payload
+            }
+        case "changeTieneDiarioRecepcion":
+            return {
+                ...state,
+                TieneDiarioRecepcion: action.payload
+            }
         case "changeUbicaciones":
             return {
                 ...state,
@@ -133,6 +146,16 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
             return {
                 ...state,
                 SRGDespachoId: action.payload
+            }
+        case "changeNumeroOPPakingList":
+            return {
+                ...state,
+                NumeroOPPakingList: action.payload
+            }
+        case "changePurchId":
+            return {
+                ...state,
+                PurchId: action.payload
             }
         default:
             return state;

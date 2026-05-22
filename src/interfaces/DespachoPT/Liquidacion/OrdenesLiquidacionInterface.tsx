@@ -1,5 +1,9 @@
 export interface OrdenesLiquidacionInterface{
+    numeroOPPakingList: string
     prodCutSheetID:string
+    vendAccount:string
+    purchId:string 
+    tieneDiarioRecepcion : number
 }
 
 export interface DetalleOrdenLiquidacionInterfacegroup{
@@ -14,5 +18,13 @@ export interface DetalleOrdenLiquidacionInterface{
         prodCutSheetID: string,
         size: number,
         enviado: number,
-        recibido: number      
+        recibido: number,
+        prodStatus: number ,
+        cortado: number,
+        cumpleBOM: number,
+}
+
+export interface BuscarVendPackingSlipJourInterface{
+    purchId: string,
+    packingSlipId: string
 }
