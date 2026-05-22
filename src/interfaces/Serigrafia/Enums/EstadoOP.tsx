@@ -14,7 +14,7 @@ const estadoMap: Record<EstadoOp, string> = {
     [EstadoOp.Programado]: "Programado",
     [EstadoOp.Liberado]: "Liberado",
     [EstadoOp.Iniciado]: "Iniciado",
-    [EstadoOp.NotificadoTerminado]: "Notificado Terminado",
+    [EstadoOp.NotificadoTerminado]: "Notificado Ter.",
     [EstadoOp.Terminado]: "Terminado",
 };
 export function getEstadoTexto(estado: EstadoOp): string {
