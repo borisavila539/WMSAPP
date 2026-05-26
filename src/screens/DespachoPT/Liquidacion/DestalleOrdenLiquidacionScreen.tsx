@@ -36,6 +36,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
     useState<IM_WMS_UsuarioPorPantallaInterface | null>(null);
 
     const isDisabled = Number(WMSState.TieneDiarioRecepcion) === 1
+    
     const getData = async () => {
         setCargando(true)
         try {
@@ -44,21 +45,22 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
                     setData(resp.data)
                 })
         } catch (err) {
-
+            setCargando(false)
         }
         setCargando(false)
     }
 
     const getPermisoUsuario = async () => {
-        setCargando(true);
+        //setCargando(true);
         try {
             const resp = await WmSApi.get(`GetPermisoUsuarioPorPantalla/${WMSState.usuario}/${pantalla}`);
             setUsuarioConPermiso(resp.data);
+            console.log('Permiso de usuario para la pantalla:', resp.data);
         } catch (err) {
             console.log('Error al verificar permiso de usuario:', err);
             return false;
         }
-        setCargando(false);
+        //setCargando(false);
     }
 
     // Calcular totales de toda la operación
@@ -162,7 +164,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
         }
 
         try {
-            const resp = await WmSApi.post(`NotificacionSubcontratacionTejidoPunto/${data[0].prodCutSheetID}`);
+            const resp = await WmSApi.post(`NotificacionSubcontratacionTejidoPunto/${data[0].prodCutSheetID}/${WMSState.DespachoID}`);
             setResultados(resp.data);
             getData();
             setModalVisible(true);
@@ -173,6 +175,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
     }
 
     const handleRecepcion = async () => {
+        setCargando(false);
         if (!usuarioConPermiso?.permisoadmin) {
             Alert.alert('Permiso denegado', 'No tienes permiso para notificar esta orden.')
             setCargando(false);
@@ -204,7 +207,10 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
             Alert.alert('Error', message, [
                 { text: 'OK', onPress: () => console.log('OK Pressed') }
             ]);
+            setCargando(false);
+            return;
         }
+        setCargando(false);
     }
 
     const getColorEstado = (status: number) => {
