@@ -175,7 +175,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
     }
 
     const handleRecepcion = async () => {
-        setCargando(false);
+        setCargando(true);
         if (!usuarioConPermiso?.permisoadmin) {
             Alert.alert('Permiso denegado', 'No tienes permiso para notificar esta orden.')
             setCargando(false);
@@ -184,6 +184,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
         const hayTallasSinNotificar = data.some(item => item.prodStatus !== EstadoOp.NotificadoTerminado);
         if (hayTallasSinNotificar) {
             Alert.alert('No se puede recepcionar', 'Todas las tallas deben estar notificadas como terminadas para poder recepcionar.')
+            setCargando(false);
             return;
         }
         try {
@@ -197,6 +198,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
             }
             const resp = await WmSApi.post(`ConfirmacionRecepcionDePedidoDeCompra`, dataToSend);
             setResultados(resp.data);
+            setCargando(false); 
             if (resultados.some(resultado => resultado.exito)) {
                 setEsRecepcion(true);
             }
