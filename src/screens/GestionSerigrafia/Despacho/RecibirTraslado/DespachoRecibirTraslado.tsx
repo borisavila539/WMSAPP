@@ -253,6 +253,8 @@ export const DespachoRecibirTrasladoScreen: FC<props> = () => {
       const parsed = parseScan(clean)
       if (!parsed) {
         PlaySound("error")
+        setUiText("")
+        Alert.alert("Error", "El código escaneado no corresponde a ningún item pendiente.")
         return
       }
 
@@ -263,6 +265,24 @@ export const DespachoRecibirTrasladoScreen: FC<props> = () => {
       // Optimista (instantáneo): marca como recibido ANTES de esperar red
       const key = `${parsed.prodMasterId}|${parsed.box}`
       const index = itemIndexByKey.get(key)
+
+      if (index === undefined) {
+        PlaySound("error")
+        setUiText("")
+        Alert.alert("Error", "El código escaneado no corresponde a ningún item pendiente.")
+        requestAnimationFrame(() => inputRef.current?.focus())
+        return
+      }
+
+      const itemActual = data[index]
+
+      if (!itemActual || itemActual.receive) {
+        PlaySound("error")
+        setUiText("")
+        Alert.alert("Error", "El item ya ha sido recibido.")
+        requestAnimationFrame(() => inputRef.current?.focus())
+        return
+      }
       if (index !== undefined) {
         setData((prev) => {
           const cur = prev[index]
@@ -537,22 +557,22 @@ export const DespachoRecibirTrasladoScreen: FC<props> = () => {
 
 const styles = StyleSheet.create({
   columnHeader: {
-  paddingVertical: isSmallDevice ? 6 : 8,
-  paddingHorizontal: 8,
-  alignItems: "center",
-},
-headerTopRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: isSmallDevice ? 4 : 6,
-},
-totalsRowBelow: {
-  flexDirection: "row",
-  justifyContent: "center",
-  gap: isSmallDevice ? 10 : 14,
-  marginTop: 4,
-},
+    paddingVertical: isSmallDevice ? 6 : 8,
+    paddingHorizontal: 8,
+    alignItems: "center",
+  },
+  headerTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: isSmallDevice ? 4 : 6,
+  },
+  totalsRowBelow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: isSmallDevice ? 10 : 14,
+    marginTop: 4,
+  },
   trasladosScroll: {
     maxHeight: isSmallDevice ? 200 : isTablet ? 160 : 120, // ajusta a gusto
   },

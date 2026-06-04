@@ -27,7 +27,7 @@ import { UsuarioValidoPorAccion } from "../../../../interfaces/Serigrafia/Usuari
 import { ConsultaLoteInterface } from "../../../../interfaces/Serigrafia/Lote"
 import { Dropdown } from "react-native-element-dropdown"
 import { IDespachoLinesPacking } from "../../../../interfaces/Serigrafia/IDespachoLinesPacking"
-import { ScrollView } from "react-native-gesture-handler"
+import { ScrollView } from "react-native"
 
 interface PackingRequestDTO {
   DespachoId: number
@@ -225,7 +225,7 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
   const totaltrasladosparaEnviados = useMemo(() => {
     // contador de traslados listos para enviar (status 0 + completo)
     return despachoTrasladodata.filter(
-      (t) => packingAllByItemId.get(t.itemId) === true && t.statusId === 0  
+      (t) => packingAllByItemId.get(t.itemId) === true && t.statusId === 0
     ).length
   }, [despachoTrasladodata, packingAllByItemId])
 
@@ -294,39 +294,69 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
   // ========= sendPacking ultra rápido (optimistic + rollback) =========
   const sendPacking = useCallback(
     async (rawCode: string) => {
-      if (busyRef.current) return
-
-      const clean = rawCode.trim()
-      if (!scanRegex.test(clean)) return
-
-      const parsed = parseScan(clean)
-      if (!parsed) {
+      if (busyRef.current) {
         PlaySound("error")
         return
       }
 
-      // UI inmediata
+      const clean = rawCode.trim()
+
+      if (!scanRegex.test(clean)) {
+        PlaySound("error")
+        setScanText("")
+        Alert.alert("Error", "El código escaneado no corresponde a ningún item pendiente.")
+        requestAnimationFrame(() => inputRef.current?.focus())
+        return
+      }
+
+      const parsed = parseScan(clean)
+
+      if (!parsed) {
+        PlaySound("error")
+        setScanText("")
+        Alert.alert("Error", "El código escaneado no corresponde a ningún item pendiente.")
+        setScanText("")
+        requestAnimationFrame(() => inputRef.current?.focus())
+        return
+      }
+
       setScanText("")
       requestAnimationFrame(() => inputRef.current?.focus())
 
       const key = `${parsed.prodMasterId}|${parsed.box}`
       const index = itemIndexByKey.get(key)
 
-      // optimistic update
-      let prevSnapshot: IDespachoLinesPacking | null = null
-      if (index !== undefined) {
-        setData((prev) => {
-          const cur = prev[index]
-          if (!cur || cur.packing) return prev
-          prevSnapshot = cur
-          const next = prev.slice()
-          next[index] = { ...cur, packing: true, packingDateTime: new Date() as any }
-          return next
-        })
+      if (index === undefined) {
+        PlaySound("error")
+        setScanText("")
+        Alert.alert("Error", "El código escaneado no corresponde a ningún item pendiente.")
+        requestAnimationFrame(() => inputRef.current?.focus())
+        return
+      }
+
+      const itemActual = data[index]
+
+      if (!itemActual || itemActual.packing) {
+        PlaySound("error")
+        setScanText("")
+        Alert.alert("Error", "El item ya ha sido empaquetado.")
+        requestAnimationFrame(() => inputRef.current?.focus())
+        return
       }
 
       busyRef.current = true
       setLoading(true)
+
+      // Cambio visual inmediato
+      setData((prev) => {
+        const next = prev.slice()
+        next[index] = {
+          ...itemActual,
+          packing: true,
+          packingDateTime: new Date() as any,
+        }
+        return next
+      })
 
       try {
         const packingRequest: PackingRequestDTO = {
@@ -338,37 +368,43 @@ export const DespachoEnviarTrasladoScreen: FC<props> = () => {
 
         const resp = await WMSApiSerigrafia.post("SetPacking", packingRequest)
 
-        // Si tu API devuelve 0/1, valida aquí:
-        if (Number(resp.data) <= 0) {
+        if (Number(resp.data) > 0) {
+          PlaySound("success")
+        } else {
           PlaySound("error")
-        } else { PlaySound("success") }
-
-
-
-        // Si no pudimos hacer optimistic porque no encontramos el item, refrescamos UNA vez.
-        if (index === undefined) {
-          await getData()
-        }
-      } catch (error) {
-        PlaySound("error")
-
-        // rollback si hicimos optimistic
-        if (index !== undefined) {
+          Alert.alert("Error", "Error al registrar el packing. Intente nuevamente.")
+          // Revertir si AX/API respondió error
           setData((prev) => {
-            const cur = prev[index]
-            if (!cur) return prev
             const next = prev.slice()
-            if (prevSnapshot) next[index] = prevSnapshot
-            else next[index] = { ...cur, packing: false, packingDateTime: null as any }
+            next[index] = {
+              ...itemActual,
+              packing: false,
+              packingDateTime: null as any,
+            }
             return next
           })
         }
+      } catch (error) {
+        PlaySound("error")
+        setScanText("")
+        Alert.alert("Error", "Error al registrar el packing. Intente nuevamente.")
+        // Revertir si hubo error de conexión/API
+        setData((prev) => {
+          const next = prev.slice()
+          next[index] = {
+            ...itemActual,
+            packing: false,
+            packingDateTime: null as any,
+          }
+          return next
+        })
       } finally {
         busyRef.current = false
         setLoading(false)
+        requestAnimationFrame(() => inputRef.current?.focus())
       }
     },
-    [WMSState.SRGDespachoId, itemIndexByKey, getData]
+    [WMSState, itemIndexByKey, data]
   )
 
   const handleScanChange = useCallback(
