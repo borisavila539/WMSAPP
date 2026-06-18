@@ -87,7 +87,9 @@ import { DespachoRecibirTrasladoScreen } from '../screens/GestionSerigrafia/Desp
 import { EscorgerTrasladoParaRecibirScreen} from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/EscogerDespacho';
 import { ConsultaTrasladoCreadosScreen } from '../screens/GestionSerigrafia/Despacho/TrasladosCreados/ConsultaTrasladosCreados';
 import { ImpresionEtiquetasRollosScreen } from '../screens/ImpresionEtiquetasRollos/ImpresionEtiquetasRollosScreen';    
-
+import { MenuRecepcionYUbiacionScreen } from '../screens/RecepcionYUbicacionAX/MenuRecepcionYUbiacionScreen';
+import { RecepcionTrasladosScreen } from '../screens/RecepcionYUbicacionAX/RecepcionTraslados/RecepcionTrasladosScreen';
+import { DetalleRecibirTrasladoScreen } from '../screens/RecepcionYUbicacionAX/RecepcionTraslados/DetalleRecibirTrasladoScreen';
 export type RootStackParams = {
     LoginScreen: undefined,
     MenuScreen: undefined,
@@ -178,6 +180,9 @@ export type RootStackParams = {
     EscorgerTrasladoParaRecibirScreen: undefined,
     ConsultaTrasladoCreadosScreen: undefined,
     ImpresionEtiquetasRollosScreen: undefined,
+    MenuRecepcionYUbiacionScreen: undefined,
+    RecepcionTrasladosScreen: undefined,
+    DetalleRecibirTrasladoScreen: undefined,
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -303,6 +308,10 @@ export const Navigation = () => {
             <Stack.Screen name= 'ConsultaTrasladoCreadosScreen' options={{title: 'ConsultaTrasladoCreadosScreen'}} component={ConsultaTrasladoCreadosScreen} />
             {/* Impresion de etiquetas rollos */}
             <Stack.Screen name='ImpresionEtiquetasRollosScreen' options={{ title: 'ImpresionEtiquetasRollosScreen' }} component={ImpresionEtiquetasRollosScreen} /> 
+            {/* Menu Recepcion y Ubicacion */}
+            <Stack.Screen name='MenuRecepcionYUbiacionScreen' options={{ title: 'MenuRecepcionYUbiacionScreen' }} component={MenuRecepcionYUbiacionScreen} />
+            <Stack.Screen name='RecepcionTrasladosScreen' options={{ title: 'RecepcionTrasladosScreen' }} component={RecepcionTrasladosScreen} />
+            <Stack.Screen name='DetalleRecibirTrasladoScreen' options={{ title: 'DetalleRecibirTrasladoScreen' }} component={DetalleRecibirTrasladoScreen} />
         </Stack.Navigator>
     )
 }

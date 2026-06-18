@@ -30,6 +30,7 @@ export interface WMSState {
     PurchId: string,
     NumeroOPPakingList: string
     TieneDiarioRecepcion: number
+    NombreEmpresa: string
 }
 
 //Estado inicial
@@ -67,7 +68,8 @@ export const WMSInitialState: WMSState = {
     lote: '',
     SRGDespachoId: 0,
     NumeroOPPakingList: '',
-    TieneDiarioRecepcion: 0
+    TieneDiarioRecepcion: 0,
+    NombreEmpresa: ''
 }
 
 export interface WMSContextProps {
@@ -96,6 +98,7 @@ export interface WMSContextProps {
     changeItemId: (itemId: string) => void;
     changeLote: (lote: string) => void;
     changeSRGDespachoId: (SRGDespachoId: number) => void;
+    changeNombreEmpresa: (nombreEmpresa: string) => void;
 }
 
 //crear el contexto
@@ -181,6 +184,9 @@ export const WMSProvider = ({ children }: any) => {
     const changeSRGDespachoId = (SRGDespachoId: number) => {
         dispatch({ type: 'changeSRGDespachoId', payload: SRGDespachoId })
     }
+    const changeNombreEmpresa = (nombreEmpresa: string) => {
+        dispatch({ type: 'changeNombreEmpresa', payload: nombreEmpresa   })
+    }
     return (
         <WMSContext.Provider
             value={{
@@ -208,7 +214,8 @@ export const WMSProvider = ({ children }: any) => {
                 changeSRGDespachoId,
                 changePurchId,
                 changeNumeroOPPakingList,
-                changeTieneDiarioRecepcion
+                changeTieneDiarioRecepcion,
+                changeNombreEmpresa
             }}
         >
             {children}

@@ -28,6 +28,7 @@ type WMSAction =
     | { type: 'changePurchId', payload: string }
     | { type: 'changeNumeroOPPakingList', payload: string }
     | { type: 'changeTieneDiarioRecepcion', payload: number }
+    | { type: 'changeNombreEmpresa', payload: string }
 
 
 export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
@@ -156,6 +157,11 @@ export const WMSReducer = (state: WMSState, action: WMSAction): WMSState => {
             return {
                 ...state,
                 PurchId: action.payload
+            }
+        case "changeNombreEmpresa":
+            return {
+                ...state,
+                NombreEmpresa: action.payload
             }
         default:
             return state;
