@@ -17,6 +17,8 @@ import Header from '../../../components/Header';
 import { WMSApiRecepcionYUbicacionAx } from '../../../api/WMSApiRecepcionYUbicacionAx';
 import { WMSContext } from '../../../context/WMSContext';
 import ResultadoModal, { ResultadoModalItem } from '../../../components/Respuesta';
+import { WmSApi } from '../../../api/WMSApi';
+import { IM_WMS_UsuarioPorPantallaInterface } from '../../../interfaces/UsuarioPorPantallaInterface';
 
 export interface DetalleTrasladoDto {
     estadoTraslado: number;
@@ -46,7 +48,7 @@ export interface DetalleTrasladoDto {
 }
 
 type props = StackScreenProps<RootStackParams, "DetalleRecibirTrasladoScreen">
-
+const pantalla = 'RecibimientoTrasladoPepeMBDenim';
 export const DetalleRecibirTrasladoScreen: FC<props> = ({ navigation, route }) => {
     const { WMSState } = useContext(WMSContext);
     const [data, setData] = useState<DetalleTrasladoDto[]>([]);
@@ -54,13 +56,29 @@ export const DetalleRecibirTrasladoScreen: FC<props> = ({ navigation, route }) =
     const [refreshing, setRefreshing] = useState(false);
     const [procesando, setProcesando] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [usuarioConPermiso, setUsuarioConPermiso] =
+        useState<IM_WMS_UsuarioPorPantallaInterface | null>(null);
 
     const [resultados, setResultados] = useState<ResultadoModalItem[]>([]);
 
     useEffect(() => {
         fetchDetalleTraslado();
     }, []);
-
+    useEffect(() => {
+        getPermisoUsuario();
+    }, []);
+    const getPermisoUsuario = async () => {
+        //setCargando(true);
+        try {
+            const resp = await WmSApi.get(`GetPermisoUsuarioPorPantalla/${WMSState.usuario}/${pantalla}`);
+            setUsuarioConPermiso(resp.data);
+            
+        } catch (err) {
+            console.log('Error al verificar permiso de usuario:', err);
+            return false;
+        }
+        //setCargando(false);
+    }
     const fetchDetalleTraslado = async () => {
         try {
             const transferId = WMSState.TRANSFERIDFROM.split('-')[1]; // Asumiendo que el formato es "transferId|inventLocationIdFrom"
@@ -84,11 +102,11 @@ export const DetalleRecibirTrasladoScreen: FC<props> = ({ navigation, route }) =
 
     const handleRecibirTraslado = async () => {
         const cajasNoRecibidas = data.filter(item => item.recibido === 0);
+        if (!usuarioConPermiso?.permisoadmin) {
+            Alert.alert('Permiso Denegado', 'No tienes permiso para recibir el traslado. Contacta al administrador.');
+            return;
+        }
 
-        // if (cajasNoRecibidas.length === 0) {
-        //     Alert.alert('Aviso', 'Todas las cajas ya han sido recibidas');
-        //     return;
-        // }
 
         Alert.alert(
             'Confirmar Recepcion',
@@ -102,12 +120,12 @@ export const DetalleRecibirTrasladoScreen: FC<props> = ({ navigation, route }) =
                         try {
                             // Aqui va la llamada al endpoint para recibir el traslado
                             const response = await WMSApiRecepcionYUbicacionAx.post(`RecibirTrasladoConCambioUbiacion/${WMSState.TRANSFERIDFROM}/${WMSState.NombreEmpresa}`);
-                            setResultados([response.data]); 
+                            setResultados([response.data]);
                             setModalVisible(true);
                             console.log('Respuesta al recibir traslado:', response.data);
                             console.log('Resultados:', resultados);
-                            
-                           // fetchDetalleTraslado(); // Recargar datos
+
+                            // fetchDetalleTraslado(); // Recargar datos
                         } catch (error) {
                             console.error('Error al recibir traslado:', error);
                             Alert.alert('Error', 'No se pudo recibir el traslado');
@@ -336,15 +354,15 @@ export const DetalleRecibirTrasladoScreen: FC<props> = ({ navigation, route }) =
                     )}
                 </TouchableOpacity>
             </View>
-             <ResultadoModal
-                    visible={modalVisible}
-                    titulo="Resultado Recepción"
-                    resultados={resultados}
-                    onClose={() => {
-                        setModalVisible(false);
-                        fetchDetalleTraslado(); // Recargar datos al cerrar el modal
-                    }}
-                />
+            <ResultadoModal
+                visible={modalVisible}
+                titulo="Resultado Recepción"
+                resultados={resultados}
+                onClose={() => {
+                    setModalVisible(false);
+                    fetchDetalleTraslado(); // Recargar datos al cerrar el modal
+                }}
+            />
         </View>
     );
 };
