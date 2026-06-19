@@ -5,6 +5,8 @@ import { RootStackParams } from '../../../navigation/navigation'
 import { WMSContext } from '../../../context/WMSContext'
 import Header from '../../../components/Header'
 import { WMSApiRecepcionYUbicacionAx } from '../../../api/WMSApiRecepcionYUbicacionAx';
+import { WmSApi } from '../../../api/WMSApi';
+import { IM_WMS_UsuarioPorPantallaInterface } from '../../../interfaces/UsuarioPorPantallaInterface';
 
 interface TrasladoAxDto {
     transferId: string;
@@ -33,13 +35,15 @@ interface TrasladoAgrupado {
 
 type props = StackScreenProps<RootStackParams, "RecepcionTrasladosScreen">
 
-
+const pantalla = 'RecepcionYUbiacionTrasladoScreen';
 
 export const RecepcionTrasladosScreen: FC<props> = ({ navigation }) => {
     const { changeTRANSFERIDFROM, changeNombreEmpresa, WMSState } = useContext(WMSContext);
     const [data, setData] = useState<TrasladoAgrupado[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [usuarioConPermiso, setUsuarioConPermiso] =
+        useState<IM_WMS_UsuarioPorPantallaInterface | null>(null);
 
     const agruparTraslados = (traslados: TrasladoAxDto[]): TrasladoAgrupado[] => {
         const grupos: { [key: string]: TrasladoAgrupado } = {};
@@ -67,6 +71,18 @@ export const RecepcionTrasladosScreen: FC<props> = ({ navigation }) => {
 
         return Object.values(grupos);
     };
+    const getPermisoUsuario = async () => {
+        //setCargando(true);
+        try {
+            const resp = await WmSApi.get(`GetPermisoUsuarioPorPantalla/${WMSState.usuario}/${pantalla}`);
+            setUsuarioConPermiso(resp.data);
+            console.log('Permiso de usuario para la pantalla:', resp.data);
+        } catch (err) {
+            console.log('Error al verificar permiso de usuario:', err);
+            return false;
+        }
+        //setCargando(false);
+    }
 
     const fetchTrasladosAX = async () => {
         try {

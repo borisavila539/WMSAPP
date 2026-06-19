@@ -90,6 +90,10 @@ import { ImpresionEtiquetasRollosScreen } from '../screens/ImpresionEtiquetasRol
 import { MenuRecepcionYUbiacionScreen } from '../screens/RecepcionYUbicacionAX/MenuRecepcionYUbiacionScreen';
 import { RecepcionTrasladosScreen } from '../screens/RecepcionYUbicacionAX/RecepcionTraslados/RecepcionTrasladosScreen';
 import { DetalleRecibirTrasladoScreen } from '../screens/RecepcionYUbicacionAX/RecepcionTraslados/DetalleRecibirTrasladoScreen';
+import { DiariosModuleScreen } from '../screens/MenuModulos/DiariosModule';
+import { EmpaqueYDespachoScreen } from '../screens/MenuModulos/EmpaqueYDespacho';
+import { TelaModuleScreen} from '../screens/MenuModulos/TelaModule';
+import { GuiasTrasportesScreen } from '../screens/MenuModulos/Guias Transportes';
 export type RootStackParams = {
     LoginScreen: undefined,
     MenuScreen: undefined,
@@ -183,6 +187,11 @@ export type RootStackParams = {
     MenuRecepcionYUbiacionScreen: undefined,
     RecepcionTrasladosScreen: undefined,
     DetalleRecibirTrasladoScreen: undefined,
+    DiariosModuleScreen: undefined,
+    EmpaqueYDespachoScreen: undefined,
+    TelaModuleScreen: undefined,
+    GuiasTrasportesScreen: undefined
+    
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -194,8 +203,16 @@ export const Navigation = () => {
                 headerShown: false
             }}
         >
+          
+             {/* Login y Menu principal Screens */}
             <Stack.Screen name='LoginScreen' options={{ title: 'LoginScreen' }} component={LoginScreen} />
             <Stack.Screen name='MenuScreen' options={{ title: 'MenuScreen' }} component={MenuScreen} />
+              {/*Modulos Screens */}
+            <Stack.Screen name='DiariosModuleScreen' options={{ title: 'DiariosModuleScreen' }} component={DiariosModuleScreen} />
+            <Stack.Screen name='EmpaqueYDespachoScreen' options={{ title: 'EmpaqueYDespachoScreen' }} component={EmpaqueYDespachoScreen} />
+            <Stack.Screen name='TelaModuleScreen' options={{ title: 'TelaModuleScreen' }} component={TelaModuleScreen} />
+            <Stack.Screen name='GuiasTrasportesScreen' options={{ title: 'GuiasTrasportesScreen' }} component={GuiasTrasportesScreen} />
+            {/* Screens */}
             <Stack.Screen name='SeleccionarDiarioScreen' options={{ title: 'SeleccionarDiarioScreen' }} component={SeleccionarDiarioScreen} />
             <Stack.Screen name='IngresarLineasScreen' options={{ title: 'IngresarLineasScreen' }} component={IngresarLineasScreen} />
             <Stack.Screen name='TelaOptionScreen' options={{ title: 'TelaOptionScreen' }} component={TelaoptionScreen} />
