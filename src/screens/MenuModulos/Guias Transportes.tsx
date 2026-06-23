@@ -12,7 +12,8 @@ export const GuiasTrasportesScreen: FC<props> = ({ navigation }) => {
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            { Name: 'CAEX', Screen: 'CAEXCrearGuiaScreen', image: require('../../assets/caex.png') },            
+            { Name: 'CAEX', Screen: 'CAEXCrearGuiaScreen', image: require('../../assets/caex.png') },   
+            { Name: 'Reimpresión Etiquetas Cliente', Screen: 'ReimpresionEtiquetasClienteScreen', image: require('../../assets/ReimpresionEtiquetas.png') },      
         ]
         setData(tmp)
     }
