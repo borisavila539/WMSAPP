@@ -94,6 +94,7 @@ import { DiariosModuleScreen } from '../screens/MenuModulos/DiariosModule';
 import { EmpaqueYDespachoScreen } from '../screens/MenuModulos/EmpaqueYDespacho';
 import { TelaModuleScreen} from '../screens/MenuModulos/TelaModule';
 import { GuiasTrasportesScreen } from '../screens/MenuModulos/Guias Transportes';
+import {ReimpresionEtiquetasClienteScreen} from '../screens/ReimpresionEtiquetaCliente/ReimpresiónEtiquetaClient'
 export type RootStackParams = {
     LoginScreen: undefined,
     MenuScreen: undefined,
@@ -190,7 +191,8 @@ export type RootStackParams = {
     DiariosModuleScreen: undefined,
     EmpaqueYDespachoScreen: undefined,
     TelaModuleScreen: undefined,
-    GuiasTrasportesScreen: undefined
+    GuiasTrasportesScreen: undefined,
+    ReimpresionEtiquetasClienteScreen: undefined
     
 }
 
@@ -329,6 +331,8 @@ export const Navigation = () => {
             <Stack.Screen name='MenuRecepcionYUbiacionScreen' options={{ title: 'MenuRecepcionYUbiacionScreen' }} component={MenuRecepcionYUbiacionScreen} />
             <Stack.Screen name='RecepcionTrasladosScreen' options={{ title: 'RecepcionTrasladosScreen' }} component={RecepcionTrasladosScreen} />
             <Stack.Screen name='DetalleRecibirTrasladoScreen' options={{ title: 'DetalleRecibirTrasladoScreen' }} component={DetalleRecibirTrasladoScreen} />
+            <Stack.Screen name= 'ReimpresionEtiquetasClienteScreen' options={{title: 'ReimpresionEtiquetasClienteScreen'}} component={ReimpresionEtiquetasClienteScreen} />
+
         </Stack.Navigator>
     )
 }
