@@ -51,6 +51,11 @@ export interface IDatosEtiqueta {
     marca: string;
 }
 
+export interface IRespuestaRutaPicking {
+    imiB_PICKINGROUTEID: string;
+    imiB_SALEORDER: string; // Este es el pedido
+}
+
 const EMPRESA = 'imhn'
 
 type props = StackScreenProps<RootStackParams, 'ReimpresionEtiquetasClienteScreen'>
@@ -63,6 +68,7 @@ export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => 
     const [showImpresoras, setShowImpresoras] = useState(false)
     const [loading, setLoading] = useState(false)
     const [loadingBusqueda, setLoadingBusqueda] = useState(false)
+    const [loadingRuta, setLoadingRuta] = useState(false) // Loader para el escaneo de caja
 
     const getImpresoras = async () => {
         try {
@@ -78,6 +84,42 @@ export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => 
         getImpresoras()
     }, [])
 
+
+    useEffect(() => {
+        const codigoCaja = ruta.trim();
+        if (codigoCaja.toUpperCase().startsWith('IM') && codigoCaja.length === 13) {
+            consultarRutaPorCaja(codigoCaja);
+        }
+    }, [ruta]);
+    const consultarRutaPorCaja = async (codigoCaja: string) => {
+        setLoadingRuta(true);
+        try {
+            // Indicamos a WmSApi.get que ahora esperamos el objeto IRespuestaRutaPicking
+            const respuesta = await WmSApi.get<IRespuestaRutaPicking>(`GetRutaPacking/${codigoCaja}`);
+
+            if (respuesta && respuesta.data) {
+                const { imiB_PICKINGROUTEID, imiB_SALEORDER } = respuesta.data;
+
+                setRuta(imiB_PICKINGROUTEID ?? '');
+                setPedido(imiB_SALEORDER ?? '');
+
+
+            } else {
+                Alert.alert('Info', 'No se encontró información asociada a esta caja.');
+            }
+        } catch (err) {
+            console.log(err);
+            Alert.alert('Error', 'No se pudo obtener los datos del código escaneado.');
+        } finally {
+            setLoadingRuta(false);
+        }
+    };
+    const onLimpiarRuta = () => {
+        setRuta('');
+        setPedido(''); // Limpia también el pedido sugerido por la caja
+        setEtiquetas([]); 
+    };
+
     // Función para buscar las etiquetas pendientes usando "all" como comodín
     const onBuscar = async () => {
         if (!ruta.trim()) {
@@ -86,7 +128,7 @@ export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => 
         }
 
         setLoadingBusqueda(true)
-        
+
         // Si el campo pedido está vacío, asignamos 'all' para proteger la estructura de la ruta de la API
         const pedidoParam = pedido.trim() ? pedido.trim() : 'all'
 
@@ -172,30 +214,53 @@ export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => 
                     }}
                 />
 
-                <Text style={{ fontSize: 14, marginBottom: 4, color: '#333', fontWeight: '600' }}>Ruta (Lista Empaque) *</Text>
-                <TextInput
-                    value={ruta}
-                    onChangeText={setRuta}
-                    placeholder="Ingrese la ruta (Obligatorio)"
-                    placeholderTextColor="#999"
-                    style={{
-                        backgroundColor: '#fff',
-                        borderRadius: 8,
-                        paddingHorizontal: 14,
-                        paddingVertical: 10,
-                        fontSize: 15,
-                        marginBottom: 16,
-                        borderWidth: 1,
-                        borderColor: '#ddd',
-                    }}
-                />
+                <Text style={{ fontSize: 14, marginBottom: 4, color: '#333', fontWeight: '600' }}>
+                    Ruta / Escanear Caja * {loadingRuta && <ActivityIndicator size="small" color="#1565C0" />}
+                </Text>
+
+                {/* Contenedor del Input con el botón de borrar */}
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: loadingRuta ? '#f0f0f0' : '#fff',
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                    marginBottom: 16,
+                    paddingHorizontal: 14,
+                }}>
+                    <TextInput
+                        value={ruta}
+                        onChangeText={setRuta}
+                        editable={!loadingRuta}
+                        placeholder="Ingrese la ruta o escanee caja (Obligatorio)"
+                        placeholderTextColor="#999"
+                        autoCapitalize="characters"
+                        style={{
+                            flex: 1, // Hace que el input tome todo el espacio disponible
+                            paddingVertical: 10,
+                            fontSize: 15,
+                            color: '#333',
+                        }}
+                    />
+
+                    {/* Mostrar la X solo si hay texto y no está cargando */}
+                    {ruta.length > 0 && !loadingRuta && (
+                        <TouchableOpacity
+                            onPress={onLimpiarRuta}
+                            style={{ padding: 4 }}
+                        >
+                            <FontAwesome5Icon name="times-circle" size={18} color="#999" />
+                        </TouchableOpacity>
+                    )}
+                </View>
 
                 {/* Contenedor de Botones (Buscar e Imprimir) */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
                     <TouchableOpacity
                         onPress={onBuscar}
                         activeOpacity={0.8}
-                        disabled={loadingBusqueda}
+                        disabled={loadingBusqueda || loadingRuta}
                         style={{
                             backgroundColor: '#4CAF50',
                             borderRadius: 8,
@@ -220,6 +285,7 @@ export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => 
                     <TouchableOpacity
                         onPress={onImprimir}
                         activeOpacity={0.8}
+                        disabled={loadingRuta}
                         style={{
                             backgroundColor: '#1565C0',
                             borderRadius: 8,
