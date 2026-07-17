@@ -5,8 +5,7 @@ const WMSUrlCaex = 'http://10.100.2.17:8095/api/WMSCAEX/'//produccion 10.100.2.1
 const WMSSerigrafia = 'http://10.100.2.17:8095/api/WMSSerigrafia/'//produccion
 const WMSMB = 'http://10.100.2.17:8095/api/WMSMB/'//produccion 10.100.2.17:8095 --pruebaÑ8096
 const WMSURLRecepcionYUbicacionAx = 'http://10.100.2.17:8095/api/WMSRecepcionYUbicacionAX/'//produccion
-//const WMSURLRecepcionYUbicacionAx = 'http://localhost:13274/api/WMSRecepcionYUbicacionAX/'//produccion
-// const WMSUrl ='http://localhost:13274/api/WMS/'
+ const URLUbicacionRollos = 'http://10.100.2.17:8095/api/WMS_UbicacionRollos/'
 // const WMSSerigrafia = 'http://localhost:13274/api/WMSSerigrafia/'
 // const WMSMB = 'http://localhost:13274/api/WMSMB/'
-export { WMSUrl,WMSUrlCaex ,WMSMB, WMSSerigrafia,  WMSURLRecepcionYUbicacionAx};
+export { WMSUrl,WMSUrlCaex ,WMSMB, WMSSerigrafia,URLUbicacionRollos,WMSURLRecepcionYUbicacionAx};

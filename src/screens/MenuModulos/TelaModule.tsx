@@ -17,6 +17,8 @@ export const TelaModuleScreen: FC<props> = ({ navigation }) => {
          {Name: 'Impresion Etiquetas Rollos', Screen: 'ImpresionEtiquetasRollosScreen', image: require('../../assets/DespachoTela.jpg')},
         { Name: 'Ciclico Tela', Screen: 'DiariosinventarioCiclicoTelaScreen', image: require('../../assets/DespachoTela.jpg') },
         { Name: 'Recepcion de tela', Screen: 'ReceptionTelaMenu', image: require('../../assets/PickingTela.png') },  
+        { Name: 'Cambio Ubicacion Tela', Screen: 'CambioUbicacionTelaScreen', image: require('../../assets/CambioUbicacion.png') },
+        { Name: 'Consultar Ubicacion Rollos', Screen: 'ConsultarUbicacionRollosScreen', image: require('../../assets/ConsultaRollosPorUbicación.png') },
         ]
         setData(tmp)
     }
@@ -28,7 +30,7 @@ export const TelaModuleScreen: FC<props> = ({ navigation }) => {
                     <TouchableOpacity onPress={() => navigation.navigate(item.Screen)} style={{alignItems: 'center'}}>
                         <Image
                             source={item.image}
-                            style={{ width: 100, height: 100, resizeMode: 'contain' }}
+                            style={{ width: 180, height: 100, resizeMode: 'contain' }}
                         />
                         <Text style={{ color: navy, textAlign: 'center' }}>{item.Name}</Text>
                     </TouchableOpacity>

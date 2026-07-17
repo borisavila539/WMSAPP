@@ -95,6 +95,8 @@ import { EmpaqueYDespachoScreen } from '../screens/MenuModulos/EmpaqueYDespacho'
 import { TelaModuleScreen} from '../screens/MenuModulos/TelaModule';
 import { GuiasTrasportesScreen } from '../screens/MenuModulos/Guias Transportes';
 import {ReimpresionEtiquetasClienteScreen} from '../screens/ReimpresionEtiquetaCliente/ReimpresiónEtiquetaClient'
+import { CambioUbicacionTelaScreen } from '../screens/CambioUbicacionTela/CambioUbicacionTelaScreen';
+import { ConsultarUbicacionRollosScreen } from '../screens/ConsultaUbicacionRollo/ConsultarUbicacionRollosScreen';
 export type RootStackParams = {
     LoginScreen: undefined,
     MenuScreen: undefined,
@@ -192,7 +194,9 @@ export type RootStackParams = {
     EmpaqueYDespachoScreen: undefined,
     TelaModuleScreen: undefined,
     GuiasTrasportesScreen: undefined,
-    ReimpresionEtiquetasClienteScreen: undefined
+    ReimpresionEtiquetasClienteScreen: undefined,
+    CambioUbicacionTelaScreen: undefined,
+    ConsultarUbicacionRollosScreen: undefined
     
 }
 
@@ -248,7 +252,8 @@ export const Navigation = () => {
 
             {/* Busqeuda de rollos */}
             <Stack.Screen name='BusquedaRolloAXScreen' options={{ title: 'BusquedaRolloAXScreen' }} component={BusquedaRolloAXScreen} />
-
+            <Stack.Screen name='CambioUbicacionTelaScreen' options={{ title: 'CambioUbicacionTelaScreen' }} component={CambioUbicacionTelaScreen} />
+            <Stack.Screen name='ConsultarUbicacionRollosScreen' options={{ title: 'ConsultarUbicacionRollosScreen' }} component={ConsultarUbicacionRollosScreen} />
             {/* Liquidacion */}
             <Stack.Screen name='DespachoRecibidoLiquidacionScreen' options={{ title: 'DespachoRecibidoLiquidacionScreen' }} component={DespachoRecibidoLiquidacionScreen} />
             <Stack.Screen name='OrdenesLiquidacionScreen' options={{ title: 'OrdenesLiquidacionScreen' }} component={OrdenesLiquidacionScreen} />
