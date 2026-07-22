@@ -12,30 +12,15 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
 
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
-            // { Name: 'Diarios de Salida', Screen: 'SeleccionarDiarioScreen', image: require('../assets/DiarioSalida.png') },
-            // { Name: 'Diarios de Entrada', Screen: 'SeleccionarDiariosEntradaScreen', image: require('../assets/DiarioEntrada.png') },
-            // { Name: 'Despacho Tela', Screen: 'Seleccionartraslados', image: require('../assets/DespachoTela.jpg') },
-            // { Name: 'Diarios de Tranferencia', Screen: 'SeleccionarDiarioTransferirScreen', image: require('../assets/Transferir.png') },
-           // { Name: 'Reciclaje Cajas', Screen: 'ReciclajeCajasScreen', image: require('../assets/ReciclajeCajas.png') }, 
+         
             {Name: 'Diarios', Screen: 'DiariosModuleScreen', image: require('../assets/Diarios.png') },      
             { Name: 'Empaque y Despacho', Screen: 'EmpaqueYDespachoScreen', image: require('../assets/EmpaqueYDespacho.png') },
-            //{ Name: 'Busqueda Rollos', Screen: 'BusquedaRolloAXScreen', image: require('../assets/DespachoTela.jpg') },
             { Name: 'Recepción y Ubicación', Screen: 'MenuRecepcionYUbiacionScreen', image: require('../assets/AuditoriaImagen.png') },
             { Name: 'Tela', Screen: 'TelaModuleScreen', image: require('../assets/DespachoTela.jpg')},
-            //{Name: 'Impresion Etiquetas Rollos', Screen: 'ImpresionEtiquetasRollosScreen', image: require('../assets/DespachoTela.jpg')},
-            //{ Name: 'Ciclico Tela', Screen: 'DiariosinventarioCiclicoTelaScreen', image: require('../assets/DespachoTela.jpg') },
-             //{ Name: 'Reduccion Cajas', Screen: 'ReduccionCajasScreen', image: require('../assets/AuditoriaImagen.png') },
-           // { Name: 'Despacho PT', Screen: 'MenuDespachoPTScreen', image: require('../assets/DespachoPT.png') },
-            //{ Name: 'Recepcion Ubicacion Caja', Screen: 'RecepcionUbicacionCajasScreen', image: require('../assets/DiarioEntrada.png') },
-           // { Name: 'Declaracion de Envio', Screen: 'DeclaracionEnvioScreen', image: require('../assets/Packing.png') }, con mudulo de empaque y despacho cambio de nombre a Tracking y Nanifiesto de cajas
-           // { Name: 'Control Cajas Etiqueta', Screen: 'ControlCajaEtiquetasScreen', image: require('../assets/AuditoriaImagen.png') },  nuevo nombre : Control tiempos Etiquetado
-            //{ Name: 'Auditoria Denim', Screen: 'AuditoriaCajaDenimScreen', image: require('../assets/AuditoriaImagen.png') }, 
             { Name: 'Devoluciones', Screen: 'MenuPrincipalDevolucion', image: require('../assets/Devolucion.png') },            
             { Name: 'Guias de Transporte', Screen: 'GuiasTrasportesScreen', image: require('../assets/GuiaTransporte.png') },            
-            //{ Name: 'Recepcion de tela', Screen: 'ReceptionTelaMenu', image: require('../assets/PickingTela.png') },         
-           // { Name: 'MB', Screen: 'MenuMB', image: require('../assets/DiarioEntrada.png') },
-            // { Name: 'Gestión de Ops Serigrafía', Screen: 'ConsultaPorBaseScreen', image: require('../assets/SerigrafiaPng.png') },   
-            { Name: 'Gestion Serigrafia', Screen: 'MenuGestionSerigrafiaScreen', image: require('../assets/SerigrafiaPng.png') },         
+            { Name: 'Gestion Serigrafia', Screen: 'MenuGestionSerigrafiaScreen', image: require('../assets/SerigrafiaPng.png') },      
+            { Name: 'Diseño e Impresión de Etiquetas', Screen: 'DiseñoEtiquetasEImpresionModule', image: require('../assets/ModuloDiseñoEtiqueta.png') },   
 
         ]
         setData(tmp)
@@ -48,7 +33,7 @@ export const MenuScreen: FC<props> = ({ navigation }) => {
                     <TouchableOpacity onPress={() => navigation.navigate(item.Screen)} style={{alignItems: 'center'}}>
                         <Image
                             source={item.image}
-                            style={{ width: 100, height: 100, resizeMode: 'contain' }}
+                            style={{ width: item.Name == 'Diseño e Impresión de Etiquetas' ? 190 : 100, height: 120, resizeMode: 'contain' }}
                         />
                         <Text style={{ color: navy, textAlign: 'center' }}>{item.Name}</Text>
                     </TouchableOpacity>

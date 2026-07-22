@@ -48,35 +48,86 @@ export const CambioUbicacionTelaScreen: FC<props> = () => {
     
     /* --------------------------- Handlers --------------------------- */
 
-    const consultarUbicacion = useCallback(async () => {
-        const codigo = ubicacionDestino.trim()
-        if (!codigo || isLoading) return // Previene doble envío
+const agregarUbicacion = useCallback(async (codigoAInsertar: string) => {
+    if (!codigoAInsertar || isLoading) return;
 
-        setIsLoading(true)
-        setEstadoUbicacion('consultando')
-        try {
-            const existe = await verificarUbicacion(codigo, almacenDestino)
-            setEstadoUbicacion(existe ? 'existe' : 'noExiste')
+    setIsLoading(true);
+    setEstadoUbicacion('consultando');
 
-            if (existe) {
-                requestAnimationFrame(() => scanRef.current?.focus())
-            } else {
-                Alert.alert(
-                    'Ubicación no encontrada',
-                    `La ubicación "${codigo}" no existe. ¿Deseas agregarla?`,
-                    [
-                        { text: 'Cancelar', style: 'cancel' },
-                        { text: 'Agregar', onPress: () => agregarUbicacion(codigo) },
-                    ],
-                )
-            }
-        } catch {
-            setEstadoUbicacion('noExiste')
-            Alert.alert('Error', 'Hubo un problema al conectar con el servidor.')
-        } finally {
-            setIsLoading(false)
+    try {
+        // Aseguramos que el código vaya perfectamente limpio
+        const codigoLimpio = codigoAInsertar.trim();
+        
+        // Si crearUbicacion requiere el almacén, pásalo explícitamente
+        const creadoExitosamente = await crearUbicacion(codigoLimpio);
+        console.log(`Ubicación "${codigoLimpio}" creada exitosamente: ${creadoExitosamente}`);
+
+        if (creadoExitosamente) {
+            setEstadoUbicacion('existe');
+            requestAnimationFrame(() => scanRef.current?.focus());
+        } else {
+            setEstadoUbicacion('noExiste');
+            Alert.alert('Aviso', 'No se pudo crear la ubicación en el sistema.');
         }
-    }, [ubicacionDestino, almacenDestino, isLoading])
+    } catch (error: any) {
+        setEstadoUbicacion('noExiste');
+        // Imprime el error real en consola para verificar si falta un parámetro
+        console.error('Error al crear ubicación:', error);
+        Alert.alert('Error de red', 'No se pudo establecer conexión con el servidor. Intente de nuevo.');
+    } finally {
+        setIsLoading(false);
+    }
+}, [isLoading]); // 👈 Si crearUbicacion usa variables del componente, agrégalas aquí
+
+const consultarUbicacion = useCallback(async () => {
+    const codigo = ubicacionDestino.trim();
+    if (!codigo || isLoading) return;
+
+    setIsLoading(true);
+    setEstadoUbicacion('consultando');
+
+    let existe = false;
+    let debemostrarAlerta = false;
+
+    try {
+        existe = await verificarUbicacion(codigo, almacenDestino);
+        setEstadoUbicacion(existe ? 'existe' : 'noExiste');
+
+        if (existe) {
+            requestAnimationFrame(() => scanRef.current?.focus());
+        } else {
+            debemostrarAlerta = true;
+        }
+    } catch (error) {
+        setEstadoUbicacion('noExiste');
+        Alert.alert('Error', 'Hubo un problema al conectar con el servidor.');
+    } finally {
+        setIsLoading(false);
+    }
+
+    // 💡 MOSTRAR LA ALERTA FUERA DEL TRY/FINALLY 
+    // Esto evita que la alerta quede atrapada en un estado de render intermedio
+    if (debemostrarAlerta) {
+        // Usamos un pequeño timeout para dar tiempo a que Android destruya el spinner de carga
+        setTimeout(() => {
+            Alert.alert(
+                'Ubicación no encontrada',
+                `La ubicación "${codigo}" no existe. ¿Deseas agregarla?`,
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { 
+                      text: 'Agregar', 
+                      onPress: () => {
+                        // Invocación limpia con la variable en scope
+                        agregarUbicacion(codigo);
+                      } 
+                    },
+                ],
+                { cancelable: false }
+            );
+        }, 100);
+    }
+}, [ubicacionDestino, almacenDestino, isLoading, agregarUbicacion]);
 
     const limpiarUbicacion = useCallback(() => {
         if (isLoading) return
@@ -85,25 +136,6 @@ export const CambioUbicacionTelaScreen: FC<props> = () => {
         requestAnimationFrame(() => locationInputRef.current?.focus())
     }, [isLoading])
 
-    const agregarUbicacion = useCallback(async (codigo: string) => {
-        setIsLoading(true)
-        setEstadoUbicacion('consultando')
-        try {
-            const creadoExitosamente = await crearUbicacion(codigo)
-
-            if (creadoExitosamente) {
-                setEstadoUbicacion('existe')
-                requestAnimationFrame(() => scanRef.current?.focus())
-            } else {
-                setEstadoUbicacion('noExiste')
-            }
-        } catch (error) {
-            setEstadoUbicacion('noExiste')
-            Alert.alert('Error de red', 'No se pudo establecer conexión con el servidor. Intente de nuevo.')
-        } finally {
-            setIsLoading(false)
-        }
-    }, [])
 
     // --- MANEJADOR DE ESCANEO PRINCIPAL ---
     const procesarEscaneoRollo = useCallback(async () => {
@@ -299,6 +331,7 @@ export const CambioUbicacionTelaScreen: FC<props> = () => {
             const almacen = almacenDestino
             const pasillo = '01'
             const res = await WMSApiUbicacionRollos.post<Respuesta>(`AgregarUbicacionRollos/${empresa}/${(_codigo)}/${almacen}/${pasillo}`)
+            console.log(`Respuesta al crear ubicación "${_codigo}":`, res.data)
             if (res.data && res.data.exito) {
                 Alert.alert('Ubicación agregada')
                 return true

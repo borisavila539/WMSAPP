@@ -97,6 +97,8 @@ import { GuiasTrasportesScreen } from '../screens/MenuModulos/Guias Transportes'
 import {ReimpresionEtiquetasClienteScreen} from '../screens/ReimpresionEtiquetaCliente/ReimpresiónEtiquetaClient'
 import { CambioUbicacionTelaScreen } from '../screens/CambioUbicacionTela/CambioUbicacionTelaScreen';
 import { ConsultarUbicacionRollosScreen } from '../screens/ConsultaUbicacionRollo/ConsultarUbicacionRollosScreen';
+import { DiseñoParaImprimirEtiquetasUbicacionScreen } from '../screens/ModuloDiseñoEtiquetaAImprimir/DiseñoParaImprimirEtiquetasUbicacion/DiseñoParaImprimirEtiquetasUbicacionScreen';
+import { DiseñoEtiquetasEImpresionModule } from '../screens/MenuModulos/DiseñoEtiquetasEImpresionModule';
 export type RootStackParams = {
     LoginScreen: undefined,
     MenuScreen: undefined,
@@ -197,7 +199,8 @@ export type RootStackParams = {
     ReimpresionEtiquetasClienteScreen: undefined,
     CambioUbicacionTelaScreen: undefined,
     ConsultarUbicacionRollosScreen: undefined
-    
+    DiseñoParaImprimirEtiquetasUbicacionScreen: undefined
+    DiseñoEtiquetasEImpresionModule: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -337,6 +340,9 @@ export const Navigation = () => {
             <Stack.Screen name='RecepcionTrasladosScreen' options={{ title: 'RecepcionTrasladosScreen' }} component={RecepcionTrasladosScreen} />
             <Stack.Screen name='DetalleRecibirTrasladoScreen' options={{ title: 'DetalleRecibirTrasladoScreen' }} component={DetalleRecibirTrasladoScreen} />
             <Stack.Screen name= 'ReimpresionEtiquetasClienteScreen' options={{title: 'ReimpresionEtiquetasClienteScreen'}} component={ReimpresionEtiquetasClienteScreen} />
+             {/* Modulo de Diseño para imprimir etiquetas */}
+            <Stack.Screen name= 'DiseñoEtiquetasEImpresionModule' options={{title: 'DiseñoEtiquetasEImpresionModule'}} component={DiseñoEtiquetasEImpresionModule} />
+            <Stack.Screen name= 'DiseñoParaImprimirEtiquetasUbicacionScreen' options={{title: 'DiseñoParaImprimirEtiquetasUbicacionScreen'}} component={DiseñoParaImprimirEtiquetasUbicacionScreen} />
 
         </Stack.Navigator>
     )
