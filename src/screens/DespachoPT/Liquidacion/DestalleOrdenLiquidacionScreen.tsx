@@ -15,6 +15,7 @@ import { IM_WMS_UsuarioPorPantallaInterface } from '../../../interfaces/UsuarioP
 type props = StackScreenProps<RootStackParams, "DestalleOrdenLiquidacionScreen">
 
 export interface IConfirmacionRecepcionDTO {
+    despachoId: number;
     action: string;
     prodmasterId: string;
     purchId: string;
@@ -76,6 +77,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
     const handleConfirmaciónPc = async (): Promise<boolean> => {
         try {
             const dataToSend: IConfirmacionRecepcionDTO = {
+                despachoId: WMSState.DespachoID,
                 action: 'CONFIRM_PC',
                 purchId: WMSState.PurchId,
                 packingSlipId: WMSState.NumeroOPPakingList,
@@ -190,6 +192,7 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
         try {
 
             const dataToSend: IConfirmacionRecepcionDTO = {
+                despachoId: WMSState.DespachoID,
                 action: 'RECEIVE',
                 purchId: WMSState.PurchId,
                 packingSlipId: WMSState.NumeroOPPakingList,
@@ -221,6 +224,8 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
                 return '#346796'
             case EstadoOp.NotificadoTerminado:
                 return '#349963'
+            case EstadoOp.Terminado:
+                return '#999'
             default:
                 return '#999'
         }
@@ -266,8 +271,13 @@ export const DestalleOrdenLiquidacionScreen: FC<props> = ({ navigation }) => {
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                                 <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#349963' }} />
+                                <Text style={{ fontSize: 12, color: '#666' }}>Not. Terminado</Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#666' }} />
                                 <Text style={{ fontSize: 12, color: '#666' }}>Terminado</Text>
                             </View>
+                            
                         </View>
 
                         {/* Card única con todas las tallas */}

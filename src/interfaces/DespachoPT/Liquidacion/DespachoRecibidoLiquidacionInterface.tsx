@@ -4,4 +4,5 @@ export interface DespachoRecibidoLiquidacionInterface{
     truck: string,
     createdDateTime: Date,
     almacen: number
+    name: string
 }

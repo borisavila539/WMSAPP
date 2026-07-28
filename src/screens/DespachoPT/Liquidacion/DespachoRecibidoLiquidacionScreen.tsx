@@ -40,6 +40,7 @@ export const DespachoRecibidoLiquidacionScreen: FC<props> = ({ navigation }) => 
                         navigation.navigate('OrdenesLiquidacionScreen')
                     }}>
                         <Text>Despacho: {item.id.toString().padStart(8, '0')}</Text>
+                        <Text>Contratita: {item.name}</Text>
                         <Text>Almacen: {item.almacen}</Text>
                         <Text>Motorista: {item.driver} / {item.truck}</Text>
                         <Text>Fecha: {item.createdDateTime.toString()}</Text>
