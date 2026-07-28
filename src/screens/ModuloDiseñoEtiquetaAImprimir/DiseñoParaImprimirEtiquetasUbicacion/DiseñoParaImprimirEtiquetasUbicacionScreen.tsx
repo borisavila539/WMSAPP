@@ -235,7 +235,7 @@ export const DiseñoParaImprimirEtiquetasUbicacionScreen: FC<props> = () => {
                 case 'qr':
                     const numTexto = elementos.find(e => e.id === 'numero')?.texto;
                     const rackTexto = elementos.find(e => e.id === 'rack')?.texto;
-                    const qrVal = numTexto || rackTexto || '853';
+                    const qrVal = `${rackTexto} ${numTexto}`;
                     const escalaQR = item.alto || 10;
                     zpl += `\n^FO${Number(item.x) || 0},${Number(item.y) || 0}\n^BQN,2,${escalaQR}\n^FDLA,${qrVal}\n^FS\n`;
                     break;
