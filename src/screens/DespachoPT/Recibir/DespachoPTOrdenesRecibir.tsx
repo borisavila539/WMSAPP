@@ -35,6 +35,7 @@ export const DespachoPTOrdenesRecibir: FC<props> = ({ navigation }) => {
             navigation.navigate('DespachoPTRecibir')
           }}>
             <Text>Despacho: {item.id.toString().padStart(8, '0')}</Text>
+            <Text>Contratista: {item.name}</Text>
             <Text>Motorista: {item.driver} / {item.truck}</Text>
             <Text>Fecha: {item.createdDateTime.toString()}</Text>
           </TouchableOpacity>

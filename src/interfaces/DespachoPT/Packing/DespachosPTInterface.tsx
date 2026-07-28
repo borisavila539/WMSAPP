@@ -3,6 +3,7 @@ export interface DespachosPTInterface{
     driver: string,
     truck: string,
     createdDateTime: Date
+    name: string
 }
 
 export interface EnviarDespachoPTInterface{
