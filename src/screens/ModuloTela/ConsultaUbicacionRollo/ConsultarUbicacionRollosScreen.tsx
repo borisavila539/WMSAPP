@@ -12,11 +12,11 @@ import {
   Platform,
   ListRenderItemInfo,
 } from 'react-native'
-import { RootStackParams } from '../../navigation/navigation'
-import Header from '../../components/Header'
-import { black, blue, grey } from '../../constants/Colors'
+import { RootStackParams } from '../../../navigation/navigation'
+import Header from '../../../components/Header'
+import { black, blue, grey } from '../../../constants/Colors'
 
-import { WMSApiUbicacionRollos } from '../../api/WMSApiUbicacionRollos'
+import { WMSApiUbicacionRollos } from '../../../api/WMSApiUbicacionRollos'
 import RolloUbicacionCard, { RolloUbicacion } from './RolloUbicacionCard'
 
 

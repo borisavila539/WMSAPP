@@ -2,12 +2,12 @@ import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useCallback, useMemo, useRef, useState } from 'react'
 import { View, Text, TextInput, StyleSheet, FlatList, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, ListRenderItemInfo, Alert, } from 'react-native'
 import { Dropdown } from 'react-native-element-dropdown'
-import { RootStackParams } from '../../navigation/navigation'
-import Header from '../../components/Header'
-import { black, blue, grey } from '../../constants/Colors'
+import { RootStackParams } from '../../../navigation/navigation'
+import Header from '../../../components/Header'
+import { black, blue, grey } from '../../../constants/Colors'
 import RolloCard, { Rollo } from './RolloCard'
-import { WMSApiUbicacionRollos } from '../../api/WMSApiUbicacionRollos'
-import { Respuesta } from '../../interfaces/Serigrafia/Respuesta'
+import { WMSApiUbicacionRollos } from '../../../api/WMSApiUbicacionRollos'
+import { Respuesta } from '../../../interfaces/Serigrafia/Respuesta'
 import SoundPlayer from 'react-native-sound-player'
 
 type props = StackScreenProps<RootStackParams, 'CambioUbicacionTelaScreen'>
@@ -29,6 +29,21 @@ export interface RespuestaConsultarRollo {
     cantidad: string;
 }
 
+interface ValidarRolloRepetidoRequest {
+    numeroSerie: string;
+}
+
+interface ValidarRolloRepetidoResponse {
+    esDuplicado: boolean;
+    mensaje: string;
+    diarios: DiarioDuplicado[];
+}
+
+interface DiarioDuplicado {
+  numeroDiario: string;
+  descripcion: string;
+}
+
 const DATOS_ALMACENES = [
     { label: '21', value: '21' },
     { label: '50', value: '50' },
@@ -42,6 +57,7 @@ export const CambioUbicacionTelaScreen: FC<props> = () => {
     const [rolloInput, setRolloInput] = useState('')
     const [escaneados, setEscaneados] = useState<Rollo[]>([])
     const [rolloPendiente, setRolloPendiente] = useState<RespuestaConsultarRollo | null>(null)
+    const [diariosDuplicados, setDiariosDuplicados] = useState<DiarioDuplicado[]>([])
     const locationInputRef = useRef<TextInput>(null)
     const scanRef = useRef<TextInput>(null)
     const [isLoading, setIsLoading] = useState(false) // Corregido camelCase
@@ -77,7 +93,7 @@ const agregarUbicacion = useCallback(async (codigoAInsertar: string) => {
     } finally {
         setIsLoading(false);
     }
-}, [isLoading]); // 👈 Si crearUbicacion usa variables del componente, agrégalas aquí
+}, [isLoading]);
 
 const consultarUbicacion = useCallback(async () => {
     const codigo = ubicacionDestino.trim();
@@ -142,6 +158,7 @@ const consultarUbicacion = useCallback(async () => {
         const codigo = rolloInput.trim()
         if (!codigo || isLoading) return
         setRolloInput('')
+        setDiariosDuplicados([])
 
         // CASO B: Si ya tenemos un rollo consultado y estamos esperando la verificación del proveedor
         if (rolloPendiente) {
@@ -185,6 +202,19 @@ const consultarUbicacion = useCallback(async () => {
 
             if (!info || !info.numeroRollo) {
                 Alert.alert('No encontrado', `El rollo "${codigo}" no se encontró en el sistema.`)
+                return
+            }
+            
+            if (!almacenDestino || !ubicacionDestino.trim()) {
+                Alert.alert('Datos incompletos', 'Selecciona almacén y ubicación destino antes de validar el rollo.')
+                return
+            }
+
+            const infoValidacion = await ValidarExistenciaRolloEndiario(codigo)
+
+            if (infoValidacion.esDuplicado) {  
+                setDiariosDuplicados(infoValidacion.diarios || [])                
+                Alert.alert('Rollo duplicado', infoValidacion.mensaje)
                 return
             }
 
@@ -349,6 +379,15 @@ const consultarUbicacion = useCallback(async () => {
         return res.data
     }
 
+    const ValidarExistenciaRolloEndiario = async (codigo: string,): Promise<ValidarRolloRepetidoResponse> => {
+        const payload: ValidarRolloRepetidoRequest = {
+            numeroSerie: codigo,
+        }
+        
+        const res = await WMSApiUbicacionRollos.post<ValidarRolloRepetidoResponse>('validar-rollo-repetido', payload)
+        return res.data
+    }
+
     /* ----------------------- Render de la lista --------------------- */
 
     const renderItem = useCallback(
@@ -506,6 +545,18 @@ const consultarUbicacion = useCallback(async () => {
                         </View>
                     )}
 
+                    {diariosDuplicados.length > 0 && (
+                        <View style={styles.duplicateCard}>
+                            <Text style={styles.duplicateTitle}>Diarios abiertos con este rollo</Text>
+                            {diariosDuplicados.map((diario) => (
+                                <View key={diario.numeroDiario} style={styles.duplicateItem}>
+                                    <Text style={styles.duplicateNumber}>{diario.numeroDiario}</Text>
+                                    <Text style={styles.duplicateDescription}>{diario.descripcion}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
                     {/* Input escaneo de rollos */}
                     <TextInput
                         ref={scanRef}
@@ -559,7 +610,7 @@ const consultarUbicacion = useCallback(async () => {
                         maxToRenderPerBatch={8}
                         windowSize={5}
                         removeClippedSubviews
-                        keyboardShouldPersistTaps="handled"
+                        keyboardShouldPersistTaps="always"
                         ListEmptyComponent={<EmptyHint />}
                     />
                 </View>
@@ -853,7 +904,39 @@ const styles = StyleSheet.create({
     },
     disabledTextRed: {
         color: '#F8C6C6',
-    }
+    },
+    duplicateCard: {
+        backgroundColor: '#FFF8E7',
+        borderColor: '#F2C94C',
+        borderWidth: 1,
+        borderRadius: 10,
+        padding: 10,
+        gap: 8,
+    },
+    duplicateTitle: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#805500',
+        marginBottom: 6,
+    },
+    duplicateItem: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 8,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#E6D7B8',
+        marginBottom: 6,
+    },
+    duplicateNumber: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#382C0C',
+    },
+    duplicateDescription: {
+        fontSize: 12,
+        color: '#5E4A18',
+        marginTop: 2,
+    },
 })
 
 function PlaySound(estado: string) {

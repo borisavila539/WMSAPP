@@ -16,9 +16,9 @@ import {
   View,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Feather'
-import { RootStackParams } from '../../navigation/navigation'
-import Header from '../../components/Header'
-import { WmSApi } from '../../api/WMSApi'
+import { RootStackParams } from '../../../navigation/navigation'
+import Header from '../../../components/Header'
+import { WmSApi } from '../../../api/WMSApi'
 
 const { width, height } = Dimensions.get('window')
 const CARD_GAP = 8

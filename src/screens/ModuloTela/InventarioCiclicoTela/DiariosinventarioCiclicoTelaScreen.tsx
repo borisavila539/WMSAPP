@@ -1,12 +1,12 @@
 import React, { FC, useContext, useEffect, useState } from 'react'
 import { ActivityIndicator, FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
-import Header from '../../components/Header';
+import Header from '../../../components/Header';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParams } from '../../navigation/navigation';
-import { InventarioCiclicotelaDiariosAbiertos } from '../../interfaces/InventarioCiclicoTela/InventarioCiclicotelaDiariosAbiertos';
-import { WmSApi } from '../../api/WMSApi';
-import { blue, grey } from '../../constants/Colors';
-import { WMSContext } from '../../context/WMSContext';
+import { RootStackParams } from '../../../navigation/navigation';
+import { InventarioCiclicotelaDiariosAbiertos } from '../../../interfaces/InventarioCiclicoTela/InventarioCiclicotelaDiariosAbiertos';
+import { WmSApi } from '../../../api/WMSApi';
+import { blue, grey } from '../../../constants/Colors';
+import { WMSContext } from '../../../context/WMSContext';
 type props = StackScreenProps<RootStackParams, "DiariosinventarioCiclicoTelaScreen">
 
 export const DiariosinventarioCiclicoTelaScreen: FC<props> = ({ navigation }) => {

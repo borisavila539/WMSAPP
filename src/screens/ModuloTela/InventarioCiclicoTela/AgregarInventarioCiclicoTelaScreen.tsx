@@ -1,12 +1,12 @@
 import { StackScreenProps } from '@react-navigation/stack'
 import React, { FC, useContext, useState } from 'react'
-import { RootStackParams } from '../../navigation/navigation'
+import { RootStackParams } from '../../../navigation/navigation'
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import Header from '../../components/Header'
-import { WMSContext } from '../../context/WMSContext'
-import { black, green, grey } from '../../constants/Colors'
-import { WmSApi } from '../../api/WMSApi'
-import { DetalleInventarioCliclicoTelainterface } from '../../interfaces/InventarioCiclicoTela/DetalleInventarioCliclicoTelainterface'
+import Header from '../../../components/Header'
+import { WMSContext } from '../../../context/WMSContext'
+import { black, green, grey } from '../../../constants/Colors'
+import { WmSApi } from '../../../api/WMSApi'
+import { DetalleInventarioCliclicoTelainterface } from '../../../interfaces/InventarioCiclicoTela/DetalleInventarioCliclicoTelainterface'
 
 type props = StackScreenProps<RootStackParams, "AgregarInventarioCiclicoTelaScreen">
 

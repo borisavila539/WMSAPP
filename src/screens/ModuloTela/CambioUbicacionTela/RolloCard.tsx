@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
-import { black, blue } from '../../constants/Colors'
+import { black, blue } from '../../../constants/Colors'
 
 export interface Rollo {
     /** Número de rollo, ej: R0-12345 */
@@ -74,7 +74,10 @@ const RolloCard: React.FC<Props> = ({ rollo, ubicacionDestino, almacenDestino, o
             {/* Botoncito discreto de eliminar (X) */}
             {onDelete && (
                 <Pressable
-                    onPress={() => onDelete(rollo.ro)}
+                    onPress={() => {
+                        if (!onDelete) return
+                        onDelete(rollo.ro)
+                    }}
                     style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
                     hitSlop={12} // Aumenta el área táctil sin agrandar el botón visible
                 >

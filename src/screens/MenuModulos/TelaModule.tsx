@@ -19,6 +19,7 @@ export const TelaModuleScreen: FC<props> = ({ navigation }) => {
         { Name: 'Recepcion de tela', Screen: 'ReceptionTelaMenu', image: require('../../assets/PickingTela.png') },  
         { Name: 'Cambio Ubicacion Tela', Screen: 'CambioUbicacionTelaScreen', image: require('../../assets/CambioUbicacion.png') },
         { Name: 'Consultar Ubicacion Rollos', Screen: 'ConsultarUbicacionRollosScreen', image: require('../../assets/ConsultaRollosPorUbicación.png') },
+        { Name: 'Diarios Abierto de Tranferencia de Rollos', Screen: 'ConsultaDiairosAbiertosScreen', image: require('../../assets/ConsultaDiariosPendiente.png') },
         ]
         setData(tmp)
     }
