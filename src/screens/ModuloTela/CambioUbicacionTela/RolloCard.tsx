@@ -1,5 +1,5 @@
-import React, { memo } from 'react'
-import { View, Text, StyleSheet, Pressable } from 'react-native'
+import React from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Keyboard } from 'react-native'
 import { black, blue } from '../../../constants/Colors'
 
 export interface Rollo {
@@ -73,16 +73,19 @@ const RolloCard: React.FC<Props> = ({ rollo, ubicacionDestino, almacenDestino, o
 
             {/* Botoncito discreto de eliminar (X) */}
             {onDelete && (
-                <Pressable
+                <TouchableOpacity
                     onPress={() => {
+                        Keyboard.dismiss()
                         if (!onDelete) return
                         onDelete(rollo.ro)
                     }}
-                    style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
-                    hitSlop={12} // Aumenta el área táctil sin agrandar el botón visible
+                    activeOpacity={0.6}
+                    style={styles.deleteButton}
+                    hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+                    accessibilityRole="button"
                 >
                     <Text style={styles.deleteText}>✕</Text>
-                </Pressable>
+                </TouchableOpacity>
             )}
         </View>
     )
@@ -186,10 +189,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default memo(RolloCard, (prev, next) => {
-    return (
-        prev.rollo.ro === next.rollo.ro &&
-        prev.ubicacionDestino === next.ubicacionDestino &&
-        prev.almacenDestino === next.almacenDestino
-    )
-})
+export default RolloCard

@@ -611,6 +611,7 @@ const consultarUbicacion = useCallback(async () => {
                         windowSize={5}
                         removeClippedSubviews
                         keyboardShouldPersistTaps="always"
+                        keyboardDismissMode="on-drag"
                         ListEmptyComponent={<EmptyHint />}
                     />
                 </View>
