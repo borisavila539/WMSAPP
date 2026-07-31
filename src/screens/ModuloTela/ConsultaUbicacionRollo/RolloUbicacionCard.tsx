@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { black, blue } from '../../constants/Colors'
+import { black, blue } from '../../../constants/Colors'
 
 // Modelo tal cual llega del endpoint GetConsultarRollosPorUbicacion.
 export interface RolloUbicacion {

@@ -35,9 +35,9 @@ import { BusquedaRolloAXScreen } from '../screens/BusquedaRolloAX/BusquedaRolloA
 import { DespachoRecibidoLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/DespachoRecibidoLiquidacionScreen';
 import { OrdenesLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/OrdenesLiquidacionScreen';
 import { DestalleOrdenLiquidacionScreen } from '../screens/DespachoPT/Liquidacion/DestalleOrdenLiquidacionScreen';
-import { DiariosinventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/DiariosinventarioCiclicoTelaScreen';
-import { DetalleInventarioCliclicoTelaScreen } from '../screens/InventarioCiclicoTela/DetalleInventarioCliclicoTelaScreen';
-import { AgregarInventarioCiclicoTelaScreen } from '../screens/InventarioCiclicoTela/AgregarInventarioCiclicoTelaScreen';
+import { DiariosinventarioCiclicoTelaScreen } from '../screens/ModuloTela/InventarioCiclicoTela/DiariosinventarioCiclicoTelaScreen';
+import { DetalleInventarioCliclicoTelaScreen } from '../screens/ModuloTela/InventarioCiclicoTela/DetalleInventarioCliclicoTelaScreen';
+import { AgregarInventarioCiclicoTelaScreen } from '../screens/ModuloTela/InventarioCiclicoTela/AgregarInventarioCiclicoTelaScreen';
 import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCajas/RecepcionUbicacionCajasScreen';
 import { DeclaracionEnvioScreen } from '../screens/DeclaracionEnvio/DeclaracionEnvioScreen';
 import { ControlCajaEtiquetasScreen } from '../screens/ControlCajasEtiqueta/ControlCajaEtiquetasScreen';
@@ -70,7 +70,7 @@ import { RecepcionMBScreen } from '../screens/RecepcionMB/Menu/RecepcionMBScreen
 import { DespachosMB } from '../screens/RecepcionMB/Menu/DespachosMB';
 import { MenuDespachoMB } from '../screens/RecepcionMB/Menu/Despacho/MenuDespacho';
 import { ReceptionTelaMenu } from '../screens/ReceptionTela/ReceptionTelaMenu';
-import { ReceptionTelaVendrollScreen, ReceptionTelaVendrollDetalle  } from '../screens/ReceptionTela/ReceptionTelaVendroll';
+import { ReceptionTelaVendrollScreen, ReceptionTelaVendrollDetalle } from '../screens/ReceptionTela/ReceptionTelaVendroll';
 import { ConsultaPorBaseScreen } from '../screens/GestionSerigrafia/ConsultaPorBase';
 import { MenuFlujoProcesoScreen } from '../screens/GestionSerigrafia/MenuFlujoProceso';
 import { ConsultaInicioPorOPsBaseScreen } from '../screens/GestionSerigrafia/InicioOp/CosultaInicioOpsPorBase';
@@ -80,25 +80,27 @@ import { ConsultaTerminarOpsPorBaseScreen } from '../screens/GestionSerigrafia/T
 import { MenuGestionSerigrafiaScreen } from '../screens/GestionSerigrafia/MenuGestionSerigrafiaScreen';
 import { MenuTrasladoSCreen } from '../screens/GestionSerigrafia/Despacho/MenuTrasladoSCreen';
 import { ConsultaCreacionTrasladosScreen } from '../screens/GestionSerigrafia/Despacho/CrearTraslados/ConsultaCreacionTraslados';
-import {CreacionDespachoPakingScreen} from '../screens/GestionSerigrafia/Despacho/CrearDespacho/CreacionDespachoPaking';
+import { CreacionDespachoPakingScreen } from '../screens/GestionSerigrafia/Despacho/CrearDespacho/CreacionDespachoPaking';
 import { CrearDiariosCreen } from '../screens/GestionSerigrafia/Despacho/CrearDiarios/ConsultaCrearDiarios';
 import { DespachoEnviarTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/EnviarTralados/DespachoEnviarTraslado';
 import { DespachoRecibirTrasladoScreen } from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/DespachoRecibirTraslado';
-import { EscorgerTrasladoParaRecibirScreen} from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/EscogerDespacho';
+import { EscorgerTrasladoParaRecibirScreen } from '../screens/GestionSerigrafia/Despacho/RecibirTraslado/EscogerDespacho';
 import { ConsultaTrasladoCreadosScreen } from '../screens/GestionSerigrafia/Despacho/TrasladosCreados/ConsultaTrasladosCreados';
-import { ImpresionEtiquetasRollosScreen } from '../screens/ImpresionEtiquetasRollos/ImpresionEtiquetasRollosScreen';    
+import { ImpresionEtiquetasRollosScreen } from '../screens/ModuloTela/ImpresionEtiquetasRollos/ImpresionEtiquetasRollosScreen';
 import { MenuRecepcionYUbiacionScreen } from '../screens/RecepcionYUbicacionAX/MenuRecepcionYUbiacionScreen';
 import { RecepcionTrasladosScreen } from '../screens/RecepcionYUbicacionAX/RecepcionTraslados/RecepcionTrasladosScreen';
 import { DetalleRecibirTrasladoScreen } from '../screens/RecepcionYUbicacionAX/RecepcionTraslados/DetalleRecibirTrasladoScreen';
 import { DiariosModuleScreen } from '../screens/MenuModulos/DiariosModule';
 import { EmpaqueYDespachoScreen } from '../screens/MenuModulos/EmpaqueYDespacho';
-import { TelaModuleScreen} from '../screens/MenuModulos/TelaModule';
+import { TelaModuleScreen } from '../screens/MenuModulos/TelaModule';
 import { GuiasTrasportesScreen } from '../screens/MenuModulos/Guias Transportes';
-import {ReimpresionEtiquetasClienteScreen} from '../screens/ReimpresionEtiquetaCliente/ReimpresiónEtiquetaClient'
-import { CambioUbicacionTelaScreen } from '../screens/CambioUbicacionTela/CambioUbicacionTelaScreen';
-import { ConsultarUbicacionRollosScreen } from '../screens/ConsultaUbicacionRollo/ConsultarUbicacionRollosScreen';
+import { ReimpresionEtiquetasClienteScreen } from '../screens/ReimpresionEtiquetaCliente/ReimpresiónEtiquetaClient'
+import { CambioUbicacionTelaScreen } from '../screens/ModuloTela/CambioUbicacionTela/CambioUbicacionTelaScreen';
+import { ConsultarUbicacionRollosScreen } from '../screens/ModuloTela/ConsultaUbicacionRollo/ConsultarUbicacionRollosScreen';
 import { DiseñoParaImprimirEtiquetasUbicacionScreen } from '../screens/ModuloDiseñoEtiquetaAImprimir/DiseñoParaImprimirEtiquetasUbicacion/DiseñoParaImprimirEtiquetasUbicacionScreen';
 import { DiseñoEtiquetasEImpresionModule } from '../screens/MenuModulos/DiseñoEtiquetasEImpresionModule';
+import { ConsultaDiairosAbiertosScreen } from '../screens/ModuloTela/DiariosAbiertos/ConsultaDiariosAbiertos';
+import { DetalleDiarioMovimientoScreen } from '../screens/ModuloTela/DiariosAbiertos/ConsultaDetalleDiarioMovimiento';
 export type RootStackParams = {
     LoginScreen: undefined,
     MenuScreen: undefined,
@@ -146,30 +148,30 @@ export type RootStackParams = {
     EnviarReciclajeCajaScreen: undefined,
     RecibirReciclajeCajasScreen: undefined,
     MenuDevoluciones: undefined,
-    RecibirPlantaDevoluciones:undefined,
-    RecibirPlantaDevolucionesDetalle:undefined,
-    AuditoriaDevolucionesScreen:undefined,
-    AuditoriaDevolucionDetalle:undefined,
-    TrackingDevolucion:undefined,
-    EnviarDevolucion:undefined,
-    DevolucionesRecibirCD:undefined,
-    DevolucionRecibirCDDetalle:undefined,
-    MenuPrincipalDevolucion:undefined,
-    DevolucionesPrimera:undefined,
-    DevolucionprimeraDetalle:undefined,
-    ConsolidacionAuditoriaScreen:undefined,
-    AuditoriaDevolucion_Detalle:undefined,
-    AuditoriaDevolucionDefecto:undefined,
-    CAEXCrearGuiaScreen:undefined,
-    ReimpresionEtiquetasCaex:undefined,
-    RecepcionMBScreen:undefined,
+    RecibirPlantaDevoluciones: undefined,
+    RecibirPlantaDevolucionesDetalle: undefined,
+    AuditoriaDevolucionesScreen: undefined,
+    AuditoriaDevolucionDetalle: undefined,
+    TrackingDevolucion: undefined,
+    EnviarDevolucion: undefined,
+    DevolucionesRecibirCD: undefined,
+    DevolucionRecibirCDDetalle: undefined,
+    MenuPrincipalDevolucion: undefined,
+    DevolucionesPrimera: undefined,
+    DevolucionprimeraDetalle: undefined,
+    ConsolidacionAuditoriaScreen: undefined,
+    AuditoriaDevolucion_Detalle: undefined,
+    AuditoriaDevolucionDefecto: undefined,
+    CAEXCrearGuiaScreen: undefined,
+    ReimpresionEtiquetasCaex: undefined,
+    RecepcionMBScreen: undefined,
     ReceptionTelaScreen: undefined,
     ReceptionTelaDetalle: undefined
-    DespachosMB:undefined,
-    MenuMB:undefined,
-    PickingMB:undefined,
-    PackingMB:undefined,
-    MenuDespachoMB:undefined,
+    DespachosMB: undefined,
+    MenuMB: undefined,
+    PickingMB: undefined,
+    PackingMB: undefined,
+    MenuDespachoMB: undefined,
     ReceptionTelaMenu: undefined,
     ReceptionTelaVendroll: undefined,
     ReceptionTelaVendrollDetalle: undefined,
@@ -198,9 +200,11 @@ export type RootStackParams = {
     GuiasTrasportesScreen: undefined,
     ReimpresionEtiquetasClienteScreen: undefined,
     CambioUbicacionTelaScreen: undefined,
-    ConsultarUbicacionRollosScreen: undefined
-    DiseñoParaImprimirEtiquetasUbicacionScreen: undefined
-    DiseñoEtiquetasEImpresionModule: undefined
+    ConsultarUbicacionRollosScreen: undefined,
+    DiseñoParaImprimirEtiquetasUbicacionScreen: undefined,
+    DiseñoEtiquetasEImpresionModule: undefined,
+    ConsultaDiairosAbiertosScreen: undefined,
+    DetalleDiarioMovimientoScreen: undefined
 }
 
 const Stack = createStackNavigator<RootStackParams>();
@@ -212,15 +216,34 @@ export const Navigation = () => {
                 headerShown: false
             }}
         >
-          
-             {/* Login y Menu principal Screens */}
+
+            {/* Login y Menu principal Screens */}
             <Stack.Screen name='LoginScreen' options={{ title: 'LoginScreen' }} component={LoginScreen} />
             <Stack.Screen name='MenuScreen' options={{ title: 'MenuScreen' }} component={MenuScreen} />
-              {/*Modulos Screens */}
+            {/*Modulos Screens */}
             <Stack.Screen name='DiariosModuleScreen' options={{ title: 'DiariosModuleScreen' }} component={DiariosModuleScreen} />
             <Stack.Screen name='EmpaqueYDespachoScreen' options={{ title: 'EmpaqueYDespachoScreen' }} component={EmpaqueYDespachoScreen} />
             <Stack.Screen name='TelaModuleScreen' options={{ title: 'TelaModuleScreen' }} component={TelaModuleScreen} />
             <Stack.Screen name='GuiasTrasportesScreen' options={{ title: 'GuiasTrasportesScreen' }} component={GuiasTrasportesScreen} />
+            {/* ModuloTela */}
+            {/* Recepcion Tela */}
+            <Stack.Screen name='ReceptionTelaMenu' options={{ title: 'ReceptionTelaMenu' }} component={ReceptionTelaMenu} />
+            <Stack.Screen name='ReceptionTelaScreen' options={{ title: 'ReceptionTelaScreen' }} component={ReceptionTelaScreen} />
+            <Stack.Screen name='ReceptionTelaDetalle' options={{ title: 'ReceptionTelaDetalle' }} component={ReceptionTelaDetalle} />
+            <Stack.Screen name='ReceptionTelaVendroll' options={{ title: 'ReceptionTelaVendroll' }} component={ReceptionTelaVendrollScreen} />
+            <Stack.Screen name='ReceptionTelaVendrollDetalle' options={{ title: 'ReceptionTelaVendrollDetalle' }} component={ReceptionTelaVendrollDetalle} />
+            {/*Inventario cilico tela */}
+            <Stack.Screen name='DiariosinventarioCiclicoTelaScreen' options={{ title: 'DiariosinventarioCiclicoTelaScreen' }} component={DiariosinventarioCiclicoTelaScreen} />
+            <Stack.Screen name='DetalleInventarioCliclicoTelaScreen' options={{ title: 'DetalleInventarioCliclicoTelaScreen' }} component={DetalleInventarioCliclicoTelaScreen} />
+            <Stack.Screen name='AgregarInventarioCiclicoTelaScreen' options={{ title: 'AgregarInventarioCiclicoTelaScreen' }} component={AgregarInventarioCiclicoTelaScreen} />
+            {/*Cambio Ubiacion y Consulta de por Ubiación Rollos */}
+            <Stack.Screen name='CambioUbicacionTelaScreen' options={{ title: 'CambioUbicacionTelaScreen' }} component={CambioUbicacionTelaScreen} />
+            <Stack.Screen name='ConsultarUbicacionRollosScreen' options={{ title: 'ConsultarUbicacionRollosScreen' }} component={ConsultarUbicacionRollosScreen} />
+            {/*Otras pantallas*/}
+            <Stack.Screen name='ConsultaDiairosAbiertosScreen' options={{ title: 'ConsultaDiairosAbiertosScreen' }} component={ConsultaDiairosAbiertosScreen} />
+            <Stack.Screen name='ReimpresionEtiquetasClienteScreen' options={{ title: 'ReimpresionEtiquetasClienteScreen' }} component={ReimpresionEtiquetasClienteScreen} />
+            <Stack.Screen name='ImpresionEtiquetasRollosScreen' options={{ title: 'ImpresionEtiquetasRollosScreen' }} component={ImpresionEtiquetasRollosScreen} />
+            <Stack.Screen name='DetalleDiarioMovimientoScreen' options={{ title: 'DetalleDiarioMovimientoScreen' }} component={DetalleDiarioMovimientoScreen} />
             {/* Screens */}
             <Stack.Screen name='SeleccionarDiarioScreen' options={{ title: 'SeleccionarDiarioScreen' }} component={SeleccionarDiarioScreen} />
             <Stack.Screen name='IngresarLineasScreen' options={{ title: 'IngresarLineasScreen' }} component={IngresarLineasScreen} />
@@ -255,18 +278,12 @@ export const Navigation = () => {
 
             {/* Busqeuda de rollos */}
             <Stack.Screen name='BusquedaRolloAXScreen' options={{ title: 'BusquedaRolloAXScreen' }} component={BusquedaRolloAXScreen} />
-            <Stack.Screen name='CambioUbicacionTelaScreen' options={{ title: 'CambioUbicacionTelaScreen' }} component={CambioUbicacionTelaScreen} />
-            <Stack.Screen name='ConsultarUbicacionRollosScreen' options={{ title: 'ConsultarUbicacionRollosScreen' }} component={ConsultarUbicacionRollosScreen} />
             {/* Liquidacion */}
             <Stack.Screen name='DespachoRecibidoLiquidacionScreen' options={{ title: 'DespachoRecibidoLiquidacionScreen' }} component={DespachoRecibidoLiquidacionScreen} />
             <Stack.Screen name='OrdenesLiquidacionScreen' options={{ title: 'OrdenesLiquidacionScreen' }} component={OrdenesLiquidacionScreen} />
             <Stack.Screen name='DestalleOrdenLiquidacionScreen' options={{ title: 'DestalleOrdenLiquidacionScreen' }} component={DestalleOrdenLiquidacionScreen} />
 
-            {/*Inventario cilico tela */}
 
-            <Stack.Screen name='DiariosinventarioCiclicoTelaScreen' options={{ title: 'DiariosinventarioCiclicoTelaScreen' }} component={DiariosinventarioCiclicoTelaScreen} />
-            <Stack.Screen name='DetalleInventarioCliclicoTelaScreen' options={{ title: 'DetalleInventarioCliclicoTelaScreen' }} component={DetalleInventarioCliclicoTelaScreen} />
-            <Stack.Screen name='AgregarInventarioCiclicoTelaScreen' options={{ title: 'AgregarInventarioCiclicoTelaScreen' }} component={AgregarInventarioCiclicoTelaScreen} />
             {/*Recepcion ubicacion cajas */}
             <Stack.Screen name='RecepcionUbicacionCajasScreen' options={{ title: 'RecepcionUbicacionCajasScreen' }} component={RecepcionUbicacionCajasScreen} />
 
@@ -289,7 +306,7 @@ export const Navigation = () => {
             <Stack.Screen name='AuditoriaDevolucionDetalle' options={{ title: 'AuditoriaDevolucionDetalle' }} component={AuditoriaDevolucionDetalle} />
             <Stack.Screen name='AuditoriaDevolucion_Detalle' options={{ title: 'AuditoriaDevolucion_Detalle' }} component={AuditoriaDevolucion_Detalle} />
             <Stack.Screen name='AuditoriaDevolucionDefecto' options={{ title: 'AuditoriaDevolucionDefecto' }} component={AuditoriaDevolucionDefecto} />
-            
+
             <Stack.Screen name='TrackingDevolucion' options={{ title: 'TrackingDevolucion' }} component={TrackingDevolucion} />
             <Stack.Screen name='EnviarDevolucion' options={{ title: 'EnviarDevolucion' }} component={EnviarDevolucion} />
             <Stack.Screen name='DevolucionesRecibirCD' options={{ title: 'DevolucionesRecibirCD' }} component={DevolucionesRecibirCD} />
@@ -309,13 +326,7 @@ export const Navigation = () => {
             <Stack.Screen name='PackingMB' options={{ title: 'PackingMB' }} component={PackingMB} />
             <Stack.Screen name='PickingMB' options={{ title: 'PickingMB' }} component={PickingMB} />
             <Stack.Screen name='ReimpresionEtiquetasScreen' options={{ title: 'ReimpresionEtiquetasScreen' }} component={ReimpresionEtiquetasScreen} />
-            
-            {/* Recepcion Tela */}
-            <Stack.Screen name='ReceptionTelaMenu' options={{ title: 'ReceptionTelaMenu' }} component={ReceptionTelaMenu} />
-            <Stack.Screen name='ReceptionTelaScreen' options={{ title: 'ReceptionTelaScreen' }} component={ReceptionTelaScreen} />
-            <Stack.Screen name='ReceptionTelaDetalle' options={{ title: 'ReceptionTelaDetalle' }} component={ReceptionTelaDetalle} />
-            <Stack.Screen name='ReceptionTelaVendroll' options={{ title: 'ReceptionTelaVendroll' }} component={ReceptionTelaVendrollScreen} />
-            <Stack.Screen name='ReceptionTelaVendrollDetalle' options={{ title: 'ReceptionTelaVendrollDetalle' }} component={ReceptionTelaVendrollDetalle} />
+
 
             {/* Gestio Serigrafia */}
 
@@ -327,22 +338,21 @@ export const Navigation = () => {
             <Stack.Screen name='ConsultaTerminarOpsPorBaseScreen' options={{ title: 'ConsultaTerminarOpsPorBaseScreen' }} component={ConsultaTerminarOpsPorBaseScreen} />
             <Stack.Screen name='MenuTrasladoSCreen' options={{ title: 'MenuTrasladoSCreen' }} component={MenuTrasladoSCreen} />
             <Stack.Screen name='ConsultaCreacionTrasladosScreen' options={{ title: 'ConsultaCreacionTrasladosScreen' }} component={ConsultaCreacionTrasladosScreen} />
-            <Stack.Screen name= 'CreacionDespachoPakingScreen' options={{title: 'CreacionDespachoPakingScreen'}} component={CreacionDespachoPakingScreen} />
-            <Stack.Screen name= 'CrearDiariosCreen' options={{title: 'CrearDiariosCreen'}} component={CrearDiariosCreen} />
-            <Stack.Screen name= 'DespachoEnviarTrasladoScreen' options={{title: 'DespachoEnviarTrasladoScreen'}} component={DespachoEnviarTrasladoScreen} />
-            <Stack.Screen name= 'DespachoRecibirTrasladoScreen' options={{title: 'DespachoRecibirTrasladoScreen'}} component={DespachoRecibirTrasladoScreen} />
-            <Stack.Screen name= 'EscorgerTrasladoParaRecibirScreen' options={{title: 'EscorgerTrasladoParaRecibirScreen'}} component={EscorgerTrasladoParaRecibirScreen} />
-            <Stack.Screen name= 'ConsultaTrasladoCreadosScreen' options={{title: 'ConsultaTrasladoCreadosScreen'}} component={ConsultaTrasladoCreadosScreen} />
-            {/* Impresion de etiquetas rollos */}
-            <Stack.Screen name='ImpresionEtiquetasRollosScreen' options={{ title: 'ImpresionEtiquetasRollosScreen' }} component={ImpresionEtiquetasRollosScreen} /> 
+            <Stack.Screen name='CreacionDespachoPakingScreen' options={{ title: 'CreacionDespachoPakingScreen' }} component={CreacionDespachoPakingScreen} />
+            <Stack.Screen name='CrearDiariosCreen' options={{ title: 'CrearDiariosCreen' }} component={CrearDiariosCreen} />
+            <Stack.Screen name='DespachoEnviarTrasladoScreen' options={{ title: 'DespachoEnviarTrasladoScreen' }} component={DespachoEnviarTrasladoScreen} />
+            <Stack.Screen name='DespachoRecibirTrasladoScreen' options={{ title: 'DespachoRecibirTrasladoScreen' }} component={DespachoRecibirTrasladoScreen} />
+            <Stack.Screen name='EscorgerTrasladoParaRecibirScreen' options={{ title: 'EscorgerTrasladoParaRecibirScreen' }} component={EscorgerTrasladoParaRecibirScreen} />
+            <Stack.Screen name='ConsultaTrasladoCreadosScreen' options={{ title: 'ConsultaTrasladoCreadosScreen' }} component={ConsultaTrasladoCreadosScreen} />
+
             {/* Menu Recepcion y Ubicacion */}
             <Stack.Screen name='MenuRecepcionYUbiacionScreen' options={{ title: 'MenuRecepcionYUbiacionScreen' }} component={MenuRecepcionYUbiacionScreen} />
             <Stack.Screen name='RecepcionTrasladosScreen' options={{ title: 'RecepcionTrasladosScreen' }} component={RecepcionTrasladosScreen} />
             <Stack.Screen name='DetalleRecibirTrasladoScreen' options={{ title: 'DetalleRecibirTrasladoScreen' }} component={DetalleRecibirTrasladoScreen} />
-            <Stack.Screen name= 'ReimpresionEtiquetasClienteScreen' options={{title: 'ReimpresionEtiquetasClienteScreen'}} component={ReimpresionEtiquetasClienteScreen} />
-             {/* Modulo de Diseño para imprimir etiquetas */}
-            <Stack.Screen name= 'DiseñoEtiquetasEImpresionModule' options={{title: 'DiseñoEtiquetasEImpresionModule'}} component={DiseñoEtiquetasEImpresionModule} />
-            <Stack.Screen name= 'DiseñoParaImprimirEtiquetasUbicacionScreen' options={{title: 'DiseñoParaImprimirEtiquetasUbicacionScreen'}} component={DiseñoParaImprimirEtiquetasUbicacionScreen} />
+
+            {/* Modulo de Diseño para imprimir etiquetas */}
+            <Stack.Screen name='DiseñoEtiquetasEImpresionModule' options={{ title: 'DiseñoEtiquetasEImpresionModule' }} component={DiseñoEtiquetasEImpresionModule} />
+            <Stack.Screen name='DiseñoParaImprimirEtiquetasUbicacionScreen' options={{ title: 'DiseñoParaImprimirEtiquetasUbicacionScreen' }} component={DiseñoParaImprimirEtiquetasUbicacionScreen} />
 
         </Stack.Navigator>
     )
