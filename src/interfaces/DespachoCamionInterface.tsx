@@ -3,5 +3,6 @@ export interface DespachoCamionInterface {
     recIDTraslados: string,
     chofer: string,
     camion: string,
+    descripcion: string,
     estado: boolean
 }

@@ -28,9 +28,10 @@ export interface WMSState {
     lote: string,
     SRGDespachoId: number,
     PurchId: string,
-    NumeroOPPakingList: string
-    TieneDiarioRecepcion: number
-    NombreEmpresa: string
+    NumeroOPPakingList: string,
+    TieneDiarioRecepcion: number,
+    NombreEmpresa: string,
+    DescripcionDespacho: string
 }
 
 //Estado inicial
@@ -69,7 +70,8 @@ export const WMSInitialState: WMSState = {
     SRGDespachoId: 0,
     NumeroOPPakingList: '',
     TieneDiarioRecepcion: 0,
-    NombreEmpresa: ''
+    NombreEmpresa: '',
+    DescripcionDespacho: ''
 }
 
 export interface WMSContextProps {
@@ -79,6 +81,7 @@ export interface WMSContextProps {
     changeNombreDiario: (nombreDiario: string) => void
     changeCamion: (Camion: string) => void
     changeChofer: (Chofer: string) => void
+    changeDescripcionDespacho: (descripcion: string) => void
     changeTRANSFERIDFROM: (TRANSFERIDFROM: string) => void
     changeTRANSFERIDTO: (TRANSFERIDTO: string) => void
     changeINVENTLOCATIONIDTO: (INVENTLOCATIONIDTO: string) => void
@@ -184,6 +187,9 @@ export const WMSProvider = ({ children }: any) => {
     const changeSRGDespachoId = (SRGDespachoId: number) => {
         dispatch({ type: 'changeSRGDespachoId', payload: SRGDespachoId })
     }
+    const changeDescripcionDespacho = (descripcion: string) => {
+        dispatch({ type: 'changeDescripcionDespacho', payload: descripcion })
+    }
     const changeNombreEmpresa = (nombreEmpresa: string) => {
         dispatch({ type: 'changeNombreEmpresa', payload: nombreEmpresa   })
     }
@@ -215,6 +221,7 @@ export const WMSProvider = ({ children }: any) => {
                 changePurchId,
                 changeNumeroOPPakingList,
                 changeTieneDiarioRecepcion,
+                changeDescripcionDespacho,
                 changeNombreEmpresa
             }}
         >
