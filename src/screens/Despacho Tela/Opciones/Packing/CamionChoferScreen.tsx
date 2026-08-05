@@ -20,21 +20,23 @@ type props = StackScreenProps<RootStackParams, "CamionChoferScreen">
 export const CamionChoferScreen: FC<props> = ({ navigation }) => {
     const [camion, setCamion] = useState<string>('')
     const [Chofer, setChofer] = useState<string>('')
+    const [descripcion, setDescripcion] = useState<string>('')
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
     const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
-    const { changeCamion, changeChofer, WMSState, changeDespachoID } = useContext(WMSContext)
+    const { changeCamion, changeChofer, WMSState, changeDespachoID, changeDescripcionDespacho } = useContext(WMSContext)
     const [data, setData] = useState<DespachoCamionInterface[]>([])
     const [cargando, setCargando] = useState<boolean>(false);
     const [DespachoID, setDespachoID] = useState<number>(0);
     const onPress = async () => {
 
-        if (camion != '' && Chofer != '') {
+        if (descripcion != '') {
             changeCamion(camion)
             changeChofer(Chofer)
+            changeDescripcionDespacho(descripcion)
             console.log('RECID: '+WMSState.recID)
             try {
-                await WmSApi.get<DespachoCamionInterface[]>(`CrearDespacho/${WMSState.recID}/${Chofer}/${camion}`).then(x => {
+                await WmSApi.get<DespachoCamionInterface[]>(`CrearDespacho/${WMSState.recID}/${descripcion}`).then(x => {
                     changeDespachoID(x.data[0].id)
                 })
             } catch (err) {
@@ -42,7 +44,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
             }
             navigation.navigate('TelaPackingScreen')
         } else {
-            setMensajeAlerta('Campo ' + (camion == '' ? 'Camion' : 'Chofer') + ' es obligatorio')
+            setMensajeAlerta('Campo ' + (descripcion == '' ? 'Descripcion' : '') + ' es obligatorio')
             setTipoMensaje(false)
             setShowMensajeAlerta(true)
         }
@@ -52,31 +54,23 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
         setDespachoID(item.id)
         setCargando(true)
 
-        let htmlContent = '';
-
-        try {
-            await WmSApi.get<string>(`NotaDespacho/${item.id}/${item.recIDTraslados}/${item.chofer}/${item.camion}`).then(resp => {
-                htmlContent = resp.data
-            })
-        } catch (err) {
-            console.log(err)
-        }
-        try {
-            const results = await RNHTMLtoPDF.convert({
-                html: htmlContent,
-                fileName: 'test',
-                base64: true,
-            });
-
+        try {   
+            var reponse = await WmSApi.get(`NotaDespacho/${item.id}/${item.recIDTraslados}/${WMSState.usuario}/${item.descripcion}`);
+            const pdf = reponse.data;
+            // const results = await RNHTMLtoPDF.convert({
+            //     html: htmlContent,
+            //     fileName: 'test',
+            //     base64: true,
+            // });
             const options = {
-                url: `data:application/pdf;base64,${results.base64}`,
+                url: `data:application/pdf;base64,${pdf}`,
                 type: 'application/pdf',
                 fileName: 'test.pdf',
             };
 
             await Share.open(options);
         } catch (err) {
-
+            console.log(err)
         }
 
         setCargando(false)
@@ -95,6 +89,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
             changeCamion(item.camion)
                 changeChofer(item.chofer)
                 changeDespachoID(item.id)
+                changeDescripcionDespacho(item.descripcion)
             if (!item.estado) {                
                 navigation.navigate('TelaPackingScreen')
             }else{
@@ -109,7 +104,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
                 <View style={{ flexDirection: 'row', backgroundColor: grey, width: '95%', borderRadius: 10, margin: 2, padding: 5, borderWidth: 2, borderColor: (item.estado ? blue : '#6BCB77') }} >
                     <TouchableOpacity style={{ width: '80%' }} onPress={onPressList}>
                         <Text>Despacho: {item.id.toString().padStart(8, '0')}</Text>
-                        <Text>Motorista: {item.chofer} / {item.camion}</Text>
+                        <Text>Descripción: {item.descripcion}</Text>
                     </TouchableOpacity>
                     {
                         cargando && DespachoID == item.id ?
@@ -136,19 +131,19 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
             <Header texto1={WMSState.TRANSFERIDFROM + '-' + WMSState.TRANSFERIDTO} texto2='' texto3='' />
             <Image
                 source={require('../../../../assets/Packing.png')}
-                style={{ width: 100, height: 100, resizeMode: 'contain' }}
+                style={{ width: 150, height: 120, resizeMode: 'contain' }}
             />
             <View style={style.textInput}>
 
                 <TextInput
-                    placeholder='Camion'
-                    placeholderTextColor={'#fff'}
-                    onChangeText={(value) => setCamion(value)}
-                    value={camion}
+                    placeholder='Descripcion...'
+                    placeholderTextColor={'#5f5c5c70'}
+                    onChangeText={(value) => setDescripcion(value)}
+                    value={descripcion}
                     style={style.input}
                 />
             </View>
-            <Image
+            {/* <Image
                 source={require('../../../../assets/Chofer.png')}
                 style={{ width: 110, height: 110, resizeMode: 'contain' }}
             />
@@ -160,7 +155,7 @@ export const CamionChoferScreen: FC<props> = ({ navigation }) => {
                     value={Chofer}
                     style={style.input}
                 />
-            </View>
+            </View> */}
             <TouchableOpacity style={{ backgroundColor: orange, width: '90%', borderRadius: 10, paddingVertical: 8, alignItems: 'center' }} onPress={onPress}>
                 <Text style={{ color: grey }}>Crear Despacho</Text>
             </TouchableOpacity>

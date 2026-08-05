@@ -42,7 +42,7 @@ export const RollosDespachoScreen: FC<props> = ({ navigation }) => {
     }, [])
     return (
         <View style={{ flex: 1, width: '100%' }}>
-            <Header texto1={'Camion: ' + WMSState.Camion} texto2={'Camion: ' + WMSState.Chofer} texto3={'Total: '+data.length} />
+            <Header texto1={'Descripción: ' + WMSState.DescripcionDespacho} texto2= ''texto3={'Total: '+data.length} />
             <FlatList
                 data={data}
                 numColumns={2}
