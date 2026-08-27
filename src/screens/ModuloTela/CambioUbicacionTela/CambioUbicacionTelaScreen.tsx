@@ -8,6 +8,7 @@ import { black, blue, grey } from '../../../constants/Colors'
 import RolloCard, { Rollo } from './RolloCard'
 import { WMSApiUbicacionRollos } from '../../../api/WMSApiUbicacionRollos'
 import { Respuesta } from '../../../interfaces/Serigrafia/Respuesta'
+import { ScrollView } from 'react-native'
 import SoundPlayer from 'react-native-sound-player'
 
 type props = StackScreenProps<RootStackParams, 'CambioUbicacionTelaScreen'>
@@ -40,8 +41,8 @@ interface ValidarRolloRepetidoResponse {
 }
 
 interface DiarioDuplicado {
-  numeroDiario: string;
-  descripcion: string;
+    numeroDiario: string;
+    descripcion: string;
 }
 
 const DATOS_ALMACENES = [
@@ -61,89 +62,89 @@ export const CambioUbicacionTelaScreen: FC<props> = () => {
     const locationInputRef = useRef<TextInput>(null)
     const scanRef = useRef<TextInput>(null)
     const [isLoading, setIsLoading] = useState(false) // Corregido camelCase
-    
+
     /* --------------------------- Handlers --------------------------- */
 
-const agregarUbicacion = useCallback(async (codigoAInsertar: string) => {
-    if (!codigoAInsertar || isLoading) return;
+    const agregarUbicacion = useCallback(async (codigoAInsertar: string) => {
+        if (!codigoAInsertar || isLoading) return;
 
-    setIsLoading(true);
-    setEstadoUbicacion('consultando');
+        setIsLoading(true);
+        setEstadoUbicacion('consultando');
 
-    try {
-        // Aseguramos que el código vaya perfectamente limpio
-        const codigoLimpio = codigoAInsertar.trim();
-        
-        // Si crearUbicacion requiere el almacén, pásalo explícitamente
-        const creadoExitosamente = await crearUbicacion(codigoLimpio);
-        console.log(`Ubicación "${codigoLimpio}" creada exitosamente: ${creadoExitosamente}`);
+        try {
+            // Aseguramos que el código vaya perfectamente limpio
+            const codigoLimpio = codigoAInsertar.trim();
 
-        if (creadoExitosamente) {
-            setEstadoUbicacion('existe');
-            requestAnimationFrame(() => scanRef.current?.focus());
-        } else {
+            // Si crearUbicacion requiere el almacén, pásalo explícitamente
+            const creadoExitosamente = await crearUbicacion(codigoLimpio);
+            console.log(`Ubicación "${codigoLimpio}" creada exitosamente: ${creadoExitosamente}`);
+
+            if (creadoExitosamente) {
+                setEstadoUbicacion('existe');
+                requestAnimationFrame(() => scanRef.current?.focus());
+            } else {
+                setEstadoUbicacion('noExiste');
+                Alert.alert('Aviso', 'No se pudo crear la ubicación en el sistema.');
+            }
+        } catch (error: any) {
             setEstadoUbicacion('noExiste');
-            Alert.alert('Aviso', 'No se pudo crear la ubicación en el sistema.');
+            // Imprime el error real en consola para verificar si falta un parámetro
+            console.error('Error al crear ubicación:', error);
+            Alert.alert('Error de red', 'No se pudo establecer conexión con el servidor. Intente de nuevo.');
+        } finally {
+            setIsLoading(false);
         }
-    } catch (error: any) {
-        setEstadoUbicacion('noExiste');
-        // Imprime el error real en consola para verificar si falta un parámetro
-        console.error('Error al crear ubicación:', error);
-        Alert.alert('Error de red', 'No se pudo establecer conexión con el servidor. Intente de nuevo.');
-    } finally {
-        setIsLoading(false);
-    }
-}, [isLoading]);
+    }, [isLoading]);
 
-const consultarUbicacion = useCallback(async () => {
-    const codigo = ubicacionDestino.trim();
-    if (!codigo || isLoading) return;
+    const consultarUbicacion = useCallback(async () => {
+        const codigo = ubicacionDestino.trim();
+        if (!codigo || isLoading) return;
 
-    setIsLoading(true);
-    setEstadoUbicacion('consultando');
+        setIsLoading(true);
+        setEstadoUbicacion('consultando');
 
-    let existe = false;
-    let debemostrarAlerta = false;
+        let existe = false;
+        let debemostrarAlerta = false;
 
-    try {
-        existe = await verificarUbicacion(codigo, almacenDestino);
-        setEstadoUbicacion(existe ? 'existe' : 'noExiste');
+        try {
+            existe = await verificarUbicacion(codigo, almacenDestino);
+            setEstadoUbicacion(existe ? 'existe' : 'noExiste');
 
-        if (existe) {
-            requestAnimationFrame(() => scanRef.current?.focus());
-        } else {
-            debemostrarAlerta = true;
+            if (existe) {
+                requestAnimationFrame(() => scanRef.current?.focus());
+            } else {
+                debemostrarAlerta = true;
+            }
+        } catch (error) {
+            setEstadoUbicacion('noExiste');
+            Alert.alert('Error', 'Hubo un problema al conectar con el servidor.');
+        } finally {
+            setIsLoading(false);
         }
-    } catch (error) {
-        setEstadoUbicacion('noExiste');
-        Alert.alert('Error', 'Hubo un problema al conectar con el servidor.');
-    } finally {
-        setIsLoading(false);
-    }
 
-    // 💡 MOSTRAR LA ALERTA FUERA DEL TRY/FINALLY 
-    // Esto evita que la alerta quede atrapada en un estado de render intermedio
-    if (debemostrarAlerta) {
-        // Usamos un pequeño timeout para dar tiempo a que Android destruya el spinner de carga
-        setTimeout(() => {
-            Alert.alert(
-                'Ubicación no encontrada',
-                `La ubicación "${codigo}" no existe. ¿Deseas agregarla?`,
-                [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { 
-                      text: 'Agregar', 
-                      onPress: () => {
-                        // Invocación limpia con la variable en scope
-                        agregarUbicacion(codigo);
-                      } 
-                    },
-                ],
-                { cancelable: false }
-            );
-        }, 100);
-    }
-}, [ubicacionDestino, almacenDestino, isLoading, agregarUbicacion]);
+        // 💡 MOSTRAR LA ALERTA FUERA DEL TRY/FINALLY 
+        // Esto evita que la alerta quede atrapada en un estado de render intermedio
+        if (debemostrarAlerta) {
+            // Usamos un pequeño timeout para dar tiempo a que Android destruya el spinner de carga
+            setTimeout(() => {
+                Alert.alert(
+                    'Ubicación no encontrada',
+                    `La ubicación "${codigo}" no existe. ¿Deseas agregarla?`,
+                    [
+                        { text: 'Cancelar', style: 'cancel' },
+                        {
+                            text: 'Agregar',
+                            onPress: () => {
+                                // Invocación limpia con la variable en scope
+                                agregarUbicacion(codigo);
+                            }
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            }, 100);
+        }
+    }, [ubicacionDestino, almacenDestino, isLoading, agregarUbicacion]);
 
     const limpiarUbicacion = useCallback(() => {
         if (isLoading) return
@@ -152,6 +153,12 @@ const consultarUbicacion = useCallback(async () => {
         requestAnimationFrame(() => locationInputRef.current?.focus())
     }, [isLoading])
 
+    const limpiarEscaneo = useCallback(() => {
+        if (isLoading) return
+        setRolloInput('')
+        setDiariosDuplicados([])
+        requestAnimationFrame(() => scanRef.current?.focus())
+    }, [isLoading])
 
     // --- MANEJADOR DE ESCANEO PRINCIPAL ---
     const procesarEscaneoRollo = useCallback(async () => {
@@ -165,7 +172,7 @@ const consultarUbicacion = useCallback(async () => {
             const numerosProveedor = (rolloPendiente.numeroRolloProveedor || '').replace(/\D/g, '');
             const numerosEscaneados = codigo.replace(/\D/g, '');
             console.log(`Validando: Escaneado="${numerosEscaneados}" vs Proveedor="${numerosProveedor}"`)
-            
+
             const esValido =
                 numerosProveedor &&
                 numerosEscaneados &&
@@ -204,7 +211,7 @@ const consultarUbicacion = useCallback(async () => {
                 Alert.alert('No encontrado', `El rollo "${codigo}" no se encontró en el sistema.`)
                 return
             }
-            
+
             if (!almacenDestino || !ubicacionDestino.trim()) {
                 Alert.alert('Datos incompletos', 'Selecciona almacén y ubicación destino antes de validar el rollo.')
                 return
@@ -212,8 +219,8 @@ const consultarUbicacion = useCallback(async () => {
 
             const infoValidacion = await ValidarExistenciaRolloEndiario(codigo)
 
-            if (infoValidacion.esDuplicado) {  
-                setDiariosDuplicados(infoValidacion.diarios || [])                
+            if (infoValidacion.esDuplicado) {
+                setDiariosDuplicados(infoValidacion.diarios || [])
                 Alert.alert('Rollo duplicado', infoValidacion.mensaje)
                 return
             }
@@ -285,9 +292,15 @@ const consultarUbicacion = useCallback(async () => {
         )
     }, [escaneados.length, isLoading])
 
-    const registrarCambio = useCallback(() => {
+    const registrarCambio = useCallback(async () => {
         if (escaneados.length === 0 || !ubicacionDestino.trim() || isLoading) return
-        
+        const codigosEscaneados = escaneados.map((item) => item.ro).join(',')
+        const resp = await ValidarExistenciaRolloEndiario(codigosEscaneados);
+        if (resp.esDuplicado) {
+            setDiariosDuplicados(resp.diarios || [])
+            Alert.alert('Rollo duplicado', resp.mensaje)
+            return
+        }
         const sitioDestino = almacenDestino === '21' ? '1' : almacenDestino === '50' ? '1S' : 'Desconocido'
         const payload = escaneados.map((item) => ({
             CodigoBarraRollo: item.ro,
@@ -383,7 +396,7 @@ const consultarUbicacion = useCallback(async () => {
         const payload: ValidarRolloRepetidoRequest = {
             numeroSerie: codigo,
         }
-        
+
         const res = await WMSApiUbicacionRollos.post<ValidarRolloRepetidoResponse>('validar-rollo-repetido', payload)
         return res.data
     }
@@ -458,8 +471,8 @@ const consultarUbicacion = useCallback(async () => {
 
                             <View style={styles.inputRow}>
                                 <View style={[
-                                    styles.inputContainer, 
-                                    styles.flex, 
+                                    styles.inputContainer,
+                                    styles.flex,
                                     isLoading && styles.disabledInputContainer
                                 ]}>
                                     <TextInput
@@ -499,7 +512,7 @@ const consultarUbicacion = useCallback(async () => {
                                 setRolloPendiente(null)
                             }}
                             style={[
-                                styles.segBtn, 
+                                styles.segBtn,
                                 validarEtiquetas && styles.segBtnOn,
                                 isLoading && styles.disabledPressable
                             ]}
@@ -515,7 +528,7 @@ const consultarUbicacion = useCallback(async () => {
                                 setRolloPendiente(null)
                             }}
                             style={[
-                                styles.segBtn, 
+                                styles.segBtn,
                                 !validarEtiquetas && styles.segBtnOn,
                                 isLoading && styles.disabledPressable
                             ]}
@@ -535,8 +548,8 @@ const consultarUbicacion = useCallback(async () => {
                                     Escanea el código de proveedor para el Rollo <Text style={{ fontWeight: 'bold' }}>{rolloPendiente.numeroRollo}</Text>
                                 </Text>
                             </View>
-                            <Pressable 
-                                onPress={cancelarValidacionPendiente} 
+                            <Pressable
+                                onPress={cancelarValidacionPendiente}
                                 disabled={isLoading}
                                 style={[styles.cancelValidationBtn, isLoading && styles.disabledPressable]}
                             >
@@ -547,39 +560,63 @@ const consultarUbicacion = useCallback(async () => {
 
                     {diariosDuplicados.length > 0 && (
                         <View style={styles.duplicateCard}>
-                            <Text style={styles.duplicateTitle}>Diarios abiertos con este rollo</Text>
-                            {diariosDuplicados.map((diario) => (
-                                <View key={diario.numeroDiario} style={styles.duplicateItem}>
-                                    <Text style={styles.duplicateNumber}>{diario.numeroDiario}</Text>
-                                    <Text style={styles.duplicateDescription}>{diario.descripcion}</Text>
-                                </View>
-                            ))}
+                            <Text style={styles.duplicateTitle}>
+                                Diarios abiertos con este rollo
+                            </Text>
+
+                            <ScrollView
+                                style={styles.duplicateScroll}
+                                nestedScrollEnabled={true}
+                                showsVerticalScrollIndicator={true}
+                            >
+                                {diariosDuplicados.map((diario) => (
+                                    <View key={diario.numeroDiario} style={styles.duplicateItem}>
+                                        <Text style={styles.duplicateNumber}>
+                                            {diario.numeroDiario}
+                                        </Text>
+                                        <Text style={styles.duplicateDescription}>
+                                            {diario.descripcion}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </ScrollView>
                         </View>
                     )}
 
                     {/* Input escaneo de rollos */}
-                    <TextInput
-                        ref={scanRef}
-                        value={rolloInput}
-                        editable={!isLoading} // Deshabilita el escáner si está cargando
-                        onChangeText={setRolloInput}
-                        onSubmitEditing={procesarEscaneoRollo}
-                        blurOnSubmit={false}
-                        placeholder={
-                            rolloPendiente
-                                ? "Escanear CÓDIGO DE PROVEEDOR..."
-                                : "Escanear código de rollo..."
-                        }
-                        placeholderTextColor={rolloPendiente ? "#E5484D" : "#A6ABB3"}
-                        style={[
-                            styles.input,
-                            styles.scanInput,
-                            rolloPendiente && styles.scanInputValidationPending,
-                            isLoading && styles.disabledInput
-                        ]}
-                        autoCapitalize="none"
-                        returnKeyType="done"
-                    />
+                    {/* Input escaneo de rollos */}
+                    <View style={styles.inputRow}>
+                        <View style={[styles.inputContainer, styles.flex, isLoading && styles.disabledInputContainer]}>
+                            <TextInput
+                                ref={scanRef}
+                                value={rolloInput}
+                                editable={!isLoading}
+                                onChangeText={setRolloInput}
+                                onSubmitEditing={procesarEscaneoRollo}
+                                blurOnSubmit={false}
+                                placeholder={
+                                    rolloPendiente
+                                        ? "Escanear CÓDIGO DE PROVEEDOR..."
+                                        : "Escanear código de rollo..."
+                                }
+                                placeholderTextColor={rolloPendiente ? "#E5484D" : "#A6ABB3"}
+                                style={[
+                                    styles.inputStyle,
+                                    rolloPendiente && styles.scanInputValidationPendingStyle,
+                                    isLoading && styles.disabledInput
+                                ]}
+                                autoCapitalize="none"
+                                returnKeyType="done"
+                            />
+                            {rolloInput.length > 0 && !isLoading && (
+                                <Pressable onPress={limpiarEscaneo} style={styles.clearButton}>
+                                    <Text style={styles.clearButtonText}>✕</Text>
+                                </Pressable>
+                            )}
+                        </View>
+                    </View>
+
+
                 </View>
 
                 {/* Sección Única del Listado */}
@@ -590,9 +627,9 @@ const consultarUbicacion = useCallback(async () => {
                             <Text style={styles.colCount}>{escaneados.length}</Text>
                         </View>
                         {escaneados.length > 0 && (
-                            <Pressable 
-                                onPress={limpiarLista} 
-                                disabled={isLoading} 
+                            <Pressable
+                                onPress={limpiarLista}
+                                disabled={isLoading}
                                 style={styles.clearListButton}
                             >
                                 <Text style={[styles.clearListText, isLoading && styles.disabledTextRed]}>Limpiar Todo</Text>
@@ -653,6 +690,19 @@ const EmptyHint = () => (
 )
 
 const styles = StyleSheet.create({
+    scanInputValidationPendingStyle: {
+        // Si necesitas un estilo específico para el texto o borde cuando está pendiente
+    },
+    disabledInputContainer: {
+        backgroundColor: '#E4E6EB',
+        borderColor: '#D0D3D9',
+    },
+    disabledInputStyle: {
+        color: '#90949C',
+    },
+    duplicateScroll: {
+        maxHeight: 100,
+    },
     root: { flex: 1, width: '100%', backgroundColor: grey, alignItems: 'stretch' },
     flex: { flex: 1 },
     formCard: {
@@ -888,18 +938,18 @@ const styles = StyleSheet.create({
     disabledContainer: {
         opacity: 0.85, // Atenúa levemente la tarjeta de inputs
     },
-    disabledInputContainer: {
-        backgroundColor: '#E6E8EC',
-        borderColor: '#D1D5DB',
-    },
+    // disabledInputContainer: {
+    //     backgroundColor: '#E6E8EC',
+    //     borderColor: '#D1D5DB',
+    // },
     disabledInput: {
         backgroundColor: '#E6E8EC',
         borderColor: '#D1D5DB',
         color: '#6B7078',
     },
-    disabledInputStyle: {
-        color: '#6B7078',
-    },
+    // disabledInputStyle: {
+    //     color: '#6B7078',
+    // },
     disabledPressable: {
         opacity: 0.5,
     },
