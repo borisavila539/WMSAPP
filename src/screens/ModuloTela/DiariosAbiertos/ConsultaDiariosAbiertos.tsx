@@ -28,7 +28,12 @@ interface DiarioAbierto {
 }
 
 
-const DiarioCard: FC<{ item: DiarioAbierto; onPress: (journalId: string) => void }> = ({ item, onPress }) => {
+const DiarioCard: FC<{
+  item: DiarioAbierto
+  onPress: (journalId: string) => void
+  onPostear: (journalId: string) => void
+  posteando: boolean
+}> = ({ item, onPress, onPostear, posteando }) => {
   return (
     <Pressable style={cardStyles.card} onPress={() => onPress(item.journalId)}>
       <View style={cardStyles.left}>
@@ -42,6 +47,20 @@ const DiarioCard: FC<{ item: DiarioAbierto; onPress: (journalId: string) => void
         <View style={[cardStyles.postedBadge, item.isPosted ? cardStyles.postedTrue : cardStyles.postedFalse]}>
           <Text style={cardStyles.postedTxt}>{item.isPosted ? 'Publicado' : 'Abierto'}</Text>
         </View>
+        {!item.isPosted && (
+          <Pressable
+            onPress={() => onPostear(item.journalId)}
+            disabled={posteando}
+            style={[cardStyles.registrarBtn, posteando && cardStyles.registrarBtnOff]}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            {posteando ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={cardStyles.registrarTxt}>Registrar</Text>
+            )}
+          </Pressable>
+        )}
       </View>
     </Pressable>
   )
@@ -52,6 +71,7 @@ export const ConsultaDiairosAbiertosScreen: FC<props> = ({ navigation }) => {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [posteandoId, setPosteandoId] = useState<string | null>(null)
   const {changeTelaJournalId} = useContext(WMSContext)
 
   const fetchDiarios = useCallback(async (isPullToRefresh = false) => {
@@ -90,6 +110,35 @@ export const ConsultaDiairosAbiertosScreen: FC<props> = ({ navigation }) => {
     navigation.navigate('DetalleDiarioMovimientoScreen')
   }, [navigation])
 
+  const handlePostear = useCallback((journalId: string) => {
+    Alert.alert(
+      'Registrar diario',
+      `¿Deseas registrar (postear) el diario ${journalId} en AX? Esta acción lo contabiliza.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Registrar',
+          onPress: async () => {
+            setPosteandoId(journalId)
+            try {
+              const res = await WMSApiUbicacionRollos.post<string>(`PostearDiarioRollos/${journalId}`)
+              if (res.data && res.data.startsWith('S ')) {
+                Alert.alert('Éxito', res.data)
+                setDiarios(prev => prev.map(d => d.journalId === journalId ? { ...d, isPosted: true } : d))
+              } else {
+                Alert.alert('Error', res.data || 'No se pudo registrar el diario.')
+              }
+            } catch (error) {
+              Alert.alert('Error de Red', 'Hubo un fallo al intentar registrar el diario en el servidor.')
+            } finally {
+              setPosteandoId(null)
+            }
+          }
+        }
+      ]
+    )
+  }, [])
+
   const filtered = useMemo(() => {
     const s = search.trim().toUpperCase()
     if (!s) return diarios
@@ -100,8 +149,13 @@ export const ConsultaDiairosAbiertosScreen: FC<props> = ({ navigation }) => {
   }, [diarios, search])
 
   const renderItem = useCallback(({ item }: ListRenderItemInfo<DiarioAbierto>) => (
-    <DiarioCard item={item} onPress={handlePressCard} />
-  ), [handlePressCard])
+    <DiarioCard
+      item={item}
+      onPress={handlePressCard}
+      onPostear={handlePostear}
+      posteando={posteandoId === item.journalId}
+    />
+  ), [handlePressCard, handlePostear, posteandoId])
 
   const keyExtractor = useCallback((item: DiarioAbierto) => item.journalId, [])
 
@@ -178,6 +232,17 @@ const cardStyles = StyleSheet.create({
   postedTrue: { backgroundColor: green },
   postedFalse: { backgroundColor: '#FFEFD6' },
   postedTxt: { fontSize: 12, fontWeight: '700', color: '#2F2F2F' },
+  registrarBtn: {
+    marginTop: 6,
+    backgroundColor: blue,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    minWidth: 74,
+    alignItems: 'center',
+  },
+  registrarBtnOff: { backgroundColor: '#B9C0CC' },
+  registrarTxt: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
 })
 
 const styles = StyleSheet.create({
