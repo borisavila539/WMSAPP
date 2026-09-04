@@ -169,8 +169,15 @@ export const CambioUbicacionTelaScreen: FC<props> = () => {
 
         // CASO B: Si ya tenemos un rollo consultado y estamos esperando la verificación del proveedor
         if (rolloPendiente) {
-            const numerosProveedor = (rolloPendiente.numeroRolloProveedor || '').replace(/\D/g, '');
-            const numerosEscaneados = codigo.replace(/\D/g, '');
+            const quitarCerosPorSegmento = (valor: string) =>
+                (valor || '')
+                    .split(/\D+/)
+                    .filter(Boolean)
+                    .map((segmento) => String(parseInt(segmento, 10)))
+                    .join('');
+
+            const numerosProveedor = quitarCerosPorSegmento(rolloPendiente.numeroRolloProveedor || '');
+            const numerosEscaneados = quitarCerosPorSegmento(codigo);
             console.log(`Validando: Escaneado="${numerosEscaneados}" vs Proveedor="${numerosProveedor}"`)
 
             const esValido =
