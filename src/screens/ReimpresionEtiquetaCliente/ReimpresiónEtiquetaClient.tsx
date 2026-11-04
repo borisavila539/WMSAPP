@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useContext, useEffect, useState } from 'react'
 import {
     ActivityIndicator,
     Alert,
@@ -17,6 +17,7 @@ import { grey } from '../../constants/Colors'
 import { PrinterInterface } from '../../interfaces/PrintersInterface'
 import { WmSApi } from '../../api/WMSApi'
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5'
+import { WMSContext } from '../../context/WMSContext'
 
 export interface IDatosEtiqueta {
     pedido: string;
@@ -61,6 +62,7 @@ const EMPRESA = 'imhn'
 type props = StackScreenProps<RootStackParams, 'ReimpresionEtiquetasClienteScreen'>
 
 export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => {
+    const { WMSState } = useContext(WMSContext)
     const [pedido, setPedido] = useState('')
     const [ruta, setRuta] = useState('') // ListaEmpaque
     const [Impresoras, setImpresoras] = useState<PrinterInterface[]>([])
@@ -176,7 +178,8 @@ export const ReimpresionEtiquetasClienteScreen: FC<props> = ({ navigation }) => 
 
         try {
             const respuesta = await WmSApi.get(
-                `ImprimirEtiquetasPendientes/${EMPRESA}/${pedidoParam}/${ruta.trim()}/${item.iM_IPPRINTER}`
+                `ImprimirEtiquetasPendientes/${EMPRESA}/${pedidoParam}/${ruta.trim()}/${item.iM_IPPRINTER}`,
+                { params: { usuario: WMSState.usuario } }
             )
             if (respuesta) {
                 Alert.alert("Éxito", "Se mandó a imprimir correctamente")
