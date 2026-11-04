@@ -42,6 +42,7 @@ import { RecepcionUbicacionCajasScreen } from '../screens/RecepcionUbicacionCaja
 import { DeclaracionEnvioScreen } from '../screens/DeclaracionEnvio/DeclaracionEnvioScreen';
 import { ControlCajaEtiquetasScreen } from '../screens/ControlCajasEtiqueta/ControlCajaEtiquetasScreen';
 import { AuditoriaCajaDenimScreen } from '../screens/AuditoriaCajaDenim/AuditoriaCajaDenimScreen';
+import { AuditoriaInternaScreen } from '../screens/AuditoriaInterna/AuditoriaInternaScreen';
 import { ReciclajeCajasScreen } from '../screens/ReciclajeCajas/ReciclajeCajasScreen';
 import { EnviarReciclajeCajaScreen } from '../screens/ReciclajeCajas/EnviarReciclajeCajaScreen';
 import { RecibirReciclajeCajasScreen } from '../screens/ReciclajeCajas/RecibirReciclajeCajasScreen';
@@ -144,6 +145,7 @@ export type RootStackParams = {
     DeclaracionEnvioScreen: undefined,
     ControlCajaEtiquetasScreen: undefined,
     AuditoriaCajaDenimScreen: undefined,
+    AuditoriaInternaScreen: undefined,
     ReciclajeCajasScreen: undefined,
     EnviarReciclajeCajaScreen: undefined,
     RecibirReciclajeCajasScreen: undefined,
@@ -293,6 +295,8 @@ export const Navigation = () => {
             <Stack.Screen name='ControlCajaEtiquetasScreen' options={{ title: 'ControlCajaEtiquetasScreen' }} component={ControlCajaEtiquetasScreen} />
             {/*Auditoria Cajas Denim */}
             <Stack.Screen name='AuditoriaCajaDenimScreen' options={{ title: 'AuditoriaCajaDenimScreen' }} component={AuditoriaCajaDenimScreen} />
+            {/*Auditoria Interna de Cajas */}
+            <Stack.Screen name='AuditoriaInternaScreen' options={{ title: 'AuditoriaInternaScreen' }} component={AuditoriaInternaScreen} />
             {/*ReciclajeCajasScreen */}
             <Stack.Screen name='ReciclajeCajasScreen' options={{ title: 'ReciclajeCajasScreen' }} component={ReciclajeCajasScreen} />
             <Stack.Screen name='EnviarReciclajeCajaScreen' options={{ title: 'EnviarReciclajeCajaScreen' }} component={EnviarReciclajeCajaScreen} />

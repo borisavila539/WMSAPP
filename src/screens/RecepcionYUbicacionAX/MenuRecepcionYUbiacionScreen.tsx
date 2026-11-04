@@ -18,7 +18,8 @@ export const MenuRecepcionYUbiacionScreen: FC<props> = ({ navigation}) => {
             { Name: 'Recepcion Ubicacion Caja', Screen: 'RecepcionUbicacionCajasScreen', image: require('../../assets/DiarioEntrada.png') },
             { Name: 'MB', Screen: 'MenuMB', image: require('../../assets/DiarioEntrada.png') },
              { Name: 'Despacho y Recepción PT', Screen: 'MenuDespachoPTScreen', image: require('../../assets/DespachoPT.png') },
-              { Name: 'Auditoria Denim', Screen: 'AuditoriaCajaDenimScreen', image: require('../../assets/AuditoriaImagen.png') }, 
+              { Name: 'Auditoria Denim', Screen: 'AuditoriaCajaDenimScreen', image: require('../../assets/AuditoriaImagen.png') },
+            { Name: 'Auditoria Interna', Screen: 'AuditoriaInternaScreen', image: require('../../assets/AuditoriaImagen.png') },
             { Name: 'Recepcion Traslados Denim', Screen: 'RecepcionTrasladosScreen', image: require('../../assets/DespachoSRG.png') },
             
         ]
