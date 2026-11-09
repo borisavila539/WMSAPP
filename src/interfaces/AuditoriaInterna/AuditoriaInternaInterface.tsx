@@ -31,6 +31,7 @@ export interface AuditoriaInternaCajaInterface {
     diferencia: number
     faltantes: number
     sobrantes: number
+    diferenciaEtiqueta: number
     escaneos: number
     rechazos: number
     observaciones: string | null
@@ -49,6 +50,7 @@ export interface AuditoriaInternaLineaInterface {
     diferencia: number
     faltantes: number
     sobrantes: number
+    diferenciaEtiqueta: number
     escaneos: number
 }
 

@@ -53,6 +53,8 @@ const RESULTADO: Record<string, { texto: string, color: string, fondo: string }>
     FALTANTE: { texto: 'Faltante', color: C.error, fondo: C.errorFondo },
     SOBRANTE: { texto: 'Sobrante', color: C.alerta, fondo: C.alertaFondo },
     MIXTO: { texto: 'Faltante y sobrante', color: C.error, fondo: C.errorFondo },
+    // Las unidades cuadran; la unica diferencia es de etiquetas (prendas con otra etiqueta en la misma talla)
+    ETIQUETAS: { texto: 'Completa · dif. etiquetas', color: C.alerta, fondo: C.alertaFondo },
 }
 
 const formatearFecha = (valor: string | null) => {
@@ -106,6 +108,11 @@ const LineaTalla = memo(({ item }: { item: AuditoriaInternaLineaInterface }) => 
                     {item.faltantes == 0 && item.sobrantes == 0 ? 'Completa' : ''}
                 </Text>
             </View>
+            {item.diferenciaEtiqueta > 0 &&
+                <Text style={[styles.terciario, { color: C.alerta, marginTop: 2 }]}>
+                    {item.diferenciaEtiqueta} con etiqueta distinta a la registrada en empaque
+                </Text>
+            }
         </View>
     )
 }, (antes, despues) =>
@@ -113,7 +120,8 @@ const LineaTalla = memo(({ item }: { item: AuditoriaInternaLineaInterface }) => 
     antes.item.cantidadEscaneada == despues.item.cantidadEscaneada &&
     antes.item.cantidadEsperada == despues.item.cantidadEsperada &&
     antes.item.faltantes == despues.item.faltantes &&
-    antes.item.sobrantes == despues.item.sobrantes)
+    antes.item.sobrantes == despues.item.sobrantes &&
+    antes.item.diferenciaEtiqueta == despues.item.diferenciaEtiqueta)
 
 export const AuditoriaInternaScreen: FC<props> = ({ navigation }) => {
     const { WMSState } = useContext(WMSContext)
@@ -335,6 +343,7 @@ export const AuditoriaInternaScreen: FC<props> = ({ navigation }) => {
     const totalEscaneos = lineas.reduce((total, item) => total + item.escaneos, 0)
     const totalFaltantes = lineas.reduce((total, item) => total + item.faltantes, 0)
     const totalSobrantes = lineas.reduce((total, item) => total + item.sobrantes, 0)
+    const totalEtiquetas = lineas.reduce((total, item) => total + (item.diferenciaEtiqueta ?? 0), 0)
 
     const placeholder = !caja ? 'Escanear QR de la caja' : soloLectura ? 'Escanear otra caja' : 'Escanear QR de la pieza'
 
@@ -411,6 +420,12 @@ export const AuditoriaInternaScreen: FC<props> = ({ navigation }) => {
                             <Text style={styles.datoLabel}>Faltan / Sobran</Text>
                             <Text style={styles.datoValor}>{c.faltantes} / {c.sobrantes} uds</Text>
                         </View>
+                        {c.diferenciaEtiqueta > 0 ? (
+                            <View style={styles.datoFila}>
+                                <Text style={styles.datoLabel}>Dif. etiquetas</Text>
+                                <Text style={[styles.datoValor, { color: C.alerta }]}>{c.diferenciaEtiqueta} uds con otra etiqueta</Text>
+                            </View>
+                        ) : null}
                         {c.observaciones ? (
                             <View style={styles.datoFila}>
                                 <Text style={styles.datoLabel}>Observaciones</Text>
@@ -544,6 +559,15 @@ export const AuditoriaInternaScreen: FC<props> = ({ navigation }) => {
                                 <Text style={[styles.totalValor, totalSobrantes > 0 && { color: C.alerta }]}>{totalSobrantes}</Text>
                             </View>
                         </View>
+
+                        {totalEtiquetas > 0 &&
+                            <View style={[styles.aviso, { backgroundColor: C.alertaFondo, borderLeftColor: C.alerta }]}>
+                                <Icon name='tags' size={14} color={C.alerta} />
+                                <Text style={[styles.avisoTexto, { color: C.alerta }]}>
+                                    {totalEtiquetas} {totalEtiquetas == 1 ? 'prenda trae' : 'prendas traen'} una etiqueta distinta a la registrada en empaque (misma talla). No cuentan como faltante ni sobrante.
+                                </Text>
+                            </View>
+                        }
 
                         <TextInput
                             placeholder='Observaciones (motivo del faltante o sobrante)'
