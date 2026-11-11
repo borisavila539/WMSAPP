@@ -25,6 +25,9 @@ interface Aviso {
     texto: string
 }
 
+// Aceptadas con advertencia: sobrante o pieza registrada en otra caja de la misma OP
+const ACEPTADA_CON_AVISO = ['SOBRANTE', 'OTRA_CAJA']
+
 // Paleta de la pantalla: superficies neutras y color solo para el estado
 const C = {
     fondo: '#F4F6F8',
@@ -224,8 +227,8 @@ export const AuditoriaInternaScreen: FC<props> = ({ navigation }) => {
 
             // El sonido es la confirmacion que oye el auditor: se reproduce antes de repintar
             if (escaneo) {
-                const esSobrante = escaneo.resultado == 'SOBRANTE'
-                PlaySound(escaneo.exito ? (esSobrante ? 'repeat' : 'success') : (escaneo.resultado == 'YA_ESCANEADA' ? 'repeat' : 'error'))
+                const conAviso = ACEPTADA_CON_AVISO.includes(escaneo.resultado)
+                PlaySound(escaneo.exito ? (conAviso ? 'repeat' : 'success') : (escaneo.resultado == 'YA_ESCANEADA' ? 'repeat' : 'error'))
             }
 
             // Un solo repintado por escaneo
@@ -234,7 +237,7 @@ export const AuditoriaInternaScreen: FC<props> = ({ navigation }) => {
                 if (escaneo) {
                     setCaja(actual => actual ? { ...actual, cantidadEsperada: escaneo.cajaEsperada, cantidadEscaneada: escaneo.cajaEscaneada } : actual)
                     setAviso({
-                        tipo: escaneo.exito ? (escaneo.resultado == 'SOBRANTE' ? 'sobrante' : 'ok') : 'error',
+                        tipo: escaneo.exito ? (ACEPTADA_CON_AVISO.includes(escaneo.resultado) ? 'sobrante' : 'ok') : 'error',
                         texto: escaneo.mensaje
                     })
                 }
