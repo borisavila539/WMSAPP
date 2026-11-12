@@ -19,6 +19,7 @@ import Icon from 'react-native-vector-icons/Feather'
 import { RootStackParams } from '../../../navigation/navigation'
 import Header from '../../../components/Header'
 import { WmSApi } from '../../../api/WMSApi'
+import { PrinterInterface } from '../../../interfaces/PrintersInterface'
 
 const { width, height } = Dimensions.get('window')
 const CARD_GAP = 8
@@ -253,6 +254,27 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
   const [tipoTelaLocal, setTipoTelaLocal] = useState('')
   const [showTipoTelaDropdown, setShowTipoTelaDropdown] = useState(false)
 
+  const [impresoras, setImpresoras] = useState<PrinterInterface[]>([])
+  const [cargandoImpresoras, setCargandoImpresoras] = useState(false)
+  const [showImpresoras, setShowImpresoras] = useState(false)
+
+  const getImpresoras = useCallback(async () => {
+    setCargandoImpresoras(true)
+    try {
+      const resp = await WmSApi.get<PrinterInterface[]>('Impresoras')
+      setImpresoras(resp.data ?? [])
+    } catch (err) {
+      console.log(err)
+      Alert.alert('Error', 'No se pudo obtener la lista de impresoras.')
+    } finally {
+      setCargandoImpresoras(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    getImpresoras()
+  }, [getImpresoras])
+
   useEffect(() => {
     if (rollos.length === 0) {
       setMostrarFiltros(true)
@@ -466,7 +488,22 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
       : selectedIds.size
   }, [allSelected, excludedIds.size, selectedIds.size, rollosFiltrados.length])
 
-  const imprimirEtiquetas = useCallback(async () => {
+  const abrirImpresoras = useCallback(() => {
+    if (totalSeleccionados === 0) {
+      Alert.alert('Aviso', 'Selecciona al menos una etiqueta.')
+      return
+    }
+
+    if (impresoras.length === 0) {
+      getImpresoras()
+    }
+
+    setShowImpresoras(true)
+  }, [totalSeleccionados, impresoras.length, getImpresoras])
+
+  const imprimirEtiquetas = useCallback(async (impresora: PrinterInterface) => {
+    setShowImpresoras(false)
+
     const items = rollosFiltrados.filter(r => isSelected(r.numeroRollo))
 
     if (items.length === 0) {
@@ -481,7 +518,9 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
           ? 'ImprimirEtiquetaTejidoPunto'
           : 'ImprimirEtiquetaDenim'
 
-      const response = await WmSApi.post<string>(endpoint, items)
+      const response = await WmSApi.post<string>(endpoint, items, {
+        params: { ipImpresora: impresora.iM_IPPRINTER },
+      })
 
       Alert.alert(
         'Impresión',
@@ -704,7 +743,7 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
             styles.printBtn,
             (totalSeleccionados === 0 || imprimiendo) && styles.printBtnDisabled,
           ]}
-          onPress={imprimirEtiquetas}
+          onPress={abrirImpresoras}
           disabled={totalSeleccionados === 0 || imprimiendo}
         >
           {imprimiendo ? (
@@ -765,6 +804,55 @@ export const ImpresionEtiquetasRollosScreen: FC<Props> = () => {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={showImpresoras}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowImpresoras(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.modalOverlay}
+          onPress={() => setShowImpresoras(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                Impresoras ({totalSeleccionados} etiquetas)
+              </Text>
+              <TouchableOpacity onPress={() => setShowImpresoras(false)}>
+                <Icon name="x" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {cargandoImpresoras ? (
+              <View style={styles.emptyBox}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : impresoras.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>No hay impresoras disponibles</Text>
+                <TouchableOpacity onPress={getImpresoras} style={styles.retryBtn}>
+                  <Text style={styles.selectText}>Reintentar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <ScrollView style={styles.modalList} nestedScrollEnabled>
+                {impresoras.map(impresora => (
+                  <TouchableOpacity
+                    key={`${impresora.iM_IPPRINTER}-${impresora.iM_DESCRIPTION_PRINTER}`}
+                    style={styles.optionRow}
+                    onPress={() => imprimirEtiquetas(impresora)}
+                  >
+                    <Text style={styles.optionText}>{impresora.iM_DESCRIPTION_PRINTER}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -1012,6 +1100,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 13,
     color: colors.textSecondary,
+  },
+  retryBtn: {
+    marginTop: 8,
   },
 
   bottomBar: {
