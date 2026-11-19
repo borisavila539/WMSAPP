@@ -100,6 +100,7 @@ import { CambioUbicacionTelaScreen } from '../screens/ModuloTela/CambioUbicacion
 import { ConsultarUbicacionRollosScreen } from '../screens/ModuloTela/ConsultaUbicacionRollo/ConsultarUbicacionRollosScreen';
 import { DiseñoParaImprimirEtiquetasUbicacionScreen } from '../screens/ModuloDiseñoEtiquetaAImprimir/DiseñoParaImprimirEtiquetasUbicacion/DiseñoParaImprimirEtiquetasUbicacionScreen';
 import { DiseñoEtiquetasEImpresionModule } from '../screens/MenuModulos/DiseñoEtiquetasEImpresionModule';
+import { EtiquetaUnidadScreen } from '../screens/ModuloDiseñoEtiquetaAImprimir/EtiquetaUnidad/EtiquetaUnidadScreen';
 import { ConsultaDiairosAbiertosScreen } from '../screens/ModuloTela/DiariosAbiertos/ConsultaDiariosAbiertos';
 import { DetalleDiarioMovimientoScreen } from '../screens/ModuloTela/DiariosAbiertos/ConsultaDetalleDiarioMovimiento';
 export type RootStackParams = {
@@ -205,6 +206,7 @@ export type RootStackParams = {
     ConsultarUbicacionRollosScreen: undefined,
     DiseñoParaImprimirEtiquetasUbicacionScreen: undefined,
     DiseñoEtiquetasEImpresionModule: undefined,
+    EtiquetaUnidadScreen: undefined,
     ConsultaDiairosAbiertosScreen: undefined,
     DetalleDiarioMovimientoScreen: undefined
 }
@@ -357,6 +359,7 @@ export const Navigation = () => {
             {/* Modulo de Diseño para imprimir etiquetas */}
             <Stack.Screen name='DiseñoEtiquetasEImpresionModule' options={{ title: 'DiseñoEtiquetasEImpresionModule' }} component={DiseñoEtiquetasEImpresionModule} />
             <Stack.Screen name='DiseñoParaImprimirEtiquetasUbicacionScreen' options={{ title: 'DiseñoParaImprimirEtiquetasUbicacionScreen' }} component={DiseñoParaImprimirEtiquetasUbicacionScreen} />
+            <Stack.Screen name='EtiquetaUnidadScreen' options={{ title: 'EtiquetaUnidadScreen' }} component={EtiquetaUnidadScreen} />
 
         </Stack.Navigator>
     )

@@ -9,6 +9,8 @@ const URLUbicacionRollos = 'http://10.100.2.17:8095/api/WMS_UbicacionRollos/'
 const URLDiseñoEtiquetas = 'http://10.100.2.17:8095/api/WMS_DiseñoEtiqueta/'
 const URLAuditoriaInterna = 'http://10.100.2.17:8095/api/IM_WMS_AuditoriaInterna/'//produccion
 //const URLAuditoriaInterna = 'http://localhost:13274/api/IM_WMS_AuditoriaInterna/'//Dev
+const URLEtiquetaUnidad = 'http://10.100.2.17:8095/api/IM_WMS_EtiquetaUnidad/'//produccion
+//const URLEtiquetaUnidad = 'http://localhost:13274/api/IM_WMS_EtiquetaUnidad/'//Dev
 //const WMSURLRecepcionYUbicacionAx = 'http://localhost:13274/api/WMSRecepcionYUbicacionAX/'//dev
 //const URLDiseñoEtiquetas = 'http://localhost:13274/api/WMS_DiseñoEtiqueta/'//Dev
 //const URLUbicacionRollos = 'http://localhost:13274/api/WMS_UbicacionRollos/'//Dev
@@ -16,4 +18,4 @@ const URLAuditoriaInterna = 'http://10.100.2.17:8095/api/IM_WMS_AuditoriaInterna
 //const WMSUrl = 'http://localhost:13274/api/WMS/'//Dev
 
 // const WMSMB = 'http://localhost:13274/api/WMSMB/'
-export { WMSUrl,WMSUrlCaex ,WMSMB, WMSSerigrafia,URLUbicacionRollos,WMSURLRecepcionYUbicacionAx,URLDiseñoEtiquetas,URLAuditoriaInterna};
+export { WMSUrl,WMSUrlCaex ,WMSMB, WMSSerigrafia,URLUbicacionRollos,WMSURLRecepcionYUbicacionAx,URLDiseñoEtiquetas,URLAuditoriaInterna,URLEtiquetaUnidad};

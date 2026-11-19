@@ -12,6 +12,7 @@ export const DiseñoEtiquetasEImpresionModule: FC<props> = ({ navigation }) => {
     const setScreens = () => {
         let tmp: ScreensInterface[] = [
             { Name: ' Etiqueta Ubicación', Screen: 'DiseñoParaImprimirEtiquetasUbicacionScreen', image: require('../../../src/assets/EtiquetaUbicacion.png') },
+            { Name: 'Etiqueta Unidad (QR pieza)', Screen: 'EtiquetaUnidadScreen', image: require('../../../src/assets/ReimpresionEtiquetas.png') },
         ]
         setData(tmp)
     }
